@@ -1,0 +1,162 @@
+{
+  "timestamp": "2025-06-13T17:25:43.131Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@example.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@example.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@example.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:25:49.991Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@igreja.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@igreja.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@igreja.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:25:59.239Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@admin.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:30:47.018Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@admin.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:30:56.939Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@example.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@example.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@example.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:31:05.369Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@admin.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:34:14.830Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@admin.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:34:16.137Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@admin.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:36:14.744Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@admin.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:38:45.544Z",
+  "type": "ERROR",
+  "message": "select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "stack": "Error: select * from `users` where `email` = 'admin@admin.com' limit 1 - SQLITE_ERROR: no such table: users",
+  "context": {
+    "query": "select * from `users` where `email` = ? limit ?",
+    "bindings": [
+      "admin@admin.com",
+      1
+    ],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:59:14.718Z",
+  "type": "ERROR",
+  "message": "select * from `events` order by `date` desc - SQLITE_ERROR: no such table: events",
+  "stack": "Error: select * from `events` order by `date` desc - SQLITE_ERROR: no such table: events",
+  "context": {
+    "query": "select * from `events` order by `date` desc",
+    "bindings": [],
+    "duration": "0ms"
+  }
+}
+{
+  "timestamp": "2025-06-13T17:59:14.756Z",
+  "type": "ERROR",
+  "message": "select * from `events` order by `date` desc - SQLITE_ERROR: no such table: events",
+  "stack": "Error: select * from `events` order by `date` desc - SQLITE_ERROR: no such table: events",
+  "context": {
+    "query": "select * from `events` order by `date` desc",
+    "bindings": [],
+    "duration": "0ms"
+  }
+}

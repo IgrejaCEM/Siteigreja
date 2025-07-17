@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-06-13T14:58:39.176Z",
+  "type": "SQL_QUERY",
+  "query": "select * from `settings` limit ?",
+  "bindings": [
+    1
+  ],
+  "duration": "NaNms"
+}
+{
+  "timestamp": "2025-06-13T15:00:13.629Z",
+  "type": "SQL_QUERY",
+  "query": "select * from `settings` limit ?",
+  "bindings": [
+    1
+  ],
+  "duration": "N/A"
+}
+{
+  "timestamp": "2025-06-13T15:00:13.666Z",
+  "type": "SQL_QUERY",
+  "query": "select * from `settings` limit ?",
+  "bindings": [
+    1
+  ],
+  "duration": "N/A"
+}

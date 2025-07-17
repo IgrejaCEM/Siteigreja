@@ -1,0 +1,249 @@
+body.event-dark, #root.event-dark, html.event-dark {
+  background: #181a1b !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  overflow-x: auto !important;
+  display: block !important;
+  color: #fff !important;
+}
+
+.banner-evento {
+  width: 100vw;
+  max-width: 100vw;
+  margin: 32px 0 0 0;
+  border-radius: 0;
+  box-shadow: 0 0 0 8px rgba(0,0,0,0.12);
+  background: #222;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 240px;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.banner-evento img {
+  width: 100vw;
+  height: 320px;
+  object-fit: cover;
+  object-position: center;
+  background: #111;
+  display: block;
+}
+
+.event-content-container {
+  max-width: 900px;
+  margin: 0 auto 0 auto;
+  background: transparent;
+  padding: 0 16px 48px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.event-info-block,
+.event-card,
+.ticket-lot {
+  background: #23272b !important;
+  color: #fff !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  border: 1px solid #333 !important;
+}
+
+.event-info-block h1,
+.event-info-row,
+.event-card h2,
+.ticket-lot-title,
+.ticket-lot-date,
+.ticket-lot-price {
+  color: #fff !important;
+}
+
+.ticket-lot {
+  border: 1px solid #333 !important;
+}
+
+.event-info-block {
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0;
+  padding: 40px 0 24px 0;
+  background: transparent !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.event-info-block h1 {
+  font-size: 2.8rem;
+  font-weight: 900;
+  margin-bottom: 12px;
+  color: #fff !important;
+  letter-spacing: 1px;
+}
+
+.event-info-row {
+  color: #fff !important;
+  font-size: 1.2rem;
+  gap: 40px;
+  margin-bottom: 0;
+}
+
+.event-details-row {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  margin-bottom: 48px;
+}
+
+.event-card {
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 24px 32px;
+  min-width: 280px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.event-card.description-card {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 100%;
+}
+
+.event-card.description-card h2 {
+  display: none;
+}
+
+.event-card.description-card p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #fff;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.event-card.tickets-card {
+  background: #23272b !important;
+  color: #fff !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  border: 1px solid #333 !important;
+}
+
+.event-card h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.ticket-lot {
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ticket-lot-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.ticket-lot-date {
+  color: #222;
+  font-size: 0.98rem;
+}
+.ticket-lot-price {
+  color: #222;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 8px 0 4px 0;
+}
+.ticket-lot-btn {
+  background: #222 !important;
+  color: #fff !important;
+  border: 1px solid #444 !important;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.2s;
+}
+.ticket-lot-btn:hover {
+  background: #444 !important;
+}
+
+input, textarea, select, .MuiInputBase-root, .MuiOutlinedInput-root {
+  background: #23272b !important;
+  color: #fff !important;
+  border: 1px solid #333 !important;
+}
+
+.MuiInputLabel-root, .MuiFormLabel-root, label {
+  color: #bbb !important;
+}
+
+.MuiPaper-root, .MuiDialog-paper {
+  background: #fff !important;
+  color: #222 !important;
+}
+
+.MuiStepLabel-label, .MuiStepIcon-root {
+  color: #fff !important;
+}
+
+.MuiAlert-root {
+  background: #fff !important;
+  color: #222 !important;
+  border: 1px solid #eee !important;
+}
+
+@media (max-width: 900px) {
+  .event-content-container {
+    max-width: 100%;
+    padding: 0 4vw 32px 4vw;
+  }
+  .event-details-row {
+    flex-direction: column;
+    gap: 18px;
+  }
+  .event-card {
+    min-width: unset;
+    width: 100%;
+    padding: 20px 12px;
+  }
+  .banner-evento {
+    max-width: 98vw;
+    min-height: 140px;
+  }
+  .banner-evento img {
+    height: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  .event-info-block {
+    padding: 16px 8px;
+  }
+  .event-details-row {
+    margin-bottom: 24px;
+  }
+} 
