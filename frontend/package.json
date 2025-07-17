@@ -23,7 +23,7 @@
     "date-fns": "^3.3.1",
     "dayjs": "^1.11.10",
     "express-session": "^1.17.3",
-    "grapesjs": "^0.21.3",
+    "grapesjs": "^0.19.5",
     "grapesjs-react": "^4.0.1",
     "jwt-decode": "^4.0.0",
     "passport": "^0.7.0",
