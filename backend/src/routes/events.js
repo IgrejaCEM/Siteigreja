@@ -5,7 +5,7 @@ const { authenticateToken, requireAdmin } = require('../middleware');
 const QRCode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
 const dayjs = require('dayjs');
-const EventProduct = require('../models/eventProduct');
+const EventProduct = require('../models/EventProduct');
 const RegistrationProduct = require('../models/RegistrationProduct');
 const PaymentGateway = require('../services/PaymentGateway');
 
