@@ -13,7 +13,7 @@ const config = {
   // MODO DE PAGAMENTO
   // true = modo fake (pagamentos sempre aprovados)
   // false = modo real (integração com gateway de pagamento)
-  PAYMENT_FAKE_MODE: true,
+  PAYMENT_FAKE_MODE: false,
   
   // Status padrão para pagamentos no modo fake
   FAKE_PAYMENT_STATUS: 'paid',
@@ -32,8 +32,41 @@ const config = {
   jwtSecret: process.env.JWT_SECRET || 'igreja-eventos-jwt-secret-key-2024',
 
   payment: {
-    apiKey: process.env.PAYMENT_API_KEY || 'test_key',
-    baseUrl: process.env.PAYMENT_API_URL || 'https://api.payment.test',
+    activeGateway: 'mercadopago', // Define Mercado Pago como gateway padrão
+    mercadopago: {
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'TEST-123',
+      publicKey: process.env.MERCADOPAGO_PUBLIC_KEY || 'TEST-123',
+      webhookUrl: process.env.MERCADOPAGO_WEBHOOK_URL || 'http://localhost:3005/api/payments/webhook',
+      sandbox: process.env.NODE_ENV !== 'production',
+      statementDescriptor: 'INSCRICAO', // Descrição que aparecerá na fatura do cartão
+      paymentMethods: {
+        creditCard: {
+          enabled: true,
+          maxInstallments: 12,
+          defaultInstallments: 1,
+          processingMode: 'aggregator' // ou 'gateway'
+        },
+        pix: {
+          enabled: true,
+          expirationTime: 24 * 60 * 60, // 24 horas em segundos
+          bank: '00000000' // Código do banco (opcional)
+        },
+        boleto: {
+          enabled: true,
+          expirationDays: 3, // Dias para vencimento
+          bank: 'bradesco' // Banco emissor
+        }
+      },
+      notificationSettings: {
+        webhookUrl: process.env.MERCADOPAGO_WEBHOOK_URL || 'http://localhost:3005/api/payments/webhook',
+        ipnUrl: process.env.MERCADOPAGO_IPN_URL || 'http://localhost:3005/api/payments/ipn'
+      }
+    },
+    abacatepay: {
+      apiKey: process.env.ABACATEPAY_API_KEY || 'abc_dev_hwNkfZYxj06YeTg0gb0C2cbg',
+      baseUrl: process.env.ABACATEPAY_API_URL || 'https://api.abacatepay.com',
+      enabled: false // Desativa o Acabate Pay
+    },
     defaultCurrency: 'BRL'
   },
 

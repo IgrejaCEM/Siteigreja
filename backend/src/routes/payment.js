@@ -144,25 +144,78 @@ router.get('/payments/:paymentId/status', authenticateToken, async (req, res) =>
 router.post('/payments/webhook', async (req, res) => {
   try {
     const event = req.body;
+    const config = require('../config');
     
-    switch (event.type) {
-      case 'payment.success':
-        await db('payments')
-          .where('payment_intent_id', event.data.id)
-          .update({
-            status: 'completed',
-            updated_at: new Date()
-          });
-        break;
+    // Verifica se é uma notificação do Mercado Pago
+    if (config.payment.activeGateway === 'mercadopago') {
+      const paymentId = event.data.id;
       
-      case 'payment.failed':
-        await db('payments')
-          .where('payment_intent_id', event.data.id)
-          .update({
-            status: 'failed',
-            updated_at: new Date()
-          });
-        break;
+      // Busca os detalhes do pagamento no Mercado Pago
+      const PaymentGateway = require('../services/PaymentGateway');
+      const paymentDetails = await PaymentGateway.getPaymentStatus(paymentId);
+      
+      let newStatus;
+      switch (paymentDetails.status) {
+        case 'approved':
+          newStatus = 'completed';
+          break;
+        case 'pending':
+          newStatus = 'pending';
+          break;
+        case 'rejected':
+        case 'cancelled':
+          newStatus = 'failed';
+          break;
+        default:
+          newStatus = 'pending';
+      }
+
+      // Atualiza o status do pagamento no banco de dados
+      await db('payments')
+        .where('payment_intent_id', paymentId)
+        .update({
+          status: newStatus,
+          payment_details: JSON.stringify(paymentDetails),
+          updated_at: new Date()
+        });
+
+      // Se o pagamento foi aprovado, atualiza o status das inscrições
+      if (newStatus === 'completed') {
+        const payment = await db('payments')
+          .where('payment_intent_id', paymentId)
+          .first();
+          
+        if (payment) {
+          await db('registrations')
+            .where('registration_code', payment.registration_code)
+            .update({
+              status: 'confirmed',
+              payment_status: 'paid',
+              updated_at: new Date()
+            });
+        }
+      }
+    } else {
+      // Processa notificações do Acabate Pay (mantido para compatibilidade)
+      switch (event.type) {
+        case 'payment.success':
+          await db('payments')
+            .where('payment_intent_id', event.data.id)
+            .update({
+              status: 'completed',
+              updated_at: new Date()
+            });
+          break;
+        
+        case 'payment.failed':
+          await db('payments')
+            .where('payment_intent_id', event.data.id)
+            .update({
+              status: 'failed',
+              updated_at: new Date()
+            });
+          break;
+      }
     }
 
     res.json({ received: true });
