@@ -3,7 +3,11 @@ const config = {
   server: {
     port: 3005,
     cors: {
-      origin: 'http://localhost:5173',
+      origin: [
+        'http://localhost:5173',
+        'https://igrejacemchurch.org',
+        'https://siteigreja-mctd5i4q8-igrejacems-projects.vercel.app'
+      ],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true

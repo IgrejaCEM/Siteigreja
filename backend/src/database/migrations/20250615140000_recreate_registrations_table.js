@@ -1,5 +1,12 @@
 exports.up = function(knex) {
-  return knex.schema.dropTableIfExists('registrations')
+  // Ordem correta: checkin_logs -> tickets -> registrations
+  return knex.schema.dropTableIfExists('checkin_logs')
+    .then(function() {
+      return knex.schema.dropTableIfExists('tickets');
+    })
+    .then(function() {
+      return knex.schema.dropTableIfExists('registrations');
+    })
     .then(function() {
       return knex.schema.createTable('registrations', function(table) {
         table.increments('id').primary();

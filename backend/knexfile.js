@@ -11,5 +11,15 @@ module.exports = {
     migrations: {
       directory: path.join(__dirname, 'src', 'database', 'migrations')
     }
+  },
+  production: {
+    client: 'pg',
+    connection: 'postgresql://postgres:WWiZILOORFMgerRjFMPSJLQrfLGFfviU@shuttle.proxy.rlwy.net:14638/railway',
+    migrations: {
+      directory: path.join(__dirname, 'src', 'database', 'migrations')
+    },
+    seeds: {
+      directory: path.join(__dirname, 'src', 'database', 'seeds')
+    }
   }
 }; 

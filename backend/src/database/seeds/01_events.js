@@ -4,7 +4,7 @@ exports.seed = async function(knex) {
   await knex('events').del();
   
   // Insere os eventos
-  const [event1] = await knex('events').insert([
+  const [event1Obj] = await knex('events').insert([
     {
       title: 'Congresso de Jovens 2024',
       description: 'Um evento incrível para jovens se conectarem e crescerem em sua fé.',
@@ -20,6 +20,9 @@ exports.seed = async function(knex) {
       updated_at: new Date()
     }
   ]).returning('id');
+
+  // Compatibilidade: pega o id correto (Postgres retorna objeto, SQLite retorna número)
+  const event1 = typeof event1Obj === 'object' && event1Obj !== null ? event1Obj.id : event1Obj;
 
   // Insere os lotes
   await knex('lots').insert([

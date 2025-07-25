@@ -10,8 +10,7 @@ exports.seed = async function(knex) {
         title: 'Bem-vindo à Igreja CEM',
         subtitle: 'Um lugar de fé, esperança e amor',
         description: 'Junte-se a nós em nossos eventos e celebrações'
-      }),
-      css: ''
+      })
     },
     {
       key: 'home_layout',
