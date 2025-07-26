@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { RequireAuth } from './RequireAuth';
 import {
   Box,
   Drawer,
@@ -43,6 +44,14 @@ const secondaryMenuItems = [
 ];
 
 export function AdminLayout({ children }) {
+  return (
+    <RequireAuth>
+      <AdminLayoutContent children={children} />
+    </RequireAuth>
+  );
+}
+
+function AdminLayoutContent({ children }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const navigate = useNavigate();
   const location = useLocation();

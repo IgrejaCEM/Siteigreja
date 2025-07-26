@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { RequireAuth } from './components/RequireAuth';
 import 'grapesjs/dist/css/grapes.min.css';
@@ -61,36 +61,38 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider theme={theme}>
-        <Router>
-          <Routes>
-            {/* Rotas Públicas */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/evento/:slug" element={<Evento />} />
-            <Route path="/evento/:id/inscricao" element={<Inscricao />} />
-            {/* Fallback: qualquer rota desconhecida redireciona para a home */}
-            <Route path="*" element={<Home />} />
-            
-            {/* Rotas Admin */}
-            <Route path="/admin/*" element={
-                <AdminLayout>
-                  <Routes>
-                    <Route path="/" element={<AdminDashboard />} />
-                    <Route path="eventos" element={<Eventos />} />
-                    <Route path="participantes" element={<Participantes />} />
-                    <Route path="financeiro" element={<Financeiro />} />
-                    <Route path="checkin" element={<CheckIn />} />
-                    <Route path="editor-home" element={<EditorHome />} />
-                    <Route path="criar-evento" element={<CriarEvento />} />
-                    <Route path="editar-evento/:id" element={<EditarEvento />} />
-                    <Route path="financeiro-evento/:id" element={<FinanceiroWrapper />} />
-                  </Routes>
-                </AdminLayout>
-            } />
-            <Route path="/editor-home-teste" element={<EditorHome />} />
-            <Route path="/teste-grapes-import" element={<TesteGrapesImport />} />
-          </Routes>
-        </Router>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              {/* Rotas Públicas */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/evento/:slug" element={<Evento />} />
+              <Route path="/evento/:id/inscricao" element={<Inscricao />} />
+              {/* Fallback: qualquer rota desconhecida redireciona para a home */}
+              <Route path="*" element={<Home />} />
+              
+              {/* Rotas Admin */}
+              <Route path="/admin/*" element={
+                  <AdminLayout>
+                    <Routes>
+                      <Route path="/" element={<AdminDashboard />} />
+                      <Route path="eventos" element={<Eventos />} />
+                      <Route path="participantes" element={<Participantes />} />
+                      <Route path="financeiro" element={<Financeiro />} />
+                      <Route path="checkin" element={<CheckIn />} />
+                      <Route path="editor-home" element={<EditorHome />} />
+                      <Route path="criar-evento" element={<CriarEvento />} />
+                      <Route path="editar-evento/:id" element={<EditarEvento />} />
+                      <Route path="financeiro-evento/:id" element={<FinanceiroWrapper />} />
+                    </Routes>
+                  </AdminLayout>
+              } />
+              <Route path="/editor-home-teste" element={<EditorHome />} />
+              <Route path="/teste-grapes-import" element={<TesteGrapesImport />} />
+            </Routes>
+          </Router>
+        </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
