@@ -534,13 +534,21 @@ router.post('/:id/register-multiple', async (req, res) => {
       }
     }
 
-    // Atualizar quantidade de vagas no lote
-    await trx('lots')
+    // Atualizar quantidade de vagas no lote com verificação de concorrência
+    const updateResult = await trx('lots')
       .where('id', selectedLot.id)
+      .where('quantity', '>=', inscricoes.length)
       .update({
-        quantity: selectedLot.quantity - inscricoes.length,
+        quantity: trx.raw(`quantity - ${inscricoes.length}`),
         updated_at: new Date()
       });
+
+    if (updateResult === 0) {
+      await trx.rollback();
+      return res.status(400).json({ error: 'Não há vagas suficientes disponíveis neste lote. Tente novamente.' });
+    }
+
+    console.log(`✅ Lote ${selectedLot.id} atualizado: ${selectedLot.quantity} -> ${selectedLot.quantity - inscricoes.length} vagas`);
 
     // Se o evento tem preço, criar registro de pagamento
     const totalAmount = (selectedLot.price * inscricoes.length) + productsTotal;
@@ -716,13 +724,21 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         throw inscricaoError;
       }
     }
-    // Atualizar quantidade de vagas
-    await trx('lots')
+    // Atualizar quantidade de vagas com verificação de concorrência
+    const updateResult = await trx('lots')
       .where('id', selectedLot.id)
+      .where('quantity', '>=', participantes.length)
       .update({
-        quantity: selectedLot.quantity - participantes.length,
+        quantity: trx.raw(`quantity - ${participantes.length}`),
         updated_at: new Date()
       });
+
+    if (updateResult === 0) {
+      await trx.rollback();
+      return res.status(400).json({ error: 'Não há vagas suficientes disponíveis neste lote. Tente novamente.' });
+    }
+
+    console.log(`✅ Lote ${selectedLot.id} atualizado: ${selectedLot.quantity} -> ${selectedLot.quantity - participantes.length} vagas`);
     // Pagamento
     const totalAmount = (selectedLot.price * participantes.length) + productsTotal;
     let paymentInfo = null;
