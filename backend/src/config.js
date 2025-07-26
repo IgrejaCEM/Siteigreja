@@ -40,7 +40,7 @@ const config = {
     mercadopago: {
       accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'TEST-123',
       publicKey: process.env.MERCADOPAGO_PUBLIC_KEY || 'TEST-123',
-      webhookUrl: process.env.MERCADOPAGO_WEBHOOK_URL || 'http://localhost:3005/api/payments/webhook',
+      webhookUrl: process.env.MERCADOPAGO_WEBHOOK_URL || (process.env.NODE_ENV === 'production' ? 'https://siteigreja-1.onrender.com/api/payments/webhook' : 'http://localhost:3005/api/payments/webhook'),
       sandbox: process.env.NODE_ENV !== 'production',
       statementDescriptor: 'INSCRICAO', // Descrição que aparecerá na fatura do cartão
       paymentMethods: {
@@ -62,8 +62,8 @@ const config = {
         }
       },
       notificationSettings: {
-        webhookUrl: process.env.MERCADOPAGO_WEBHOOK_URL || 'http://localhost:3005/api/payments/webhook',
-        ipnUrl: process.env.MERCADOPAGO_IPN_URL || 'http://localhost:3005/api/payments/ipn'
+        webhookUrl: process.env.MERCADOPAGO_WEBHOOK_URL || (process.env.NODE_ENV === 'production' ? 'https://siteigreja-1.onrender.com/api/payments/webhook' : 'http://localhost:3005/api/payments/webhook'),
+        ipnUrl: process.env.MERCADOPAGO_IPN_URL || (process.env.NODE_ENV === 'production' ? 'https://siteigreja-1.onrender.com/api/payments/ipn' : 'http://localhost:3005/api/payments/ipn')
       }
     },
     abacatepay: {

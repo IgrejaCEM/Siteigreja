@@ -18,11 +18,26 @@ exports.seed = async function(knex) {
       additional_info: 'Traga sua Bíblia e um caderno para anotações.',
       created_at: new Date(),
       updated_at: new Date()
+    },
+    {
+      title: 'CONNECT CONF 2025',
+      description: 'Evento especial da igreja para conectar pessoas e fortalecer a fé.',
+      date: new Date('2025-08-15 19:00:00'),
+      location: 'Igreja CEM - Salão Principal',
+      banner: '/images_site/banner-home.png',
+      banner_home: '/images_site/banner-home.png',
+      banner_evento: '/images_site/banner-home.png',
+      slug: 'connect-conf---2025',
+      status: 'active',
+      additional_info: 'Um evento especial para toda a família.',
+      created_at: new Date(),
+      updated_at: new Date()
     }
   ]).returning('id');
 
   // Compatibilidade: pega o id correto (Postgres retorna objeto, SQLite retorna número)
   const event1 = typeof event1Obj === 'object' && event1Obj !== null ? event1Obj.id : event1Obj;
+  const event2 = event1 + 1; // O segundo evento terá ID = event1 + 1
 
   // Insere os lotes
   await knex('lots').insert([
@@ -33,6 +48,17 @@ exports.seed = async function(knex) {
       quantity: 100,
       start_date: new Date('2024-03-01 00:00:00'),
       end_date: new Date('2024-04-15 23:59:59'),
+      status: 'active',
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      event_id: event2,
+      name: '1º Lote',
+      price: 50.00,
+      quantity: 200,
+      start_date: new Date('2025-01-01 00:00:00'),
+      end_date: new Date('2025-07-31 23:59:59'),
       status: 'active',
       created_at: new Date(),
       updated_at: new Date()
