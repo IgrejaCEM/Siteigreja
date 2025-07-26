@@ -103,6 +103,21 @@ const Inscricao = () => {
     fetchEvent();
   }, [id]);
 
+  // Função para verificar status do pagamento
+  const checkPaymentStatus = async () => {
+    if (registrationCode) {
+      try {
+        const response = await api.get(`/payments/${registrationCode}`);
+        if (response.data.status === 'completed') {
+          setPaymentPending(false);
+          setPaymentStatus('completed');
+        }
+      } catch (err) {
+        console.log('Erro ao verificar status do pagamento:', err);
+      }
+    }
+  };
+
   // Polling para status do pagamento
   useInterval(async () => {
     if (paymentPending && registrationCode) {
@@ -353,7 +368,20 @@ const Inscricao = () => {
         });
         if (response.data.payment_info && response.data.payment_info.payment_url) {
           console.log('Abrindo checkout:', response.data.payment_info.payment_url);
-          window.open(response.data.payment_info.payment_url, '_blank');
+          // Abre o checkout em uma nova aba
+          const checkoutWindow = window.open(response.data.payment_info.payment_url, '_blank');
+          
+          // Adiciona um listener para detectar quando a aba é fechada
+          if (checkoutWindow) {
+            const checkClosed = setInterval(() => {
+              if (checkoutWindow.closed) {
+                clearInterval(checkClosed);
+                console.log('Checkout fechado, verificando status do pagamento...');
+                // Verifica o status do pagamento quando a aba é fechada
+                checkPaymentStatus();
+              }
+            }, 1000);
+          }
         } else {
           setError('Não foi possível obter o link do checkout. Tente novamente ou entre em contato com o suporte.');
           setLoading(false);
@@ -666,8 +694,13 @@ const Inscricao = () => {
             </Typography>
             {paymentPending ? (
               <>
-                <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
-                  <strong>Pagamento pendente:</strong> Para confirmar sua inscrição, finalize o pagamento na página da AbacatePay.<br/>
+                <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
+                  <strong>Pagamento pendente:</strong> O checkout do Mercado Pago foi aberto em uma nova aba.<br/>
+                  <Typography variant="body2" sx={{ mt: 1, mb: 2 }}>
+                    • Complete o pagamento na aba que foi aberta<br/>
+                    • Após o pagamento, feche a aba e volte aqui<br/>
+                    • O status será atualizado automaticamente
+                  </Typography>
                   <Button
                     variant="contained"
                     color="primary"
@@ -678,10 +711,22 @@ const Inscricao = () => {
                     disabled={openingPayment}
                     onClick={() => setOpeningPayment(true)}
                   >
-                    {openingPayment ? <CircularProgress size={20} color="inherit" /> : 'Ir para pagamento'}
+                    {openingPayment ? <CircularProgress size={20} color="inherit" /> : 'Abrir checkout novamente'}
                   </Button>
                   <br/>
-                  <span style={{ fontSize: 13, color: '#555' }}>Após o pagamento, você receberá a confirmação por e-mail ou WhatsApp.<br/>Se não receber em até 30 minutos, entre em contato com o suporte do evento.</span>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={checkPaymentStatus}
+                    sx={{ mt: 1 }}
+                  >
+                    Verificar status do pagamento
+                  </Button>
+                  <br/>
+                  <span style={{ fontSize: 13, color: '#555', marginTop: 2, display: 'block' }}>
+                    Após o pagamento, você receberá a confirmação por e-mail ou WhatsApp.<br/>
+                    Se não receber em até 30 minutos, entre em contato com o suporte do evento.
+                  </span>
                 </Alert>
               </>
             ) : paymentStatus === 'completed' ? (
