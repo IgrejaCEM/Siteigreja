@@ -21,7 +21,11 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401) {
+    // Não redireciona automaticamente se estiver na página de inscrição
+    const currentPath = window.location.pathname;
+    const isInscricaoPage = currentPath.includes('/inscricao') || currentPath.includes('/evento');
+    
+    if (error.response?.status === 401 && !isInscricaoPage) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = APP_CONFIG.routes.login;

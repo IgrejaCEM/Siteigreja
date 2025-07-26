@@ -329,6 +329,7 @@ const Inscricao = () => {
 
   // NOVA FUNÇÃO: Abre o checkout AbacatePay antes de finalizar inscrição
   const handleCheckoutAndNext = async () => {
+    console.log('🚀 Iniciando processo de checkout...');
     setLoading(true);
     setError('');
     try {
@@ -359,6 +360,9 @@ const Inscricao = () => {
       }));
       const total = calculateTotal();
       if (total > 0) {
+        console.log('💰 Total a pagar:', total);
+        console.log('📝 Dados da inscrição:', { participantes: participantesToSend, lot_id: selectedLotId, payment_method: paymentMethod });
+        
         // Gera cobrança e obtém link do checkout
         const response = await api.post(`/events/${event.id}/inscricao-unificada`, {
           participantes: participantesToSend,
@@ -367,7 +371,9 @@ const Inscricao = () => {
           products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
         });
         if (response.data.payment_info && response.data.payment_info.payment_url) {
-          console.log('Abrindo checkout:', response.data.payment_info.payment_url);
+          console.log('✅ Resposta do servidor:', response.data);
+          console.log('🔗 URL do checkout:', response.data.payment_info.payment_url);
+          
           // Abre o checkout em uma nova aba
           const checkoutWindow = window.open(response.data.payment_info.payment_url, '_blank');
           
@@ -396,7 +402,14 @@ const Inscricao = () => {
         setActiveStep((prevStep) => prevStep + 1);
       }
     } catch (error) {
-      console.error('Erro ao fazer inscrição:', error);
+      console.error('❌ Erro ao fazer inscrição:', error);
+      console.error('📊 Detalhes do erro:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      // Não redireciona em caso de erro, apenas mostra a mensagem
       setError(
         error.response?.data?.error ||
         error.response?.data?.details ||
