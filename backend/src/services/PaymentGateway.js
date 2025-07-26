@@ -53,15 +53,12 @@ class MercadoPagoGateway {
       // Adiciona campos específicos para cada método de pagamento
       if (mpMethod === 'pix') {
         payload.payment_method_id = 'pix';
-        // Remover payment_type_id pois não é aceito pelo Mercado Pago
-        // payload.payment_type_id = 'pix';
-        payload.transaction_details = {
-          financial_institution: '00000000'
-        };
+        // Não enviar payment_type_id!
+        // Só envie transaction_details se realmente necessário (opcional para PIX)
+        // payload.transaction_details = { financial_institution: '00000000' };
       } else if (mpMethod === 'bolbradesco') {
         payload.payment_method_id = 'bolbradesco';
-        // Remover payment_type_id pois não é aceito pelo Mercado Pago
-        // payload.payment_type_id = 'ticket';
+        // Não enviar payment_type_id!
         payload.date_of_expiration = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(); // 3 dias
       } else if (mpMethod === 'credit_card' && customer.card_token) {
         payload.token = customer.card_token;
@@ -72,6 +69,9 @@ class MercadoPagoGateway {
       if (process.env.NODE_ENV === 'production') {
         payload.notification_url = process.env.MERCADOPAGO_WEBHOOK_URL || 'https://siteigreja-1.onrender.com/api/payments/webhook';
       }
+
+      // Remover qualquer campo payment_type_id do payload, se existir
+      if (payload.payment_type_id) delete payload.payment_type_id;
 
       const response = await this.api.post('/payments', payload);
       
