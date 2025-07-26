@@ -1,4 +1,5 @@
-export const API_BASE_URL = 'http://localhost:3005/api';
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'https://siteigreja-1.onrender.com/api';
 
 export const APP_CONFIG = {
   name: 'Sistema de Eventos',
