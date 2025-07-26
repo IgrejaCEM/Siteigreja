@@ -41,6 +41,20 @@ const theme = createTheme({
       fontWeight: 600,
     },
   },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        // Suprimir warnings de -ms-high-contrast
+        '@media (-ms-high-contrast: active), (-ms-high-contrast: none)': {
+          // Regras vazias para suprimir warnings
+        },
+        // Forced Colors Mode - nova especificação
+        '@media (forced-colors: active)': {
+          // Regras para modo de cores forçadas
+        },
+      },
+    },
+  },
 });
 
 export default function App() {
