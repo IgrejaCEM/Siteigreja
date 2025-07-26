@@ -8,8 +8,7 @@ class MercadoPagoGateway {
       baseURL: 'https://api.mercadopago.com/v1',
       headers: {
         'Authorization': `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN || config.payment.mercadopago.accessToken}`,
-        'Content-Type': 'application/json',
-        'X-Idempotency-Key': Date.now().toString() // Chave de idempotência para evitar duplicidade
+        'Content-Type': 'application/json'
       }
     });
   }
@@ -77,7 +76,14 @@ class MercadoPagoGateway {
       // Remover qualquer campo payment_type_id do payload, se existir
       if (payload.payment_type_id) delete payload.payment_type_id;
 
-      const response = await this.api.post('/payments', payload);
+      // Adicionar header de idempotência único para cada requisição
+      const idempotencyKey = `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const response = await this.api.post('/payments', payload, {
+        headers: {
+          'X-Idempotency-Key': idempotencyKey
+        }
+      });
       
       let paymentUrl = '';
       if (response.data.point_of_interaction) {
