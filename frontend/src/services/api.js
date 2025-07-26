@@ -21,15 +21,26 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   response => response,
   error => {
+    console.log('🔍 Interceptor detectou erro:', error.response?.status, error.config?.url);
+    
     // Não redireciona automaticamente se estiver na página de inscrição
     const currentPath = window.location.pathname;
     const isInscricaoPage = currentPath.includes('/inscricao') || currentPath.includes('/evento');
+    const isCheckoutProcess = sessionStorage.getItem('checkout_in_progress') === 'true';
     
-    if (error.response?.status === 401 && !isInscricaoPage) {
+    console.log('📍 Página atual:', currentPath);
+    console.log('🎫 É página de inscrição:', isInscricaoPage);
+    console.log('💳 Checkout em andamento:', isCheckoutProcess);
+    
+    if (error.response?.status === 401 && !isInscricaoPage && !isCheckoutProcess) {
+      console.log('🔄 Redirecionando para login...');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = APP_CONFIG.routes.login;
+    } else if (error.response?.status === 401) {
+      console.log('⏸️ Redirecionamento bloqueado - checkout em andamento');
     }
+    
     return Promise.reject(error);
   }
 );

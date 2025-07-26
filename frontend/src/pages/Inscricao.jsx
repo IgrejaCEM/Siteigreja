@@ -56,6 +56,9 @@ const Inscricao = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  
+  // Proteção contra redirecionamento não intencional
+  const [preventRedirect, setPreventRedirect] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -107,6 +110,48 @@ const Inscricao = () => {
     fetchEvent();
   }, [id]);
 
+  // Proteção contra redirecionamento durante checkout
+  useEffect(() => {
+    if (preventRedirect) {
+      console.log('🛡️ Proteção contra redirecionamento ativada');
+      
+      // Intercepta tentativas de redirecionamento
+      const handleBeforeUnload = (e) => {
+        if (activeStep >= 1) {
+          console.log('⚠️ Tentativa de sair da página detectada');
+          e.preventDefault();
+          e.returnValue = '';
+          return '';
+        }
+      };
+
+      // Intercepta mudanças de URL
+      const handlePopState = (e) => {
+        if (activeStep >= 1) {
+          console.log('⚠️ Tentativa de navegação detectada');
+          e.preventDefault();
+          window.history.pushState(null, '', window.location.pathname);
+        }
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      window.addEventListener('popstate', handlePopState);
+
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [preventRedirect, activeStep]);
+
+  // Limpa o flag de checkout quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      console.log('🧹 Limpando flags de checkout...');
+      sessionStorage.removeItem('checkout_in_progress');
+    };
+  }, []);
+
   // Função para verificar status do pagamento
   const checkPaymentStatus = async () => {
     if (registrationCode) {
@@ -115,6 +160,9 @@ const Inscricao = () => {
         if (response.data.status === 'completed') {
           setPaymentPending(false);
           setPaymentStatus('completed');
+          // Limpa o flag de checkout em andamento
+          sessionStorage.removeItem('checkout_in_progress');
+          setPreventRedirect(false);
         }
       } catch (err) {
         console.log('Erro ao verificar status do pagamento:', err);
@@ -334,6 +382,8 @@ const Inscricao = () => {
   // NOVA FUNÇÃO: Abre o checkout AbacatePay antes de finalizar inscrição
   const handleCheckoutAndNext = async () => {
     console.log('🚀 Iniciando processo de checkout...');
+    setPreventRedirect(true); // Ativa proteção contra redirecionamento
+    sessionStorage.setItem('checkout_in_progress', 'true'); // Marca checkout em andamento
     setLoading(true);
     setError('');
     try {
