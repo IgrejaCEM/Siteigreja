@@ -84,17 +84,21 @@ const Inscricao = () => {
   const [openingPayment, setOpeningPayment] = useState(false);
 
   useEffect(() => {
+    console.log('🎯 Inscricao component mounted/updated, event ID:', id);
     const fetchEvent = async () => {
       try {
+        console.log('📡 Carregando dados do evento:', id);
         const response = await api.get(`/events/${id}`);
+        console.log('✅ Evento carregado:', response.data.title);
         setEvent(response.data);
         // Seleciona o primeiro lote disponível por padrão
         if (response.data.lots && response.data.lots.length > 0) {
           setSelectedLotId(response.data.lots[0].id);
+          console.log('🎫 Lote selecionado:', response.data.lots[0].name);
         }
       } catch (error) {
+        console.error('❌ Erro ao carregar evento:', error);
         setError('Erro ao carregar evento');
-        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -775,6 +779,8 @@ const Inscricao = () => {
     }
   };
 
+  console.log('🎨 Renderizando página de inscrição, step:', activeStep, 'loading:', loading);
+  
   return (
     <Box>
       <ModernHeader />
@@ -782,7 +788,7 @@ const Inscricao = () => {
       <Container maxWidth="lg" sx={{ mt: 4, mb: 8 }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h4" gutterBottom align="center">
-            Inscrição para {event.title}
+            Inscrição para {event?.title || 'Carregando...'}
           </Typography>
 
           <Box sx={{ mb: 4 }}>

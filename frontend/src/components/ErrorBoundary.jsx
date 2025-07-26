@@ -12,12 +12,13 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    console.error('🚨 Error Boundary capturou um erro:', error);
+    console.error('📋 Error Info:', errorInfo);
     this.setState({
       error: error,
       errorInfo: errorInfo
     });
     // Aqui você pode implementar o log do erro para um serviço de monitoramento
-    console.error('Error Boundary capturou um erro:', error, errorInfo);
   }
 
   render() {
