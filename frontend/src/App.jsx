@@ -54,8 +54,8 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/evento/:slug" element={<Evento />} />
             <Route path="/evento/:id/inscricao" element={<Inscricao />} />
-            {/* Fallback: qualquer rota desconhecida redireciona para login */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            {/* Fallback: qualquer rota desconhecida redireciona para a home */}
+            <Route path="*" element={<Home />} />
             
             {/* Rotas Admin */}
             <Route path="/admin/*" element={
