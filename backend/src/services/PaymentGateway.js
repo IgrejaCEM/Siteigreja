@@ -52,6 +52,11 @@ class MercadoPagoGateway {
         }
       };
 
+      // Log para debug da URL de notificação
+      console.log('🔗 URL de notificação configurada:', payload.notification_url);
+      console.log('🌍 NODE_ENV:', process.env.NODE_ENV);
+      console.log('🔑 MERCADOPAGO_WEBHOOK_URL:', process.env.MERCADOPAGO_WEBHOOK_URL);
+
       // Adiciona campos específicos para cada método de pagamento
       if (mpMethod === 'pix') {
         payload.payment_method_id = 'pix';
