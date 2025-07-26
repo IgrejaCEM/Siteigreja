@@ -53,17 +53,24 @@ class MercadoPagoGateway {
       // Adiciona campos específicos para cada método de pagamento
       if (mpMethod === 'pix') {
         payload.payment_method_id = 'pix';
-        payload.payment_type_id = 'pix';
+        // Remover payment_type_id pois não é aceito pelo Mercado Pago
+        // payload.payment_type_id = 'pix';
         payload.transaction_details = {
           financial_institution: '00000000'
         };
       } else if (mpMethod === 'bolbradesco') {
         payload.payment_method_id = 'bolbradesco';
-        payload.payment_type_id = 'ticket';
+        // Remover payment_type_id pois não é aceito pelo Mercado Pago
+        // payload.payment_type_id = 'ticket';
         payload.date_of_expiration = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(); // 3 dias
       } else if (mpMethod === 'credit_card' && customer.card_token) {
         payload.token = customer.card_token;
         payload.binary_mode = true;
+      }
+
+      // Ajustar notification_url para produção
+      if (process.env.NODE_ENV === 'production') {
+        payload.notification_url = process.env.MERCADOPAGO_WEBHOOK_URL || 'https://siteigreja-1.onrender.com/api/payments/webhook';
       }
 
       const response = await this.api.post('/payments', payload);
