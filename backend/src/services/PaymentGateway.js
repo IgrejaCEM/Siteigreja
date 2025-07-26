@@ -39,7 +39,9 @@ class MercadoPagoGateway {
           first_name: customer.name ? customer.name.split(' ')[0] : '',
           last_name: customer.name ? customer.name.split(' ').slice(1).join(' ') : ''
         },
-        notification_url: config.payment.mercadopago.webhookUrl,
+        notification_url: process.env.NODE_ENV === 'production' 
+          ? (process.env.MERCADOPAGO_WEBHOOK_URL || 'https://siteigreja-1.onrender.com/api/payments/webhook')
+          : 'http://localhost:3005/api/payments/webhook',
         statement_descriptor: 'INSCRICAO',
         external_reference: customer.registration_code || '',
         installments: 1, // Parcelas (pode ser configurável)
@@ -65,10 +67,7 @@ class MercadoPagoGateway {
         payload.binary_mode = true;
       }
 
-      // Ajustar notification_url para produção
-      if (process.env.NODE_ENV === 'production') {
-        payload.notification_url = process.env.MERCADOPAGO_WEBHOOK_URL || 'https://siteigreja-1.onrender.com/api/payments/webhook';
-      }
+      // A notification_url já está configurada corretamente no payload base
 
       // Remover qualquer campo payment_type_id do payload, se existir
       if (payload.payment_type_id) delete payload.payment_type_id;
