@@ -416,7 +416,7 @@ const Inscricao = () => {
         const response = await api.post(`/events/${event.id}/inscricao-unificada`, {
           participantes: participantesToSend,
           lot_id: selectedLotId,
-          payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
+          payment_method: 'PIX', // Usando PIX como método padrão (mais simples)
           products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
         });
         if (response.data.payment_info && response.data.payment_info.payment_url) {
