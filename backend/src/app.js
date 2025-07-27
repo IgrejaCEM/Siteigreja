@@ -67,6 +67,9 @@ app.use(express.urlencoded({ extended: true }));
 // Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, '../../frontend/public')));
 
+// Servir arquivos de upload
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // API Routes
 app.use('/api', routes);
 
