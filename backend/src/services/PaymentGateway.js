@@ -15,35 +15,40 @@ class MercadoPagoGateway {
 
   async createPayment({ amount, description, customer, method = 'CREDITCARD' }) {
     try {
-      // Mapeamento dos métodos para os valores aceitos pelo Mercado Pago
-      const mpMethodMap = {
-        PIX: 'pix',
-        BOLETO: 'bolbradesco',
-        CREDITCARD: 'credit_card',
-        CREDIT_CARD: 'credit_card',
-      };
-      const mpMethod = mpMethodMap[method] || 'credit_card';
-
-      // Monta o payload base
+      // Checkout Pro - Não precisa especificar método, usuário escolhe dentro do checkout
       const payload = {
-        transaction_amount: Number(amount),
-        description: description || 'Pagamento de inscrição',
-        payment_method_id: mpMethod,
+        items: [
+          {
+            title: description || 'Inscrição no Evento',
+            quantity: 1,
+            unit_price: Number(amount)
+          }
+        ],
         payer: {
+          name: customer.name || '',
           email: customer.email || '',
           identification: {
             type: 'CPF',
             number: customer.cpf || ''
-          },
-          first_name: customer.name ? customer.name.split(' ')[0] : '',
-          last_name: customer.name ? customer.name.split(' ').slice(1).join(' ') : ''
+          }
         },
+        back_urls: {
+          success: process.env.NODE_ENV === 'production' 
+            ? 'https://igrejacemchurch.org/inscricao/sucesso'
+            : 'http://localhost:5173/inscricao/sucesso',
+          failure: process.env.NODE_ENV === 'production'
+            ? 'https://igrejacemchurch.org/inscricao/erro'
+            : 'http://localhost:5173/inscricao/erro',
+          pending: process.env.NODE_ENV === 'production'
+            ? 'https://igrejacemchurch.org/inscricao/pendente'
+            : 'http://localhost:5173/inscricao/pendente'
+        },
+        auto_return: 'approved',
+        external_reference: customer.registration_code || '',
         notification_url: process.env.NODE_ENV === 'production' 
           ? (process.env.MERCADOPAGO_WEBHOOK_URL || 'https://siteigreja-1.onrender.com/api/payments/webhook')
           : 'http://localhost:3005/api/payments/webhook',
         statement_descriptor: 'INSCRICAO',
-        external_reference: customer.registration_code || '',
-        installments: 1, // Parcelas (pode ser configurável)
         metadata: {
           registration_code: customer.registration_code,
           customer_id: customer.id,
@@ -51,65 +56,24 @@ class MercadoPagoGateway {
         }
       };
 
-      // Log para debug da URL de notificação
-      console.log('🔗 URL de notificação configurada:', payload.notification_url);
-      console.log('🌍 NODE_ENV:', process.env.NODE_ENV);
-      console.log('🔑 MERCADOPAGO_WEBHOOK_URL:', process.env.MERCADOPAGO_WEBHOOK_URL);
+      console.log('🔗 Criando checkout Pro do Mercado Pago...');
+      console.log('📦 Payload:', JSON.stringify(payload, null, 2));
 
-      // Adiciona campos específicos para cada método de pagamento
-      if (mpMethod === 'pix') {
-        payload.payment_method_id = 'pix';
-        // Não enviar payment_type_id!
-        // Só envie transaction_details se realmente necessário (opcional para PIX)
-        // payload.transaction_details = { financial_institution: '00000000' };
-      } else if (mpMethod === 'bolbradesco') {
-        payload.payment_method_id = 'bolbradesco';
-        // Não enviar payment_type_id!
-        payload.date_of_expiration = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(); // 3 dias
-      } else if (mpMethod === 'credit_card' && customer.card_token) {
-        payload.token = customer.card_token;
-        payload.binary_mode = true;
-      }
-
-      // A notification_url já está configurada corretamente no payload base
-
-      // Remover qualquer campo payment_type_id do payload, se existir
-      if (payload.payment_type_id) delete payload.payment_type_id;
-
-      // Adicionar header de idempotência único para cada requisição
-      const idempotencyKey = `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Criar preferência de pagamento (Checkout Pro)
+      const response = await this.api.post('/checkout/preferences', payload);
       
-      const response = await this.api.post('/payments', payload, {
-        headers: {
-          'X-Idempotency-Key': idempotencyKey
-        }
-      });
-      
-      let paymentUrl = '';
-      if (response.data.point_of_interaction) {
-        if (mpMethod === 'pix') {
-          paymentUrl = response.data.point_of_interaction.transaction_data.qr_code_base64;
-        } else if (mpMethod === 'bolbradesco') {
-          paymentUrl = response.data.transaction_details.external_resource_url;
-        } else {
-          paymentUrl = response.data.point_of_interaction.transaction_data.ticket_url;
-        }
-      }
+      console.log('✅ Checkout Pro criado:', response.data.id);
 
       return {
         payment_id: response.data.id,
-        payment_url: paymentUrl,
-        status: response.data.status,
-        status_detail: response.data.status_detail,
-        payment_method_id: response.data.payment_method_id,
-        payment_type_id: response.data.payment_type_id,
+        payment_url: response.data.init_point, // URL do checkout onde usuário escolhe método
+        status: 'pending',
+        status_detail: 'pending',
         external_reference: response.data.external_reference,
-        transaction_details: response.data.transaction_details,
-        point_of_interaction: response.data.point_of_interaction,
         raw: response.data
       };
     } catch (error) {
-      console.error('Erro ao criar pagamento Mercado Pago:', error.response?.data || error.message);
+      console.error('Erro ao criar checkout Mercado Pago:', error.response?.data || error.message);
       throw error;
     }
   }

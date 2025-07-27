@@ -216,9 +216,8 @@ const Inscricao = () => {
     }
     if (activeStep === 1) {
       const total = calculateTotal();
-      if (total > 0 && !paymentMethod) {
-        setError('Por favor, selecione uma forma de pagamento.');
-        return;
+      if (total > 0) {
+        // Validação removida - método será escolhido no checkout
       }
     }
     setActiveStep((prevStep) => prevStep + 1);
@@ -421,7 +420,7 @@ const Inscricao = () => {
         const response = await api.post(`/events/${event.id}/inscricao-unificada`, {
           participantes: participantesToSend,
           lot_id: selectedLotId,
-          payment_method: paymentMethod,
+          payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
           products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
         });
         if (response.data.payment_info && response.data.payment_info.payment_url) {
@@ -739,38 +738,40 @@ const Inscricao = () => {
         );
 
       case 1:
-        // Novo passo: seleção de método de pagamento
+        // Passo de confirmação e pagamento
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Selecione a forma de pagamento
+              Confirme sua inscrição
             </Typography>
-            <FormControl component="fieldset" sx={{ mb: 2 }}>
-              <FormLabel component="legend">Forma de Pagamento</FormLabel>
-              <RadioGroup
-                row
-                value={paymentMethod}
-                onChange={e => setPaymentMethod(e.target.value)}
-              >
-                <FormControlLabel value="PIX" control={<Radio />} label="Pix" />
-                <FormControlLabel value="BOLETO" control={<Radio />} label="Boleto" />
-                <FormControlLabel value="CREDITCARD" control={<Radio />} label="Cartão de Crédito" />
-              </RadioGroup>
-            </FormControl>
+            
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="body2">
+                <strong>Resumo da Inscrição:</strong>
+              </Typography>
+              <Typography variant="body2">
+                • {inscricoes.length} participante(s)
+              </Typography>
+              <Typography variant="body2">
+                • Total: R$ {calculateTotal().toFixed(2)}
+              </Typography>
+            </Alert>
+
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Clique no botão abaixo para ir ao checkout do Mercado Pago, onde você poderá escolher a forma de pagamento (PIX, Cartão de Crédito, Boleto, etc.).
+            </Typography>
+
             <Button
               variant="contained"
               color="primary"
-              onClick={() => {
-                if (!paymentMethod) {
-                  setError('Por favor, selecione uma forma de pagamento.');
-                  return;
-                }
-                handleCheckoutAndNext();
-              }}
+              size="large"
+              onClick={handleCheckoutAndNext}
               disabled={loading}
+              sx={{ mt: 2 }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Avançar para pagamento'}
+              {loading ? <CircularProgress size={24} /> : 'Ir para o Checkout'}
             </Button>
+            
             {error && (
               <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
             )}
