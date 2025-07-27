@@ -10,33 +10,28 @@ const routes = require('./routes');
 
 const app = express();
 
-// Configuração CORS simplificada
+// Configuração CORS PERMISSIVA para resolver o problema
 app.use(cors({
-  origin: function (origin, callback) {
-    // Permitir requests sem origin (como mobile apps)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'https://igrejacemchurch.org',
-      'https://www.igrejacemchurch.org',
-      'https://siteigreja-mctd5i4q8-igrejacems-projects.vercel.app',
-      'https://siteigreja.vercel.app'
-    ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('🚫 Origin bloqueada:', origin);
-      callback(null, true); // Permitir temporariamente para debug
-    }
-  },
+  origin: true, // Permitir todas as origens
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Content-Length'],
   credentials: true,
   optionsSuccessStatus: 200
 }));
+
+// Middleware para adicionar headers CORS em todas as respostas
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Content-Length');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // Configuração do Helmet mais permissiva
 app.use(helmet({
