@@ -1,20 +1,5 @@
 require('dotenv').config();
 const path = require('path');
-const { db } = require('./database/db');
-
-async function testSettings() {
-  try {
-    const settings = await db('settings').first();
-    console.log('Settings:', settings);
-  } catch (error) {
-    console.error('Erro ao acessar tabela settings:', error);
-    if (error && error.stack) console.error(error.stack);
-  } finally {
-    process.exit();
-  }
-}
-
-testSettings();
 
 const config = {
   jwtSecret: process.env.JWT_SECRET || 'igreja-eventos-jwt-secret-key-2024',
@@ -30,6 +15,15 @@ const config = {
     },
     seeds: {
       directory: path.resolve(__dirname, '../database/seeds')
+    }
+  },
+  payment: {
+    mercadopago: {
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || '',
+      publicKey: process.env.MERCADOPAGO_PUBLIC_KEY || '',
+      clientId: process.env.MERCADOPAGO_CLIENT_ID || '',
+      clientSecret: process.env.MERCADOPAGO_CLIENT_SECRET || '',
+      sandbox: process.env.NODE_ENV !== 'production'
     }
   },
   server: {
