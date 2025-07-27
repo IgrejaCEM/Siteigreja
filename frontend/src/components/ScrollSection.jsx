@@ -1,10 +1,36 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 
 export default function ScrollSection() {
   const sectionRef = useRef(null);
   const textRef = useRef(null);
   const wordsRefs = useRef([]);
+  const [imageVersion, setImageVersion] = useState(Date.now()); // Para cache-busting
+
+  // Função para gerar URL da imagem com cache-busting
+  const getImageUrl = (imgNumber) => {
+    const basePath = `/images_site/${imgNumber}`;
+    const extensions = ['.jpg', '.jpeg', '.png', '.webp'];
+    
+    // Tenta diferentes extensões
+    for (const ext of extensions) {
+      const url = `${basePath}${ext}?v=${imageVersion}`;
+      return url;
+    }
+    
+    // Fallback
+    return `${basePath}.jpg?v=${imageVersion}`;
+  };
+
+  // Função para recarregar imagens
+  const reloadImages = () => {
+    setImageVersion(Date.now());
+  };
+
+  // Recarregar imagens quando o componente montar
+  useEffect(() => {
+    reloadImages();
+  }, []);
 
   const handleScroll = () => {
     if (!sectionRef.current || !textRef.current) return;
@@ -120,8 +146,23 @@ export default function ScrollSection() {
         <Box
           key={index}
           component="img"
-          src={`/images_site/${img.img}${img.img === '1' || img.img === '8' || img.img === '9' || img.img === '16' ? '.jpg' : '.jpeg'}`}
+          src={getImageUrl(img.img)}
           alt=""
+          onError={(e) => {
+            console.log(`Erro ao carregar imagem ${img.img}:`, e.target.src);
+            // Tenta outras extensões se falhar
+            const currentSrc = e.target.src;
+            if (currentSrc.includes('.jpg')) {
+              e.target.src = currentSrc.replace('.jpg', '.jpeg');
+            } else if (currentSrc.includes('.jpeg')) {
+              e.target.src = currentSrc.replace('.jpeg', '.png');
+            } else if (currentSrc.includes('.png')) {
+              e.target.src = currentSrc.replace('.png', '.webp');
+            }
+          }}
+          onLoad={() => {
+            console.log(`Imagem ${img.img} carregada com sucesso`);
+          }}
           sx={{
             position: 'absolute',
             top: img.top,

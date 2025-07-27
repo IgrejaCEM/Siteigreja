@@ -100,6 +100,14 @@ router.post('/events', async (req, res) => {
       });
     }
 
+    // Gerar slug a partir do título
+    const slug = title
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '') // remove caracteres especiais, exceto espaços e hífens
+      .trim() // remove espaços em branco do início e do fim
+      .replace(/\s+/g, '-') // substitui espaços por hífens
+      .replace(/-+/g, '-'); // substitui múltiplos hífens por um único hífen
+
     // Validar lotes se houver pagamento
     if (has_payment && (!lots || !Array.isArray(lots) || lots.length === 0)) {
       return res.status(400).json({
@@ -113,12 +121,6 @@ router.post('/events', async (req, res) => {
         error: 'É necessário definir um gateway de pagamento quando o pagamento está habilitado'
       });
     }
-
-    // Gerar slug a partir do título
-    const slug = title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-');
 
     // Criar evento principal
     const [event] = await trx('events')
@@ -222,8 +224,10 @@ router.put('/events/:id', async (req, res) => {
     // Gerar slug a partir do título
     const slug = title
       .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-');
+      .replace(/[^\w\s-]/g, '') // remove caracteres especiais, exceto espaços e hífens
+      .trim() // remove espaços em branco do início e do fim
+      .replace(/\s+/g, '-') // substitui espaços por hífens
+      .replace(/-+/g, '-'); // substitui múltiplos hífens por um único hífen
 
     // Atualizar evento principal
     const [event] = await trx('events')

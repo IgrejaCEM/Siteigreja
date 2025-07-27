@@ -6,6 +6,15 @@ const { db } = require('../database/db');
 const config = require('../config');
 const { authenticateToken } = require('../middleware');
 
+// Health check
+router.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Auth API está funcionando',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Login
 router.post('/login', async (req, res) => {
   try {
