@@ -742,18 +742,20 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     // Pagamento
     const totalAmount = (selectedLot.price * participantes.length) + productsTotal;
     let paymentInfo = null;
+    
     if (selectedLot.price > 0 || productsTotal > 0) {
-      // Cria registro de pagamento
-      const [paymentId] = await trx('payments').insert({
-        registration_code: registrationCode,
-        amount: totalAmount,
-        payment_method: 'mercadopago', // Usando Mercado Pago como gateway ativo
-        status: 'pending',
-        created_at: new Date(),
-        updated_at: new Date()
-      }).returning('id');
-      // Integração com gateway (Mercado Pago)
       try {
+        // Cria registro de pagamento
+        const [paymentId] = await trx('payments').insert({
+          registration_code: registrationCode,
+          amount: totalAmount,
+          payment_method: payment_method || 'mercadopago',
+          status: 'pending',
+          created_at: new Date(),
+          updated_at: new Date()
+        }).returning('id');
+        
+        // Integração com gateway (Mercado Pago)
         console.log('🔗 Iniciando criação de pagamento no Mercado Pago...');
         console.log('📊 Dados do pagamento:', {
           amount: totalAmount,
@@ -766,8 +768,9 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           amount: totalAmount,
           description: `Inscrição - ${event.title} - ${selectedLot.name}`,
           customer: participantes[0],
-          method: payment_method || 'CHECKOUT_PRO' // Usa CHECKOUT_PRO como padrão
+          method: payment_method || 'CHECKOUT_PRO'
         });
+        
         console.log('✅ Retorno Mercado Pago:', paymentInfo);
       } catch (pgErr) {
         console.error('❌ Erro ao criar pagamento no gateway:', pgErr);
@@ -777,8 +780,8 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           response: pgErr.response?.data
         });
         
-        // Erro na criação do pagamento - retorna null para indicar falha
-        console.log('❌ Falha na criação do pagamento no Mercado Pago');
+        // Erro na criação do pagamento - continua sem pagamento
+        console.log('⚠️ Falha na criação do pagamento, continuando sem pagamento...');
         paymentInfo = null;
       }
     }
