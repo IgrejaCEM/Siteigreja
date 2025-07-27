@@ -393,12 +393,45 @@ const CriarEvento = () => {
                         <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
                           Tamanho recomendado: 1920x1080 pixels
                         </Typography>
-                        <EventImageUpload
-                          currentImage={form.banner}
-                          onImageUploaded={(url) => setForm({...form, banner: url})}
-                          label="Selecionar Banner Principal"
-                          folder="events"
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="banner-upload"
+                          type="file"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              // Por enquanto, vamos usar uma URL temporária
+                              const url = URL.createObjectURL(file);
+                              setForm({...form, banner: url});
+                            }
+                          }}
                         />
+                        <label htmlFor="banner-upload">
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            fullWidth
+                            sx={{ mb: 2 }}
+                          >
+                            Selecionar Banner Principal
+                          </Button>
+                        </label>
+                        {form.banner && (
+                          <Box sx={{ mt: 2 }}>
+                            <img
+                              src={form.banner}
+                              alt="Preview"
+                              style={{
+                                width: '100%',
+                                height: '200px',
+                                objectFit: 'cover',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd'
+                              }}
+                            />
+                          </Box>
+                        )}
                       </Grid>
                       <Grid item xs={12} sm={4}>
                         <Typography variant="subtitle2" gutterBottom>
@@ -407,12 +440,44 @@ const CriarEvento = () => {
                         <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
                           Tamanho recomendado: 800x600 pixels
                         </Typography>
-                        <EventImageUpload
-                          currentImage={form.banner_home}
-                          onImageUploaded={(url) => setForm({...form, banner_home: url})}
-                          label="Selecionar Banner Home"
-                          folder="events"
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="banner-home-upload"
+                          type="file"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const url = URL.createObjectURL(file);
+                              setForm({...form, banner_home: url});
+                            }
+                          }}
                         />
+                        <label htmlFor="banner-home-upload">
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            fullWidth
+                            sx={{ mb: 2 }}
+                          >
+                            Selecionar Banner Home
+                          </Button>
+                        </label>
+                        {form.banner_home && (
+                          <Box sx={{ mt: 2 }}>
+                            <img
+                              src={form.banner_home}
+                              alt="Preview"
+                              style={{
+                                width: '100%',
+                                height: '200px',
+                                objectFit: 'cover',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd'
+                              }}
+                            />
+                          </Box>
+                        )}
                       </Grid>
                       <Grid item xs={12} sm={4}>
                         <Typography variant="subtitle2" gutterBottom>
@@ -421,12 +486,44 @@ const CriarEvento = () => {
                         <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
                           Tamanho recomendado: 1200x400 pixels
                         </Typography>
-                        <EventImageUpload
-                          currentImage={form.banner_evento}
-                          onImageUploaded={(url) => setForm({...form, banner_evento: url})}
-                          label="Selecionar Banner Evento"
-                          folder="events"
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="banner-evento-upload"
+                          type="file"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const url = URL.createObjectURL(file);
+                              setForm({...form, banner_evento: url});
+                            }
+                          }}
                         />
+                        <label htmlFor="banner-evento-upload">
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            fullWidth
+                            sx={{ mb: 2 }}
+                          >
+                            Selecionar Banner Evento
+                          </Button>
+                        </label>
+                        {form.banner_evento && (
+                          <Box sx={{ mt: 2 }}>
+                            <img
+                              src={form.banner_evento}
+                              alt="Preview"
+                              style={{
+                                width: '100%',
+                                height: '200px',
+                                objectFit: 'cover',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd'
+                              }}
+                            />
+                          </Box>
+                        )}
                       </Grid>
                     </Grid>
                   </CardContent>
