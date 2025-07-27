@@ -22,8 +22,8 @@ body {
   .MuiContainer-root {
     padding-left: 16px !important;
     padding-right: 16px !important;
-  }
-  
+}
+
   /* Textos menores em mobile */
   .MuiTypography-h1 {
     font-size: 2rem !important;
@@ -234,5 +234,5 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
-}
+  }
 

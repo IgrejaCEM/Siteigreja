@@ -1,11 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Container, Typography, Paper, Button, Divider, Chip, Alert, CircularProgress, Grid, Card, CardContent } from '@mui/material';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Paper, 
+  Button, 
+  Divider, 
+  Chip, 
+  Alert, 
+  CircularProgress, 
+  Grid, 
+  Card, 
+  CardContent,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
+  Badge,
+  IconButton
+} from '@mui/material';
 import {
   Event as EventIcon,
   LocationOn as LocationIcon,
   AccessTime as TimeIcon,
-  AttachMoney as MoneyIcon
+  AttachMoney as MoneyIcon,
+  ShoppingCart as ShoppingCartIcon
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
@@ -27,6 +48,11 @@ const Evento = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  
+  // Novos estados para seleção
+  const [selectedLotId, setSelectedLotId] = useState(null);
+  const [cartProducts, setCartProducts] = useState([]);
+  const [showCart, setShowCart] = useState(false);
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -67,6 +93,85 @@ const Evento = () => {
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
   }, [event]);
+
+  const handleAddProduct = (product, quantity = 1) => {
+    setCartProducts(prev => {
+      const existing = prev.find(p => p.id === product.id);
+      if (existing) {
+        return prev.map(p => p.id === product.id ? { ...p, quantity: p.quantity + quantity } : p);
+      }
+      return [...prev, { ...product, quantity }];
+    });
+  };
+
+  const handleRemoveProduct = (productId) => {
+    setCartProducts(prev => prev.filter(p => p.id !== productId));
+  };
+
+  const calculateTotal = () => {
+    if (!event?.lots || event.lots.length === 0) return 0;
+    const selectedLot = event.lots.find(lot => lot.id === selectedLotId);
+    const lotPrice = selectedLot ? Number(selectedLot.price) || 0 : 0;
+    
+    const productsTotal = cartProducts.reduce((total, product) => {
+      return total + (Number(product.price) * product.quantity);
+    }, 0);
+    
+    return lotPrice + productsTotal;
+  };
+
+  const handleGoToInscription = () => {
+    if (!selectedLotId) {
+      alert('Por favor, selecione um lote primeiro.');
+      return;
+    }
+    
+    // Salvar seleções no localStorage para usar na página de inscrição
+    const selections = {
+      selectedLotId,
+      cartProducts,
+      total: calculateTotal()
+    };
+    localStorage.setItem('eventSelections', JSON.stringify(selections));
+    
+    navigate(`/evento/${event.id}/inscricao`);
+  };
+
+  const renderValueSummary = () => {
+    const selectedLot = event.lots.find(lot => lot.id === selectedLotId);
+    const lotPrice = selectedLot ? Number(selectedLot.price) || 0 : 0;
+    const productsTotal = cartProducts.reduce((total, product) => {
+      return total + (Number(product.price) * product.quantity);
+    }, 0);
+    const total = lotPrice + productsTotal;
+
+    return (
+      <Box sx={{ mt: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Resumo dos Valores
+        </Typography>
+        
+        <Box sx={{ mb: 2 }}>
+          {selectedLot && (
+            <Typography variant="body1">
+              Lote selecionado: {selectedLot.name} - R$ {lotPrice.toFixed(2)}
+            </Typography>
+          )}
+          {cartProducts.length > 0 && (
+            <Typography variant="body1">
+              Produtos: R$ {productsTotal.toFixed(2)}
+            </Typography>
+          )}
+        </Box>
+        
+        <Divider sx={{ my: 2 }} />
+        
+        <Typography variant="h5" color="primary" fontWeight="bold">
+          Total: R$ {total.toFixed(2)}
+        </Typography>
+      </Box>
+    );
+  };
 
   const handleInscricao = () => {
     navigate(`/evento/${event.id}/inscricao`);
@@ -126,66 +231,41 @@ const Evento = () => {
     <Box>
       <ModernHeader />
       
-      <Box
-        component="img"
-        src={event.banner_evento || event.banner || '/placeholder-event.jpg'}
-        alt={event.title}
-        sx={{
-          width: '100%',
-          height: '400px',
-          objectFit: 'cover',
-          mb: 4,
-          mt: '80px',
-          position: 'relative',
-          zIndex: 1
-        }}
-      />
-
-      {/* Contador centralizado sobrepondo levemente o banner */}
-      {event.date && (
-        <Box sx={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 420, // mais para baixo, só sobrepondo um pouco
-          display: 'flex',
-          justifyContent: 'center',
-          zIndex: 2,
-          pointerEvents: 'none',
-        }}>
-          <Box sx={{
-            display: 'flex',
-            gap: 1.5,
-            alignItems: 'center',
-            background: 'rgba(255,255,255,0.97)',
-            borderRadius: 2,
-            boxShadow: 3,
-            p: 1.5,
-            minWidth: 320,
-            pointerEvents: 'auto',
+      {/* Hero Section */}
+      <Box sx={{ 
+        background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${event.banner_evento || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento'})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        color: 'white',
+        py: { xs: 8, md: 12 },
+        px: { xs: 2, sm: 4 },
+        textAlign: 'center'
+      }}>
+        <Container maxWidth="lg">
+          <Typography variant="h2" component="h1" gutterBottom sx={{ 
+            fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
+            fontWeight: 'bold',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.7)'
           }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', lineHeight: 1 }}>{timeLeft.days}</Typography>
-              <Typography variant="caption" sx={{ fontWeight: 500 }}>dias</Typography>
+            {event.title}
+          </Typography>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 4, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <TimeIcon sx={{ mr: 1 }} />
+              <Typography variant="body1">
+                {dayjs(event.date).format('DD [de] MMMM [de] YYYY [às] HH:mm')}
+              </Typography>
             </Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', mx: 0.5 }}>:</Typography>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', lineHeight: 1 }}>{String(timeLeft.hours).padStart(2, '0')}</Typography>
-              <Typography variant="caption" sx={{ fontWeight: 500 }}>horas</Typography>
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', mx: 0.5 }}>:</Typography>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', lineHeight: 1 }}>{String(timeLeft.minutes).padStart(2, '0')}</Typography>
-              <Typography variant="caption" sx={{ fontWeight: 500 }}>min</Typography>
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', mx: 0.5 }}>:</Typography>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', lineHeight: 1 }}>{String(timeLeft.seconds).padStart(2, '0')}</Typography>
-              <Typography variant="caption" sx={{ fontWeight: 500 }}>seg</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <LocationIcon sx={{ mr: 1 }} />
+              <Typography variant="body1">
+                {event.location}
+              </Typography>
             </Box>
           </Box>
-        </Box>
-      )}
+        </Container>
+      </Box>
 
       <Container maxWidth="lg" sx={{ mb: 8, mt: 8 }}>
         <Grid container spacing={4}>
@@ -225,79 +305,147 @@ const Evento = () => {
               </>
             )}
 
-            <EventProducts eventId={event.id} />
+            {/* Seção de Produtos */}
+            <EventProducts eventId={event.id} onAddProduct={handleAddProduct} />
+            
+            {/* Carrinho de Produtos */}
+            {cartProducts.length > 0 && (
+              <Box sx={{ mt: 4, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Produtos Selecionados
+                </Typography>
+                {cartProducts.map(product => (
+                  <Box key={product.id} sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    mb: 2,
+                    p: 2,
+                    bgcolor: 'white',
+                    borderRadius: 1
+                  }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body1" fontWeight="medium">
+                        {product.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Quantidade: {product.quantity} | R$ {product.price.toFixed(2)} cada
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Typography variant="body1" fontWeight="bold">
+                        R$ {(product.price * product.quantity).toFixed(2)}
+                      </Typography>
+                      <Button 
+                        color="error" 
+                        size="small"
+                        onClick={() => handleRemoveProduct(product.id)}
+                      >
+                        Remover
+                      </Button>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            )}
           </Grid>
 
           <Grid item xs={12} md={4}>
             <Card sx={{ position: 'sticky', top: '100px' }}>
               <CardContent>
                 <Typography variant="h5" gutterBottom>
-                  Ingressos
+                  Selecionar Lote
                 </Typography>
                 
                 {event.lots && event.lots.length > 0 ? (
-                  event.lots.map((lot) => {
-                    const isAvailable = 
-                      lot.status === 'active' &&
-                      lot.quantity > 0 &&
-                      dayjs(lot.start_date).isBefore(dayjs()) &&
-                      dayjs(lot.end_date).isAfter(dayjs());
+                  <FormControl component="fieldset" sx={{ width: '100%' }}>
+                    <RadioGroup
+                      value={selectedLotId || ''}
+                      onChange={(e) => setSelectedLotId(Number(e.target.value))}
+                    >
+                      {event.lots.map((lot) => {
+                        const isAvailable = 
+                          lot.status === 'active' &&
+                          lot.quantity > 0 &&
+                          dayjs(lot.start_date).isBefore(dayjs()) &&
+                          dayjs(lot.end_date).isAfter(dayjs());
 
-                    const isExpired = dayjs(lot.end_date).isBefore(dayjs());
-                    const isSoldOut = lot.quantity <= 0;
-                    const isFuture = dayjs(lot.start_date).isAfter(dayjs());
+                        const isExpired = dayjs(lot.end_date).isBefore(dayjs());
+                        const isSoldOut = lot.quantity <= 0;
+                        const isFuture = dayjs(lot.start_date).isAfter(dayjs());
 
-                    return (
-                      <Box key={lot.id} sx={{ mb: 2, opacity: isAvailable ? 1 : 0.6 }}>
-                        <Typography variant="subtitle1" gutterBottom>
-                          {lot.name}
-                        </Typography>
-                        <Typography variant="h6" color="primary" gutterBottom>
-                          R$ {lot.price ? Number(lot.price).toFixed(2) : '0.00'}
-                        </Typography>
-                        
-                        {isAvailable ? (
-                          <>
-                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                              {lot.quantity} ingressos disponíveis
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                              Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
-                            </Typography>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              fullWidth
-                              onClick={() => navigate(`/evento/${event.slug}/inscricao`)}
-                            >
-                              Comprar Ingresso
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                              Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
-                            </Typography>
-                            <Typography variant="body2" color="error" gutterBottom>
-                              {isSoldOut ? '🔴 Ingressos esgotados' : 
-                               isExpired ? '⏰ Período encerrado' :
-                               isFuture ? '⏳ Em breve' : '❌ Indisponível'}
-                            </Typography>
-                            {isSoldOut && (
-                              <Typography variant="caption" color="text.secondary">
-                                Este lote está esgotado
+                        return (
+                          <Box key={lot.id} sx={{ 
+                            mb: 2, 
+                            opacity: isAvailable ? 1 : 0.6,
+                            p: 2,
+                            border: selectedLotId === lot.id ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                            borderRadius: 1,
+                            bgcolor: selectedLotId === lot.id ? '#f3f8ff' : 'transparent'
+                          }}>
+                            <FormControlLabel
+                              value={lot.id}
+                              control={<Radio />}
+                              label=""
+                              disabled={!isAvailable}
+                              sx={{ width: '100%', margin: 0 }}
+                            />
+                            <Box sx={{ ml: 4 }}>
+                              <Typography variant="subtitle1" gutterBottom>
+                                {lot.name}
                               </Typography>
-                            )}
-                          </>
-                        )}
-                      </Box>
-                    );
-                  })
+                              <Typography variant="h6" color="primary" gutterBottom>
+                                R$ {lot.price ? Number(lot.price).toFixed(2) : '0.00'}
+                              </Typography>
+                              
+                              {isAvailable ? (
+                                <>
+                                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                                    {lot.quantity} ingressos disponíveis
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                                    Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
+                                  </Typography>
+                                </>
+                              ) : (
+                                <>
+                                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                                    Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
+                                  </Typography>
+                                  <Typography variant="body2" color="error" gutterBottom>
+                                    {isSoldOut ? '🔴 Ingressos esgotados' : 
+                                     isExpired ? '⏰ Período encerrado' :
+                                     isFuture ? '⏳ Em breve' : '❌ Indisponível'}
+                                  </Typography>
+                                </>
+                              )}
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                    </RadioGroup>
+                  </FormControl>
                 ) : (
                   <Typography variant="body1" color="error">
                     Nenhum lote disponível para este evento
                   </Typography>
                 )}
+
+                {/* Resumo dos Valores */}
+                {(selectedLotId || cartProducts.length > 0) && renderValueSummary()}
+
+                {/* Botão para Inscrição */}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  size="large"
+                  onClick={handleGoToInscription}
+                  disabled={!selectedLotId}
+                  sx={{ mt: 3 }}
+                >
+                  {selectedLotId ? 'Ir para Inscrição' : 'Selecione um Lote'}
+                </Button>
               </CardContent>
             </Card>
           </Grid>

@@ -24,7 +24,7 @@ import {
 } from '@mui/icons-material';
 import api from '../services/api';
 
-const EventProducts = ({ eventId }) => {
+const EventProducts = ({ eventId, onAddProduct }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -66,7 +66,9 @@ const EventProducts = ({ eventId }) => {
   };
 
   const handleAddToCart = () => {
-    // TODO: Implementar lógica de adicionar ao carrinho
+    if (onAddProduct && selectedProduct) {
+      onAddProduct(selectedProduct, quantity);
+    }
     handleCloseDialog();
   };
 

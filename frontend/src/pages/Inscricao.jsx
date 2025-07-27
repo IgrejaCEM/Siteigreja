@@ -87,6 +87,26 @@ const Inscricao = () => {
   const [openingPayment, setOpeningPayment] = useState(false);
 
   useEffect(() => {
+    // Carregar seleções salvas
+    const savedSelections = localStorage.getItem('eventSelections');
+    if (savedSelections) {
+      try {
+        const selections = JSON.parse(savedSelections);
+        setSelectedLotId(selections.selectedLotId);
+        setCartProducts(selections.cartProducts || []);
+        console.log('🛒 Seleções carregadas:', selections);
+      } catch (error) {
+        console.error('Erro ao carregar seleções:', error);
+      }
+    }
+  }, []);
+
+  // Limpar seleções após inscrição bem-sucedida
+  const clearSelections = () => {
+    localStorage.removeItem('eventSelections');
+  };
+
+  useEffect(() => {
     console.log('🎯 Inscricao component mounted/updated, event ID:', id);
     const fetchEvent = async () => {
       try {
@@ -262,12 +282,17 @@ const Inscricao = () => {
   };
 
   const handleAddProduct = (product, quantity = 1) => {
+    console.log('🛍️ Adicionando produto ao carrinho:', { product, quantity });
     setCartProducts(prev => {
       const existing = prev.find(p => p.id === product.id);
       if (existing) {
-        return prev.map(p => p.id === product.id ? { ...p, quantity: p.quantity + quantity } : p);
+        const updated = prev.map(p => p.id === product.id ? { ...p, quantity: p.quantity + quantity } : p);
+        console.log(' Produto existente, atualizando quantidade:', updated);
+        return updated;
       }
-      return [...prev, { ...product, quantity }];
+      const newCart = [...prev, { ...product, quantity }];
+      console.log('➕ Novo produto adicionado:', newCart);
+      return newCart;
     });
   };
 
@@ -365,8 +390,23 @@ const Inscricao = () => {
     if (!event.lots || event.lots.length === 0) return 0;
     const selectedLot = event.lots.find(lot => lot.id === selectedLotId) || event.lots[0];
     const price = Number(selectedLot.price) || 0;
-    console.log('Preço do lote selecionado:', price, 'Qtd inscrições:', inscricoes.length);
-    return price * inscricoes.length;
+    const inscriptionsTotal = price * inscricoes.length;
+    
+    // Calcular total dos produtos
+    const productsTotal = cartProducts.reduce((total, product) => {
+      return total + (Number(product.price) * product.quantity);
+    }, 0);
+    
+    const total = inscriptionsTotal + productsTotal;
+    console.log('💰 Cálculo do total:', {
+      selectedLot,
+      price,
+      inscriptionsTotal,
+      cartProducts,
+      productsTotal,
+      total
+    });
+    return total;
   };
 
   const handleLotChange = (lotId) => {
@@ -467,6 +507,41 @@ const Inscricao = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Adicionar esta função para renderizar o resumo
+  const renderValueSummary = () => {
+    const selectedLot = event.lots.find(lot => lot.id === selectedLotId);
+    const inscriptionsTotal = (Number(selectedLot?.price) || 0) * inscricoes.length;
+    const productsTotal = cartProducts.reduce((total, product) => {
+      return total + (Number(product.price) * product.quantity);
+    }, 0);
+    const total = inscriptionsTotal + productsTotal;
+
+    return (
+      <Box sx={{ mt: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Resumo dos Valores
+        </Typography>
+        
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body1">
+            Inscrições ({inscricoes.length}x): R$ {inscriptionsTotal.toFixed(2)}
+          </Typography>
+          {cartProducts.length > 0 && (
+            <Typography variant="body1">
+              Produtos: R$ {productsTotal.toFixed(2)}
+            </Typography>
+          )}
+        </Box>
+        
+        <Divider sx={{ my: 2 }} />
+        
+        <Typography variant="h5" color="primary" fontWeight="bold">
+          Total: R$ {total.toFixed(2)}
+        </Typography>
+      </Box>
+    );
   };
 
   if (loading) {
@@ -761,10 +836,18 @@ const Inscricao = () => {
               <Typography variant="body2">
                 • {inscricoes.length} participante(s)
               </Typography>
+              {cartProducts.length > 0 && (
+                <Typography variant="body2">
+                  • {cartProducts.length} produto(s) selecionado(s)
+                </Typography>
+              )}
               <Typography variant="body2">
                 • Total: R$ {calculateTotal().toFixed(2)}
               </Typography>
             </Alert>
+
+            {/* Resumo detalhado dos valores */}
+            {renderValueSummary()}
 
             <Typography variant="body1" sx={{ mb: 2 }}>
               Clique no botão "Ir para o Checkout" abaixo para ir ao checkout do Mercado Pago, onde você poderá escolher a forma de pagamento (PIX, Cartão de Crédito, Boleto, etc.).
@@ -976,17 +1059,48 @@ const Inscricao = () => {
           {event && (
             <Box sx={{ mt: 4 }}>
               <EventProducts eventId={event.id} onAddProduct={handleAddProduct} />
+              
               {cartProducts.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="h6">Produtos Selecionados</Typography>
+                <Box sx={{ mt: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Produtos Selecionados
+                  </Typography>
                   {cartProducts.map(product => (
-                    <Box key={product.id} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Typography sx={{ flex: 1 }}>{product.name} (x{product.quantity})</Typography>
-                      <Button color="error" onClick={() => handleRemoveProduct(product.id)}>Remover</Button>
+                    <Box key={product.id} sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      mb: 2,
+                      p: 2,
+                      bgcolor: 'white',
+                      borderRadius: 1
+                    }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body1" fontWeight="medium">
+                          {product.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Quantidade: {product.quantity} | R$ {product.price.toFixed(2)} cada
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Typography variant="body1" fontWeight="bold">
+                          R$ {(product.price * product.quantity).toFixed(2)}
+                        </Typography>
+                        <Button 
+                          color="error" 
+                          size="small"
+                          onClick={() => handleRemoveProduct(product.id)}
+                        >
+                          Remover
+                        </Button>
+                      </Box>
                     </Box>
                   ))}
                 </Box>
               )}
+              
+              {renderValueSummary()}
             </Box>
           )}
         </Paper>
