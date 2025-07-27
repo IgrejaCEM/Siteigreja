@@ -799,7 +799,9 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         ? (paymentInfo && paymentInfo.payment_url ? `Inscrição recebida! Realize o pagamento no link: ${paymentInfo.payment_url}` : 'Inscrição recebida! Realize o pagamento para confirmar sua vaga.')
         : 'Inscrição confirmada com sucesso!'
     };
-    console.log('Resposta enviada ao frontend:', responseObj);
+    console.log('📤 Resposta enviada ao frontend:', JSON.stringify(responseObj, null, 2));
+    console.log('🔍 Payment Info é null?', paymentInfo === null);
+    console.log('🔍 Payment Info tem payment_url?', paymentInfo?.payment_url ? 'SIM' : 'NÃO');
     res.status(201).json(responseObj);
   } catch (error) {
     await trx.rollback();
