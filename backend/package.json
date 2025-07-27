@@ -9,6 +9,9 @@
     "migrate": "knex migrate:latest",
     "seed": "knex seed:run",
     "migrate:rollback": "knex migrate:rollback",
+    "backup": "node backup_database.js",
+    "deploy": "node deploy_safe.js",
+    "deploy:safe": "node deploy_safe.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
