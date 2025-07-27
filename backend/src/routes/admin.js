@@ -521,8 +521,10 @@ router.get('/registrations', async (req, res) => {
 });
 
 // Listar todos os participantes únicos (mesmo sem login)
-router.get('/participants', async (req, res) => {
+router.get('/participants', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    console.log('🔍 Buscando participantes...');
+    
     const participantsRaw = await db('registrations')
       .leftJoin('events', 'registrations.event_id', 'events.id')
       .select(
@@ -532,10 +534,12 @@ router.get('/participants', async (req, res) => {
         db.raw('MIN(registrations.created_at) as created_at'),
         db.raw('COUNT(registrations.event_id) as events_count'),
         db.raw("GROUP_CONCAT(events.title, '; ') as events_titles"),
-        db.raw('MAX(registrations.status) as last_status')
+        db.raw('MAX(registrations.payment_status) as last_status')
       )
       .groupBy('registrations.name', 'registrations.email', 'registrations.phone')
       .orderBy('created_at', 'desc');
+
+    console.log(`✅ Encontrados ${participantsRaw.length} participantes`);
 
     const participants = participantsRaw.map(p => ({
       ...p,
@@ -549,8 +553,8 @@ router.get('/participants', async (req, res) => {
 
     res.json(participants);
   } catch (error) {
-    console.error('Erro ao listar participantes:', error);
-    res.status(500).json({ error: 'Erro ao listar participantes' });
+    console.error('❌ Erro ao listar participantes:', error);
+    res.status(500).json({ error: 'Erro ao listar participantes', details: error.message });
   }
 });
 
