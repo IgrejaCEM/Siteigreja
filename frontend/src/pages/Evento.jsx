@@ -31,7 +31,6 @@ import {
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import api from '../services/api';
-import ModernHeader from '../components/ModernHeader';
 import Footer from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 import { useInterval } from '../utils/useInterval';
@@ -180,7 +179,6 @@ const Evento = () => {
   if (loading) {
     return (
       <Box>
-        <ModernHeader />
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
           <CircularProgress />
         </Box>
@@ -192,7 +190,6 @@ const Evento = () => {
   if (error) {
     return (
       <Box>
-        <ModernHeader />
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
           <Alert severity="error">{error}</Alert>
         </Box>
@@ -204,7 +201,6 @@ const Evento = () => {
   if (!event) {
     return (
       <Box>
-        <ModernHeader />
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
           <Typography>Evento não encontrado</Typography>
         </Box>
@@ -229,77 +225,117 @@ const Evento = () => {
 
   return (
     <Box>
-      <ModernHeader />
-      
       {/* Hero Section */}
       <Box sx={{ 
-        background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${event.banner_evento || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento'})`,
+        background: `url(${event.banner_evento || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento'})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        color: 'white',
-        py: { xs: 8, md: 12 },
-        px: { xs: 2, sm: 4 },
-        textAlign: 'center'
-      }}>
-        <Container maxWidth="lg">
-          <Typography variant="h2" component="h1" gutterBottom sx={{ 
-            fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
-            fontWeight: 'bold',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.7)'
-          }}>
-            {event.title}
-          </Typography>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 4, flexWrap: 'wrap' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <TimeIcon sx={{ mr: 1 }} />
-              <Typography variant="body1">
-                {dayjs(event.date).format('DD [de] MMMM [de] YYYY [às] HH:mm')}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <LocationIcon sx={{ mr: 1 }} />
-              <Typography variant="body1">
-                {event.location}
-              </Typography>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+        minHeight: '100vh',
+        width: '100%',
+        position: 'relative'
+      }} />
 
       <Container maxWidth="lg" sx={{ mb: 8, mt: 8 }}>
         <Grid container spacing={4}>
           <Grid item xs={12} md={8}>
-            <Typography variant="h3" component="h1" gutterBottom>
+            <Typography 
+              variant="h1" 
+              sx={{
+                fontSize: { xs: '2.5rem', sm: '3rem', md: '4rem' },
+                fontWeight: 900,
+                color: '#000',
+                mb: 4,
+                textTransform: 'uppercase',
+                letterSpacing: '0.02em',
+                lineHeight: 1.2
+              }}
+            >
               {event.title}
             </Typography>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <TimeIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                <Typography variant="body1" color="text.secondary">
-                  {dayjs(event.date).format('DD [de] MMMM [de] YYYY [às] HH:mm')}
-                </Typography>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 4, 
+              mb: 4,
+              flexWrap: 'wrap'
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                background: '#f8f9fa',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              }}>
+                <TimeIcon sx={{ mr: 2, color: '#2196f3', fontSize: '2rem' }} />
+                <Box>
+                  <Typography variant="overline" sx={{ color: '#666', display: 'block' }}>
+                    Data e Hora
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                    {dayjs(event.date).format('DD [de] MMMM [de] YYYY')}
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                    {dayjs(event.date).format('HH:mm')}
+                  </Typography>
+                </Box>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                <Typography variant="body1" color="text.secondary">
-                  {event.location}
-                </Typography>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                background: '#f8f9fa',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              }}>
+                <LocationIcon sx={{ mr: 2, color: '#2196f3', fontSize: '2rem' }} />
+                <Box>
+                  <Typography variant="overline" sx={{ color: '#666', display: 'block' }}>
+                    Local
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#000' }}>
+                    {event.location}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
 
-            <Typography variant="body1" paragraph>
-              {event.description}
-            </Typography>
+            {event.description && (
+              <Typography 
+                variant="body1" 
+                sx={{
+                  fontSize: '1.1rem',
+                  lineHeight: 1.7,
+                  color: '#444',
+                  mb: 4
+                }}
+              >
+                {event.description}
+              </Typography>
+            )}
 
             {event.additional_info && (
               <>
-                <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{
+                    fontWeight: 700,
+                    color: '#000',
+                    mb: 2,
+                    mt: 4
+                  }}
+                >
                   Informações Adicionais
                 </Typography>
-                <Typography variant="body1" paragraph>
+                <Typography 
+                  variant="body1" 
+                  sx={{
+                    fontSize: '1.1rem',
+                    lineHeight: 1.7,
+                    color: '#444'
+                  }}
+                >
                   {event.additional_info}
                 </Typography>
               </>

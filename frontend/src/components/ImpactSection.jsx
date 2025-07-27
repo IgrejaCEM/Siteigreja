@@ -3,6 +3,7 @@ import React from "react";
 export default function ImpactSection() {
   return (
     <section
+      id="oque-e"
       style={{
         background: "#fff",
         color: "#111",
@@ -15,6 +16,7 @@ export default function ImpactSection() {
         boxShadow: "0 8px 32px #000a",
         position: "relative",
         zIndex: 2,
+        scrollMarginTop: "100px", // Adiciona margem para o scroll não cobrir com o header
       }}
     >
       <div style={{ maxWidth: 900, margin: "0 auto", width: "100%" }}>

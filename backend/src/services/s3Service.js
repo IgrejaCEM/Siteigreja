@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const sharp = require('sharp');
 
 // Salva a imagem localmente e retorna a URL local
 async function uploadToS3(file, folder, options = {}) {
@@ -19,18 +18,8 @@ async function uploadToS3(file, folder, options = {}) {
   const filename = `${base}-${timestamp}${ext}`;
   const destPath = path.join(uploadDir, filename);
 
-  // Processa a imagem com sharp para preservar a qualidade
-  if (options.preserveQuality) {
-    await sharp(file.path)
-      .withMetadata() // Preserva metadados da imagem
-      .jpeg({ quality: 100, force: false }) // Mantém qualidade máxima para JPG
-      .png({ quality: 100, force: false }) // Mantém qualidade máxima para PNG
-      .webp({ quality: 100, force: false }) // Mantém qualidade máxima para WebP
-      .toFile(destPath);
-  } else {
-    // Move o arquivo para a pasta de destino sem processamento
-    fs.copyFileSync(file.path, destPath);
-  }
+  // Move o arquivo para a pasta de destino (sem processamento de imagem por enquanto)
+  fs.copyFileSync(file.path, destPath);
 
   // Remove o arquivo temporário
   fs.unlinkSync(file.path);

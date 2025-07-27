@@ -37,12 +37,14 @@ import {
   Event as EventIcon,
   Phone as PhoneIcon,
   ExpandMore,
-  ExpandLess
+  ExpandLess,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import api from '../../services/api';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import * as XLSX from 'xlsx';
+import React from 'react';
 
 dayjs.locale('pt-br');
 
@@ -53,7 +55,7 @@ export default function Participantes() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(100); // Aumentando para 100 por padrão
   const [stats, setStats] = useState({
     total: 0,
     withEvents: 0,
@@ -129,7 +131,7 @@ export default function Participantes() {
   };
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedRows(paginatedParticipantes.flatMap(p => getInscricoesDoParticipante(p).map(i => i.id)));
+      setSelectedRows(filteredParticipantes.flatMap(p => getInscricoesDoParticipante(p).map(i => i.id)));
     } else {
       setSelectedRows([]);
     }
@@ -138,7 +140,7 @@ export default function Participantes() {
   const handleExportExcel = () => {
     // Coletar inscrições filtradas/selecionadas
     let exportList = [];
-    paginatedParticipantes.forEach(p => {
+    filteredParticipantes.forEach(p => {
       const inscricoes = getInscricoesDoParticipante(p);
       inscricoes.forEach(i => {
         if (selectedRows.length === 0 || selectedRows.includes(i.id)) {
@@ -162,6 +164,31 @@ export default function Participantes() {
     XLSX.writeFile(wb, 'participantes.xlsx');
   };
 
+  // Função para limpar todos os participantes
+  const handleClearAllParticipants = async () => {
+    if (!window.confirm('⚠️ ATENÇÃO: Esta ação irá remover TODOS os dados de participantes do sistema. Esta ação não pode ser desfeita. Tem certeza que deseja continuar?')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const response = await api.delete('/admin/participants/clear');
+      
+      if (response.data.success) {
+        alert(`✅ ${response.data.message}`);
+        // Recarregar os dados
+        fetchParticipantes();
+      } else {
+        alert('❌ Erro ao limpar dados');
+      }
+    } catch (error) {
+      console.error('Erro ao limpar participantes:', error);
+      alert('❌ Erro ao limpar dados de participantes: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredParticipantes = participantes.filter(participante => {
     if (!selectedEventId) return true;
     const inscricoes = registrations.filter(r =>
@@ -181,6 +208,17 @@ export default function Participantes() {
     return registrations.filter(r =>
       (r.name === p.name && r.email === p.email && r.phone === p.phone)
     );
+  };
+
+  // Adicionando opção de mostrar todos
+  const rowsPerPageOptions = [10, 25, 50, 100, { label: 'Todos', value: -1 }];
+
+  // Ajustando a função de paginação
+  const getDisplayedParticipantes = () => {
+    if (rowsPerPage === -1) {
+      return filteredParticipantes;
+    }
+    return filteredParticipantes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   };
 
   // Função utilitária para traduzir status de pagamento
@@ -313,8 +351,17 @@ export default function Participantes() {
             ))}
           </Select>
         </FormControl>
-        <Button variant="contained" color="success" onClick={handleExportExcel} disabled={paginatedParticipantes.length === 0}>
+        <Button variant="contained" color="success" onClick={handleExportExcel} disabled={filteredParticipantes.length === 0}>
           Exportar para Excel
+        </Button>
+        <Button 
+          variant="contained" 
+          color="error" 
+          onClick={handleClearAllParticipants}
+          disabled={loading || filteredParticipantes.length === 0}
+          startIcon={<DeleteIcon />}
+        >
+          Limpar Todos
         </Button>
       </Box>
 
@@ -379,7 +426,7 @@ export default function Participantes() {
                 <TableCell padding="checkbox">
                   <input
                     type="checkbox"
-                    checked={selectedRows.length > 0 && paginatedParticipantes.every(p => getInscricoesDoParticipante(p).every(i => selectedRows.includes(i.id)))}
+                    checked={selectedRows.length > 0 && getDisplayedParticipantes().every(p => getInscricoesDoParticipante(p).every(i => selectedRows.includes(i.id))) || false}
                     onChange={e => handleSelectAll(e.target.checked)}
                   />
                 </TableCell>
@@ -391,15 +438,16 @@ export default function Participantes() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedParticipantes.map((p, idx) => {
+              {getDisplayedParticipantes().map((p, idx) => {
                 const inscricoes = getInscricoesDoParticipante(p);
+                const uniqueKey = `participant-${p.email}-${p.phone}-${idx}`;
                 return (
-                  <>
-                    <TableRow key={p.email + p.phone + idx}>
+                  <React.Fragment key={uniqueKey}>
+                    <TableRow>
                       <TableCell padding="checkbox">
                         <input
                           type="checkbox"
-                          checked={inscricoes.every(i => selectedRows.includes(i.id)) && inscricoes.length > 0}
+                          checked={(inscricoes.every(i => selectedRows.includes(i.id)) && inscricoes.length > 0) || false}
                           onChange={e => inscricoes.forEach(i => handleSelectRow(i.id))}
                         />
                       </TableCell>
@@ -448,11 +496,22 @@ export default function Participantes() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })}
             </TableBody>
           </Table>
+          <TablePagination
+            rowsPerPageOptions={rowsPerPageOptions}
+            component="div"
+            count={filteredParticipantes.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Itens por página:"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+          />
         </TableContainer>
       )}
       {/* Modal de detalhes da inscrição */}

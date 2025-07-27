@@ -1,40 +1,44 @@
 import React from 'react';
-import { IconButton, Tooltip } from '@mui/material';
+import { Box } from '@mui/material';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 
-const WhatsAppButton = () => {
-  const whatsappNumber = '5513997728988'; // Número atualizado
-  const whatsappMessage = 'Olá! Gostaria de tirar algumas dúvidas sobre os eventos.';
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+export default function WhatsAppButton() {
+  const phoneNumber = "13997783327";
+  const message = "Olá! Estou entrando em contato para saber informações sobre a conferência CONNECT CONF - IMPROVÁVEIS. Poderia me ajudar?";
+
+  const handleClick = () => {
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+  };
 
   return (
-    <Tooltip title="Tire suas dúvidas pelo WhatsApp" placement="left">
-      <IconButton
-        component="a"
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={{
-          position: 'fixed',
-          bottom: 20,
-          right: 20,
-          background: 'linear-gradient(135deg, #25d366 0%, #128c7e 100%)',
-          color: 'white',
-          width: 60,
-          height: 60,
-          '&:hover': {
-            background: 'linear-gradient(135deg, #128c7e 0%, #075e54 100%)',
-            transform: 'scale(1.05)',
-          },
-          boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)',
-          zIndex: 1000,
-          transition: 'all 0.3s ease'
-        }}
-      >
-        <WhatsAppIcon sx={{ fontSize: 32 }} />
-      </IconButton>
-    </Tooltip>
+    <Box
+      onClick={handleClick}
+      sx={{
+        position: 'fixed',
+        bottom: { xs: 16, md: 32 },
+        right: { xs: 16, md: 32 },
+        width: { xs: 50, md: 60 },
+        height: { xs: 50, md: 60 },
+        borderRadius: '50%',
+        backgroundColor: '#25D366',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        zIndex: 1000,
+        '&:hover': {
+          transform: 'scale(1.1)',
+          boxShadow: '0 6px 16px rgba(0,0,0,0.2)',
+        }
+      }}
+    >
+      <WhatsAppIcon sx={{ 
+        fontSize: { xs: 30, md: 35 }, 
+        color: '#fff' 
+      }} />
+    </Box>
   );
-};
-
-export default WhatsAppButton; 
+} 

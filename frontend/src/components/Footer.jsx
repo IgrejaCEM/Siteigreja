@@ -1,127 +1,78 @@
 import React from 'react';
-import { Box, Container, IconButton, Typography } from '@mui/material';
-import FacebookIcon from '@mui/icons-material/Facebook';
+import { Box, Container, Typography, IconButton, Grid } from '@mui/material';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import InstagramIcon from '@mui/icons-material/Instagram';
-import YouTubeIcon from '@mui/icons-material/YouTube';
 
-const Footer = () => {
-  const socialLinks = {
-    facebook: 'https://facebook.com/suaigreja',
-    instagram: 'https://instagram.com/suaigreja',
-    youtube: 'https://youtube.com/suaigreja'
+export default function Footer() {
+  const phoneNumber = "13997783327";
+  const message = "Olá! Estou entrando em contato para saber informações sobre a conferência CONNECT CONF - IMPROVÁVEIS. Poderia me ajudar?";
+
+  const handleWhatsAppClick = () => {
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
   };
 
   return (
     <Box
       component="footer"
       sx={{
+        bgcolor: '#000',
+        color: '#fff',
         py: 6,
-        px: 2,
-        mt: 'auto',
-        background: 'linear-gradient(180deg, #fff 0%, #f5f5f5 100%)',
-        color: '#222',
-        borderTop: '1px solid #e0e0e0'
+        position: 'relative'
       }}
     >
       <Container maxWidth="lg">
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 4
-          }}
-        >
-          {/* Logo e informações */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', md: 'flex-start' }, mb: 2 }}>
+        <Grid container spacing={4} justifyContent="center" alignItems="center">
+          <Grid item xs={12} md={4} sx={{ textAlign: 'center' }}>
             <img
               src="/images_site/logo.png"
-              alt="Logo da Igreja"
-              style={{ height: 70, marginBottom: 8 }}
+              alt="Logo"
+              style={{ height: 80, marginBottom: 16 }}
             />
-            <Typography variant="body1" sx={{ fontWeight: 500, color: '#222', mb: 0.5, textAlign: { xs: 'center', md: 'left' } }}>
-              Avenida dos trabalhadores, 199 - CAJATI/SP
+          </Grid>
+          
+          <Grid item xs={12} md={4} sx={{ textAlign: 'center' }}>
+            <Typography variant="h6" gutterBottom>
+              Contato
             </Typography>
-            <Typography variant="body1" sx={{ color: '#222', mb: 0.5, textAlign: { xs: 'center', md: 'left' } }}>
-              WhatsApp: <a href="https://wa.me/" style={{ color: '#222', textDecoration: 'underline' }}>Clique aqui</a>
-            </Typography>
-            <Typography variant="body1" sx={{ color: '#222', mb: 0.5, textAlign: { xs: 'center', md: 'left' } }}>
-              E-mail: <a href="mailto:secretariacemcajati@gmail.com" style={{ color: '#222', textDecoration: 'underline' }}>secretariacemcajati@gmail.com</a>
-            </Typography>
-          </Box>
+            <Box sx={{ mt: 2 }}>
+              <IconButton
+                onClick={handleWhatsAppClick}
+                sx={{
+                  color: '#25D366',
+                  '&:hover': {
+                    transform: 'scale(1.1)',
+                  },
+                  transition: 'transform 0.2s'
+                }}
+              >
+                <WhatsAppIcon sx={{ fontSize: 32 }} />
+              </IconButton>
+              <IconButton
+                href="https://www.instagram.com/adlscem"
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  color: '#E1306C',
+                  '&:hover': {
+                    transform: 'scale(1.1)',
+                  },
+                  transition: 'transform 0.2s'
+                }}
+              >
+                <InstagramIcon sx={{ fontSize: 32 }} />
+              </IconButton>
+            </Box>
+          </Grid>
 
-          {/* Links úteis */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', md: 'flex-start' }, gap: 1, mb: { xs: 2, md: 0 } }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#222', mb: 1 }}>Links Úteis</Typography>
-            <a href="/sobre" style={{ color: '#222', textDecoration: 'none', fontSize: 16, marginBottom: 2 }}>Sobre nós</a>
-            <a href="/faq" style={{ color: '#222', textDecoration: 'none', fontSize: 16, marginBottom: 2 }}>FAQ</a>
-            <a href="/privacidade" style={{ color: '#222', textDecoration: 'none', fontSize: 16, marginBottom: 2 }}>Política de Privacidade</a>
-            <a href="/termos" style={{ color: '#222', textDecoration: 'none', fontSize: 16, marginBottom: 2 }}>Termos de Uso</a>
-            <a href="/contato" style={{ color: '#222', textDecoration: 'none', fontSize: 16 }}>Contato</a>
-          </Box>
-
-          {/* Redes Sociais */}
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <IconButton
-              color="primary"
-              aria-label="Facebook"
-              component="a"
-              href={socialLinks.facebook}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ 
-                '&:hover': { 
-                  color: '#1877f2',
-                  backgroundColor: 'rgba(24, 119, 242, 0.1)'
-                }
-              }}
-            >
-              <FacebookIcon />
-            </IconButton>
-            <IconButton
-              color="primary"
-              aria-label="Instagram"
-              component="a"
-              href={socialLinks.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ 
-                '&:hover': { 
-                  color: '#e4405f',
-                  backgroundColor: 'rgba(228, 64, 95, 0.1)'
-                }
-              }}
-            >
-              <InstagramIcon />
-            </IconButton>
-            <IconButton
-              color="primary"
-              aria-label="YouTube"
-              component="a"
-              href={socialLinks.youtube}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ 
-                '&:hover': { 
-                  color: '#ff0000',
-                  backgroundColor: 'rgba(255, 0, 0, 0.1)'
-                }
-              }}
-            >
-              <YouTubeIcon />
-            </IconButton>
-          </Box>
-        </Box>
-        {/* Copyright e créditos */}
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography variant="body2" sx={{ color: '#888' }}>
-            © 2025 Igreja CEM - desenvolvido por MIDIA CEM
-          </Typography>
-        </Box>
+          <Grid item xs={12} md={4} sx={{ textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ mt: 2 }}>
+              © {new Date().getFullYear()} Connect Conf. Todos os direitos reservados.
+            </Typography>
+          </Grid>
+        </Grid>
       </Container>
     </Box>
   );
-};
-
-export default Footer; 
+} 

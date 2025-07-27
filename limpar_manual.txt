@@ -1,0 +1,37 @@
+INSTRUÇÕES PARA LIMPAR DADOS DE PARTICIPANTES
+
+Como o backend não está funcionando, aqui estão as opções para limpar os dados:
+
+OPÇÃO 1: USAR DB BROWSER FOR SQLITE
+1. Baixe e instale "DB Browser for SQLite" (gratuito)
+2. Abra o arquivo: backend/database.sqlite
+3. Vá na aba "Execute SQL"
+4. Execute este comando:
+   DELETE FROM registrations;
+5. Clique em "Write Changes" para salvar
+
+OPÇÃO 2: USAR EXTENSÃO DO VS CODE
+1. Instale a extensão "SQLite" no VS Code
+2. Abra o arquivo backend/database.sqlite
+3. Execute: DELETE FROM registrations;
+
+OPÇÃO 3: BACKUP E RECRIAR
+1. Faça backup do arquivo backend/database.sqlite
+2. Delete o arquivo backend/database.sqlite
+3. Reinicie o backend (ele criará um novo banco vazio)
+
+OPÇÃO 4: SCRIPT SIMPLES
+Execute no terminal:
+node limpar_dados_simples.js
+
+OPÇÃO 5: MANUAL (MAIS SEGURO)
+1. Renomeie o arquivo backend/database.sqlite para database_backup.sqlite
+2. O backend criará um novo banco vazio quando reiniciar
+
+RECOMENDAÇÃO:
+Use a OPÇÃO 5 (mais segura) - você mantém o backup e começa com um banco limpo.
+
+Depois de limpar:
+1. Inicie o backend: cd backend && npm start
+2. O site deve carregar normalmente
+3. Os dados estarão limpos 

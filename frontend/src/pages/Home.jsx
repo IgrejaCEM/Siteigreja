@@ -6,6 +6,7 @@ import ModernHeader from '../components/ModernHeader';
 import HeroSection from '../components/HeroSection';
 import ImpactSection from '../components/ImpactSection';
 import ScrollSection from '../components/ScrollSection';
+import FAQSection from '../components/FAQSection';
 import Footer from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 import {
@@ -35,9 +36,6 @@ const defaultHtml = `
       </div>
     </div>
   </section>
-  <footer style="background:#222;color:#fff;padding:24px;text-align:center;">
-    © 2025 Igreja CEM. Todos os direitos reservados.
-  </footer>
 `;
 
 const Home = () => {
@@ -110,7 +108,9 @@ const Home = () => {
 
   // Função para remover <body> e </body> do HTML vindo do backend
   const sanitizeHtml = (html) => {
-    return html.replace(/<[/]?body[^>]*>/gi, '');
+    return html
+      .replace(/<[/]?body[^>]*>/gi, '')
+      .replace(/© 2025 CONNECT CONF\. Todos os direitos reservados\./g, '');
   };
 
   const htmlToShow = typeof content === 'string' ? sanitizeHtml(content) : '';
@@ -245,7 +245,8 @@ const Home = () => {
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
-        position: 'relative'
+        position: 'relative',
+        mb: 0 // Removendo margem inferior
       }}>
         <Box sx={{
           width: '100%',
@@ -269,15 +270,20 @@ const Home = () => {
           />
         </Box>
       </Box>
+
       {/* Eventos após o vídeo do YouTube */}
-      <Box sx={{ 
-        width: '100%', 
-        py: 2, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center',
-        mt: 10 // Adicionando margin-top
-      }}>
+      <Box 
+        id="ingressos"
+        sx={{ 
+          width: '100%', 
+          py: 2, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center',
+          mt: 0, // Removendo margem superior
+          scrollMarginTop: "100px"
+        }}
+      >
         <Box sx={{ pt: 8, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Typography sx={{
             mb: 0,
@@ -389,6 +395,7 @@ const Home = () => {
       </Box>
       <style>{css}</style>
       {htmlToShow && renderWithEventSection(htmlToShow)}
+      <FAQSection />
       <Footer />
       <WhatsAppButton />
       <Snackbar

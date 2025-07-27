@@ -818,4 +818,23 @@ router.get('/users', async (req, res) => {
   }
 });
 
+// Limpar todos os dados de participantes
+router.delete('/participants/clear', async (req, res) => {
+  try {
+    // Limpar todas as inscrições
+    const deletedCount = await db('registrations').del();
+    
+    console.log(`🗑️ Limpeza concluída: ${deletedCount} registros de participantes removidos`);
+    
+    res.json({ 
+      success: true, 
+      message: `Limpeza concluída com sucesso! ${deletedCount} registros de participantes foram removidos.`,
+      deletedCount 
+    });
+  } catch (error) {
+    console.error('Erro ao limpar participantes:', error);
+    res.status(500).json({ error: 'Erro ao limpar dados de participantes' });
+  }
+});
+
 module.exports = router; 

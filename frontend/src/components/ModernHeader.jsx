@@ -11,13 +11,31 @@ export default function ModernHeader() {
 
   const menuItems = [
     { label: 'O QUE É', href: '#oque-e' },
-    { label: 'FAQ', href: '/faq' },
-    { label: 'GARANTA SEU INGRESSO', href: '/eventos', isButton: true }
+    { label: 'FAQ', href: '#faq' },
+    { label: 'GARANTA SEU INGRESSO', href: '#ingressos', isButton: true }
   ];
 
   const handleMenuClick = (href) => {
     setMobileMenuOpen(false);
-    navigate(href);
+    if (href.startsWith('#')) {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate(href);
+    }
+  };
+
+  const handleItemClick = (href) => {
+    if (href.startsWith('#')) {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate(href);
+    }
   };
 
   return (
@@ -92,7 +110,7 @@ export default function ModernHeader() {
                         color: '#FF6B6B',
                       },
                     }}
-                    onClick={() => navigate(item.href)}
+                    onClick={() => handleItemClick(item.href)}
                   >
                     {item.label}
                   </Button>
@@ -113,7 +131,7 @@ export default function ModernHeader() {
                         background: 'rgba(255,255,255,0.10)',
                       },
                     }}
-                    onClick={() => navigate(item.href)}
+                    onClick={() => handleItemClick(item.href)}
                   >
                     {item.label}
                   </Typography>
