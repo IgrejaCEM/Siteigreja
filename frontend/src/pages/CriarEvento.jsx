@@ -40,6 +40,7 @@ import api from '../services/api';
 import { styled } from '@mui/material/styles';
 import FormFieldsManager from '../components/FormFieldsManager';
 import EventoPreview from '../components/EventoPreview';
+import EventImageUpload from '../components/EventImageUpload';
 
 const VisuallyHiddenInput = styled('input')`
   clip: rect(0 0 0 0);
@@ -386,82 +387,46 @@ const CriarEvento = () => {
                     </Typography>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={4}>
-                        <TextField
-                          fullWidth
-                          label="URL do Banner Principal"
-                          value={form.banner || ''}
-                          onChange={(e) => setForm({...form, banner: e.target.value})}
-                          placeholder="https://exemplo.com/imagem.jpg"
-                          helperText="Cole a URL da imagem"
-                        />
-                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 1, mb: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Banner Principal
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
                           Tamanho recomendado: 1920x1080 pixels
                         </Typography>
-                        {form.banner && (
-                          <Box sx={{ mt: 2, position: 'relative' }}>
-                            <img 
-                              src={form.banner} 
-                              alt="Preview" 
-                              style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }}
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://via.placeholder.com/400x200?text=Imagem+Inválida';
-                              }}
-                            />
-                          </Box>
-                        )}
+                        <EventImageUpload
+                          currentImage={form.banner}
+                          onImageUploaded={(url) => setForm({...form, banner: url})}
+                          label="Selecionar Banner Principal"
+                          folder="events"
+                        />
                       </Grid>
                       <Grid item xs={12} sm={4}>
-                        <TextField
-                          fullWidth
-                          label="URL do Banner Home"
-                          value={form.banner_home || ''}
-                          onChange={(e) => setForm({...form, banner_home: e.target.value})}
-                          placeholder="https://exemplo.com/imagem.jpg"
-                          helperText="Cole a URL da imagem"
-                        />
-                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 1, mb: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Banner Home
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
                           Tamanho recomendado: 800x600 pixels
                         </Typography>
-                        {form.banner_home && (
-                          <Box sx={{ mt: 2, position: 'relative' }}>
-                            <img 
-                              src={form.banner_home} 
-                              alt="Preview" 
-                              style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }}
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://via.placeholder.com/400x200?text=Imagem+Inválida';
-                              }}
-                            />
-                          </Box>
-                        )}
+                        <EventImageUpload
+                          currentImage={form.banner_home}
+                          onImageUploaded={(url) => setForm({...form, banner_home: url})}
+                          label="Selecionar Banner Home"
+                          folder="events"
+                        />
                       </Grid>
                       <Grid item xs={12} sm={4}>
-                        <TextField
-                          fullWidth
-                          label="URL do Banner Evento"
-                          value={form.banner_evento || ''}
-                          onChange={(e) => setForm({...form, banner_evento: e.target.value})}
-                          placeholder="https://exemplo.com/imagem.jpg"
-                          helperText="Cole a URL da imagem"
-                        />
-                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 1, mb: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Banner Evento
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
                           Tamanho recomendado: 1200x400 pixels
                         </Typography>
-                        {form.banner_evento && (
-                          <Box sx={{ mt: 2, position: 'relative' }}>
-                            <img 
-                              src={form.banner_evento} 
-                              alt="Preview" 
-                              style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }}
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://via.placeholder.com/400x200?text=Imagem+Inválida';
-                              }}
-                            />
-                          </Box>
-                        )}
+                        <EventImageUpload
+                          currentImage={form.banner_evento}
+                          onImageUploaded={(url) => setForm({...form, banner_evento: url})}
+                          label="Selecionar Banner Evento"
+                          folder="events"
+                        />
                       </Grid>
                     </Grid>
                   </CardContent>
