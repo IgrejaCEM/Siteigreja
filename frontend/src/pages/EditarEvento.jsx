@@ -85,9 +85,40 @@ export default function EditarEvento() {
   // Função utilitária para formatar datas para o input datetime-local
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
-    const d = new Date(dateString);
-    const pad = n => n.toString().padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    
+    // Tentar diferentes formatos de data
+    let date;
+    
+    // Se já está no formato correto (YYYY-MM-DDTHH:mm)
+    if (dateString.includes('T')) {
+      return dateString;
+    }
+    
+    // Se tem formato com timezone (2025-10-24 00:00:00 00:00:00)
+    if (dateString.includes(' 00:00:00 00:00:00')) {
+      dateString = dateString.replace(' 00:00:00 00:00:00', '');
+    }
+    
+    // Se tem formato com timezone (2025-10-24 00:00:00)
+    if (dateString.includes(' 00:00:00')) {
+      dateString = dateString.replace(' 00:00:00', '');
+    }
+    
+    try {
+      date = new Date(dateString);
+      
+      // Verificar se a data é válida
+      if (isNaN(date.getTime())) {
+        console.warn('Data inválida:', dateString);
+        return '';
+      }
+      
+      const pad = n => n.toString().padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return '';
+    }
   };
 
   useEffect(() => {
