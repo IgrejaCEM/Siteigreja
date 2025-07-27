@@ -4,10 +4,14 @@ const config = require('../config');
 // Classe do Mercado Pago
 class MercadoPagoGateway {
   constructor() {
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN || config.payment.mercadopago.accessToken;
+    console.log('🔑 Token Mercado Pago configurado:', accessToken ? 'SIM' : 'NÃO');
+    console.log('🔑 Token prefixo:', accessToken ? accessToken.substring(0, 10) + '...' : 'NÃO CONFIGURADO');
+    
     this.api = axios.create({
       baseURL: 'https://api.mercadopago.com/v1',
       headers: {
-        'Authorization': `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN || config.payment.mercadopago.accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       }
     });
@@ -60,7 +64,19 @@ class MercadoPagoGateway {
       console.log('📦 Payload:', JSON.stringify(payload, null, 2));
 
       // Criar preferência de pagamento (Checkout Pro)
-      const response = await this.api.post('/checkout/preferences', payload);
+      // Tentar primeiro o endpoint /preferences (mais comum)
+      let response;
+      try {
+        response = await this.api.post('/preferences', payload);
+      } catch (error) {
+        if (error.response?.status === 404) {
+          // Se falhar, tentar o endpoint /checkout/preferences
+          console.log('🔄 Tentando endpoint alternativo /checkout/preferences...');
+          response = await this.api.post('/checkout/preferences', payload);
+        } else {
+          throw error;
+        }
+      }
       
       console.log('✅ Checkout Pro criado:', response.data.id);
 
@@ -73,7 +89,14 @@ class MercadoPagoGateway {
         raw: response.data
       };
     } catch (error) {
-      console.error('Erro ao criar checkout Mercado Pago:', error.response?.data || error.message);
+      console.error('❌ Erro ao criar checkout Mercado Pago:');
+      console.error('📊 Status:', error.response?.status);
+      console.error('📊 Status Text:', error.response?.statusText);
+      console.error('📊 URL:', error.config?.url);
+      console.error('📊 Method:', error.config?.method);
+      console.error('📊 Headers:', error.config?.headers);
+      console.error('📊 Data:', error.response?.data);
+      console.error('📊 Message:', error.message);
       throw error;
     }
   }
