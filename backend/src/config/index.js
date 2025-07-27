@@ -19,8 +19,12 @@ testSettings();
 const config = {
   jwtSecret: process.env.JWT_SECRET || 'igreja-eventos-jwt-secret-key-2024',
   database: {
-    client: 'pg',
-    connection: process.env.DATABASE_URL || 'postgresql://postgres:WWiZILOORFMgerRjFMPSJLQrfLGFfviU@shuttle.proxy.rlwy.net:14638/railway',
+    client: process.env.NODE_ENV === 'production' ? 'pg' : 'sqlite3',
+    connection: process.env.NODE_ENV === 'production' 
+      ? (process.env.DATABASE_URL || 'postgresql://postgres:WWiZILOORFMgerRjFMPSJLQrfLGFfviU@shuttle.proxy.rlwy.net:14638/railway')
+      : {
+          filename: path.resolve(__dirname, '../../database.sqlite')
+        },
     migrations: {
       directory: path.resolve(__dirname, '../database/migrations')
     },
