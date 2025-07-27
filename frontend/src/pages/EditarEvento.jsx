@@ -82,13 +82,21 @@ export default function EditarEvento() {
   
   const navigate = useNavigate();
 
+  // Função utilitária para formatar datas para o input datetime-local
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    const pad = n => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   useEffect(() => {
     const fetchEvento = async () => {
       try {
         const res = await api.get(`/admin/events/${id}`);
         setForm({
           title: res.data.title || '',
-          date: res.data.date || '',
+          date: formatDateForInput(res.data.date) || '',
           location: res.data.location || '',
           description: res.data.description || '',
           banner: res.data.banner || '',
@@ -282,14 +290,6 @@ export default function EditarEvento() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Função utilitária para formatar datas para o input datetime-local
-  const formatDateForInput = (dateString) => {
-    if (!dateString) return '';
-    const d = new Date(dateString);
-    const pad = n => n.toString().padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
   if (loading) {
