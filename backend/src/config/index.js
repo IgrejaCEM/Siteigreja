@@ -20,7 +20,7 @@ const config = {
   jwtSecret: process.env.JWT_SECRET || 'igreja-eventos-jwt-secret-key-2024',
   database: {
     client: 'pg',
-    connection: 'postgresql://postgres:WWiZILOORFMgerRjFMPSJLQrfLGFfviU@shuttle.proxy.rlwy.net:14638/railway',
+    connection: process.env.DATABASE_URL || 'postgresql://postgres:WWiZILOORFMgerRjFMPSJLQrfLGFfviU@shuttle.proxy.rlwy.net:14638/railway',
     migrations: {
       directory: path.resolve(__dirname, '../database/migrations')
     },
