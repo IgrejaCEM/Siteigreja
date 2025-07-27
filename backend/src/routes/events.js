@@ -777,19 +777,9 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           response: pgErr.response?.data
         });
         
-        // Solução temporária: criar link de pagamento simulado
-        console.log('🔄 Criando link de pagamento simulado...');
-        paymentInfo = {
-          payment_id: `TEMP_${Date.now()}`,
-          payment_url: `https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=TEMP_${Date.now()}`,
-          status: 'pending',
-          status_detail: 'pending',
-          external_reference: registrationCode,
-          raw: {
-            init_point: `https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=TEMP_${Date.now()}`
-          }
-        };
-        console.log('✅ Link de pagamento simulado criado:', paymentInfo);
+        // Erro na criação do pagamento - retorna null para indicar falha
+        console.log('❌ Falha na criação do pagamento no Mercado Pago');
+        paymentInfo = null;
       }
     }
     // Estatísticas
