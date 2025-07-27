@@ -107,12 +107,35 @@ const initializeDatabase = async () => {
         table.integer('quantity').notNullable();
         table.datetime('start_date').notNullable();
         table.datetime('end_date').notNullable();
+        table.boolean('is_free').defaultTo(false);
+        table.string('status').defaultTo('active');
         table.timestamps(true, true);
       });
       console.log('✅ Tabela de lotes criada');
     } catch (error) {
       if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
         console.log('ℹ️ Tabela de lotes já existe');
+        
+        // Verificar se a coluna is_free existe
+        try {
+          const columns = await db.raw("PRAGMA table_info(lots)");
+          const isFreeColumn = columns.some(col => col.name === 'is_free');
+          const statusColumn = columns.some(col => col.name === 'status');
+          
+          if (!isFreeColumn) {
+            console.log('🔧 Adicionando coluna is_free...');
+            await db.raw("ALTER TABLE lots ADD COLUMN is_free BOOLEAN DEFAULT false");
+          }
+          
+          if (!statusColumn) {
+            console.log('🔧 Adicionando coluna status...');
+            await db.raw("ALTER TABLE lots ADD COLUMN status TEXT DEFAULT 'active'");
+          }
+          
+          console.log('✅ Colunas de lotes verificadas/adicionadas');
+        } catch (alterError) {
+          console.log('⚠️ Erro ao verificar/adicionar colunas de lotes:', alterError.message);
+        }
       } else {
         throw error;
       }
