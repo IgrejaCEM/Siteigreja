@@ -747,20 +747,20 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
       const [paymentId] = await trx('payments').insert({
         registration_code: registrationCode,
         amount: totalAmount,
-        payment_method: 'abacatepay', // Corrigido: valor padrão
+        payment_method: 'mercadopago', // Usando Mercado Pago como gateway ativo
         status: 'pending',
         created_at: new Date(),
         updated_at: new Date()
       }).returning('id');
-      // Integração com gateway (AbacatePay)
+      // Integração com gateway (Mercado Pago)
       try {
         paymentInfo = await PaymentGateway.createPayment({
           amount: totalAmount,
           description: `Inscrição - ${event.title} - ${selectedLot.name}`,
           customer: participantes[0],
-          method: payment_method // Passa o método selecionado
+          method: payment_method || 'CHECKOUT_PRO' // Usa CHECKOUT_PRO como padrão
         });
-        console.log('Retorno AbacatePay:', paymentInfo);
+        console.log('Retorno Mercado Pago:', paymentInfo);
       } catch (pgErr) {
         console.error('Erro ao criar pagamento no gateway:', pgErr);
       }

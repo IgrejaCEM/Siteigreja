@@ -50,7 +50,7 @@ import { useInterval } from '../utils/useInterval';
 
 dayjs.locale('pt-br');
 
-const steps = ['Inscrições', 'Forma de Pagamento', 'Confirmação'];
+  const steps = ['Inscrições', 'Confirmação', 'Pagamento'];
 
 const Inscricao = () => {
   const { id } = useParams();
@@ -75,7 +75,7 @@ const Inscricao = () => {
     custom_fields: {}
   }]);
   const [currentInscricao, setCurrentInscricao] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState('');
+  // paymentMethod state removido - método será escolhido no checkout do Mercado Pago
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [registrationCode, setRegistrationCode] = useState('');
   const [selectedLotId, setSelectedLotId] = useState(null);
@@ -305,7 +305,7 @@ const Inscricao = () => {
 
       const response = await api.post(`/events/${event.id}/inscricao-unificada`, {
         participantes: participantesToSend,
-        payment_method: paymentMethod,
+        payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
         lot_id: selectedLotId,
         products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
       });
@@ -391,11 +391,7 @@ const Inscricao = () => {
         setLoading(false);
         return;
       }
-      if (!paymentMethod) {
-        setError('Por favor, selecione uma forma de pagamento.');
-        setLoading(false);
-        return;
-      }
+      // Removida validação de paymentMethod - método será escolhido no checkout do Mercado Pago
       const participantesToSend = inscricoes.map(inscricao => ({
         name: inscricao.nome,
         email: inscricao.email,
@@ -414,7 +410,7 @@ const Inscricao = () => {
       const total = calculateTotal();
       if (total > 0) {
         console.log('💰 Total a pagar:', total);
-        console.log('📝 Dados da inscrição:', { participantes: participantesToSend, lot_id: selectedLotId, payment_method: paymentMethod });
+        console.log('📝 Dados da inscrição:', { participantes: participantesToSend, lot_id: selectedLotId, payment_method: 'CHECKOUT_PRO' });
         
         // Gera cobrança e obtém link do checkout
         const response = await api.post(`/events/${event.id}/inscricao-unificada`, {
@@ -758,19 +754,8 @@ const Inscricao = () => {
             </Alert>
 
             <Typography variant="body1" sx={{ mb: 2 }}>
-              Clique no botão abaixo para ir ao checkout do Mercado Pago, onde você poderá escolher a forma de pagamento (PIX, Cartão de Crédito, Boleto, etc.).
+              Clique no botão "Ir para o Checkout" abaixo para ir ao checkout do Mercado Pago, onde você poderá escolher a forma de pagamento (PIX, Cartão de Crédito, Boleto, etc.).
             </Typography>
-
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              onClick={handleCheckoutAndNext}
-              disabled={loading}
-              sx={{ mt: 2 }}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Ir para o Checkout'}
-            </Button>
             
             {error && (
               <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
@@ -925,10 +910,15 @@ const Inscricao = () => {
             </Button>
             <Button
               variant="contained"
-              onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+              onClick={
+                activeStep === 1 ? handleCheckoutAndNext : 
+                activeStep === steps.length - 1 ? handleSubmit : 
+                handleNext
+              }
               disabled={loading}
             >
               {loading ? <CircularProgress size={24} /> : 
+                activeStep === 1 ? 'Ir para o Checkout' :
                 activeStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
             </Button>
           </Box>
