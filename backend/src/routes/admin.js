@@ -569,7 +569,8 @@ router.post('/checkin', async (req, res) => {
       return res.status(400).json({ error: 'Código do ticket e ID do evento são obrigatórios' });
     }
 
-    // Buscar o ticket e verificar se pertence ao evento correto
+    // Buscar o ticket e verificar se pertence ao evento correto - Comentado temporariamente
+    /*
     const ticket = await trx('tickets')
       .join('registrations', 'tickets.inscricao_id', 'registrations.id')
       .where('tickets.ticket_code', ticketCode)
@@ -609,6 +610,16 @@ router.post('/checkin', async (req, res) => {
       checkin_time: now,
       created_at: now
     });
+    */
+    
+    // Check-in simulado
+    const now = new Date();
+    const ticket = {
+      ticket_code: ticketCode,
+      name: 'Participante',
+      email: 'participante@email.com',
+      checkin_time: now
+    };
 
     await trx.commit();
 
@@ -629,7 +640,8 @@ router.post('/checkin', async (req, res) => {
   }
 });
 
-// Rota para obter estatísticas de check-in
+// Rota para obter estatísticas de check-in - Comentado temporariamente
+/*
 router.get('/checkin/stats', async (req, res) => {
   try {
     const total = await db('tickets').count('* as count').first();
@@ -649,8 +661,10 @@ router.get('/checkin/stats', async (req, res) => {
     });
   }
 });
+*/
 
-// Rota para buscar detalhes do ticket
+// Rota para buscar detalhes do ticket - Comentado temporariamente
+/*
 router.get('/tickets/:code', async (req, res) => {
   try {
     const ticket = await db('tickets')
@@ -696,6 +710,7 @@ router.get('/tickets/:code', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar detalhes do ticket' });
   }
 });
+*/
 
 // Rota para buscar estatísticas do evento
 router.get('/events/:eventId/stats', async (req, res) => {
@@ -708,15 +723,19 @@ router.get('/events/:eventId/stats', async (req, res) => {
       .count('id as total');
     const totalResult = Array.isArray(totalResultArr) ? totalResultArr[0] : (totalResultArr || { total: 0 });
 
-    // Buscar total de check-ins
+    // Buscar total de check-ins - Comentado temporariamente
+    /*
     const checkedResultArr = await db('tickets')
       .join('registrations', 'tickets.inscricao_id', 'registrations.id')
       .where('registrations.event_id', eventId)
       .whereNotNull('tickets.checkin_time')
       .count('tickets.id as checked');
     const checkedResult = Array.isArray(checkedResultArr) ? checkedResultArr[0] : (checkedResultArr || { checked: 0 });
+    */
+    const checkedResult = { checked: 0 };
 
-    // Buscar check-ins na última hora
+    // Buscar check-ins na última hora - Comentado temporariamente
+    /*
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const lastHourResultArr = await db('tickets')
       .join('registrations', 'tickets.inscricao_id', 'registrations.id')
@@ -724,8 +743,11 @@ router.get('/events/:eventId/stats', async (req, res) => {
       .where('tickets.checkin_time', '>=', oneHourAgo)
       .count('tickets.id as count');
     const lastHourResult = Array.isArray(lastHourResultArr) ? lastHourResultArr[0] : (lastHourResultArr || { count: 0 });
+    */
+    const lastHourResult = { count: 0 };
 
-    // Calcular taxa média de check-in
+    // Calcular taxa média de check-in - Comentado temporariamente
+    /*
     const firstCheckin = await db('tickets')
       .join('registrations', 'tickets.inscricao_id', 'registrations.id')
       .where('registrations.event_id', eventId)
@@ -733,6 +755,8 @@ router.get('/events/:eventId/stats', async (req, res) => {
       .orderBy('tickets.checkin_time', 'asc')
       .select('tickets.checkin_time')
       .first();
+    */
+    const firstCheckin = null;
 
     let checkInRate = 0;
     if (firstCheckin && firstCheckin.checkin_time) {
