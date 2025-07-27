@@ -243,6 +243,68 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Criar tabela de produtos de eventos se não existir
+    try {
+      await db.schema.createTable('event_products', table => {
+        table.increments('id').primary();
+        table.integer('event_id').references('id').inTable('events').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.text('description');
+        table.decimal('price', 10, 2).notNullable();
+        table.integer('stock').defaultTo(0);
+        table.string('image');
+        table.boolean('is_active').defaultTo(true);
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela de produtos de eventos criada');
+    } catch (error) {
+      if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
+        console.log('ℹ️ Tabela de produtos de eventos já existe');
+      } else {
+        throw error;
+      }
+    }
+
+    // Criar tabela de produtos de inscrições se não existir
+    try {
+      await db.schema.createTable('registration_products', table => {
+        table.increments('id').primary();
+        table.integer('registration_id').references('id').inTable('registrations').onDelete('CASCADE');
+        table.integer('product_id').references('id').inTable('event_products').onDelete('CASCADE');
+        table.integer('quantity').notNullable();
+        table.decimal('unit_price', 10, 2).notNullable();
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela de produtos de inscrições criada');
+    } catch (error) {
+      if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
+        console.log('ℹ️ Tabela de produtos de inscrições já existe');
+      } else {
+        throw error;
+      }
+    }
+
+    // Criar tabela de pagamentos se não existir
+    try {
+      await db.schema.createTable('payments', table => {
+        table.increments('id').primary();
+        table.string('registration_code').notNullable();
+        table.decimal('amount', 10, 2).notNullable();
+        table.string('payment_method').notNullable();
+        table.string('status').defaultTo('pending');
+        table.string('gateway_payment_id');
+        table.json('gateway_response');
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela de pagamentos criada');
+    } catch (error) {
+      if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
+        console.log('ℹ️ Tabela de pagamentos já existe');
+      } else {
+        throw error;
+      }
+    }
+
     console.log('✅ Banco de dados inicializado com sucesso');
   } catch (error) {
     console.error('❌ Erro ao inicializar banco de dados:', error);
