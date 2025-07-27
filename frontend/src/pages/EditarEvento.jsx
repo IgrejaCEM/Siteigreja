@@ -323,6 +323,58 @@ export default function EditarEvento() {
     }
   };
 
+  const handleImageUpload = async (file, imageType) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('folder', 'events');
+
+      const response = await api.post('/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Atualizar o formulário com a URL real do servidor
+      setForm(prev => ({
+        ...prev,
+        [imageType]: response.data.url
+      }));
+
+    } catch (error) {
+      console.error('Erro ao fazer upload da imagem:', error);
+      setError('Erro ao fazer upload da imagem. Tente novamente.');
+    }
+  };
+
+  const handleBannerChange = async (e, imageType) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor, selecione apenas arquivos de imagem (JPG, PNG, GIF).');
+      return;
+    }
+
+    // Validar tamanho do arquivo (máximo 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('A imagem deve ter no máximo 10MB.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      await handleImageUpload(file, imageType);
+    } catch (error) {
+      setError('Erro ao fazer upload da imagem. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -446,13 +498,7 @@ export default function EditarEvento() {
                   style={{ display: 'none' }}
                   id="edit-banner-upload"
                   type="file"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const url = URL.createObjectURL(file);
-                      setForm({...form, banner: url});
-                    }
-                  }}
+                  onChange={(e) => handleBannerChange(e, 'banner')}
                 />
                 <label htmlFor="edit-banner-upload">
                   <Button
@@ -487,13 +533,7 @@ export default function EditarEvento() {
                   style={{ display: 'none' }}
                   id="edit-banner-home-upload"
                   type="file"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const url = URL.createObjectURL(file);
-                      setForm({...form, banner_home: url});
-                    }
-                  }}
+                  onChange={(e) => handleBannerChange(e, 'banner_home')}
                 />
                 <label htmlFor="edit-banner-home-upload">
                   <Button
@@ -528,13 +568,7 @@ export default function EditarEvento() {
                   style={{ display: 'none' }}
                   id="edit-banner-evento-upload"
                   type="file"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const url = URL.createObjectURL(file);
-                      setForm({...form, banner_evento: url});
-                    }
-                  }}
+                  onChange={(e) => handleBannerChange(e, 'banner_evento')}
                 />
                 <label htmlFor="edit-banner-evento-upload">
                   <Button
