@@ -61,6 +61,8 @@ const initializeDatabase = async () => {
         table.string('banner_evento');
         table.string('slug').unique();
         table.string('status').defaultTo('active');
+        table.boolean('has_payment').defaultTo(false);
+        table.string('payment_gateway');
         table.json('registration_form');
         table.timestamps(true, true);
       });
@@ -68,6 +70,28 @@ const initializeDatabase = async () => {
     } catch (error) {
       if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
         console.log('ℹ️ Tabela de eventos já existe');
+        
+        // Verificar se as colunas has_payment e payment_gateway existem
+        try {
+          await db.raw("PRAGMA table_info(events)");
+          const columns = await db.raw("PRAGMA table_info(events)");
+          const hasPaymentColumn = columns.some(col => col.name === 'has_payment');
+          const paymentGatewayColumn = columns.some(col => col.name === 'payment_gateway');
+          
+          if (!hasPaymentColumn) {
+            console.log('🔧 Adicionando coluna has_payment...');
+            await db.raw("ALTER TABLE events ADD COLUMN has_payment BOOLEAN DEFAULT false");
+          }
+          
+          if (!paymentGatewayColumn) {
+            console.log('🔧 Adicionando coluna payment_gateway...');
+            await db.raw("ALTER TABLE events ADD COLUMN payment_gateway TEXT");
+          }
+          
+          console.log('✅ Colunas de pagamento verificadas/adicionadas');
+        } catch (alterError) {
+          console.log('⚠️ Erro ao verificar/adicionar colunas:', alterError.message);
+        }
       } else {
         throw error;
       }
