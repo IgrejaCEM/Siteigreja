@@ -404,14 +404,35 @@ export default function EditarEvento() {
           {activeTab === 1 && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Banner Principal"
-                  name="banner"
-                  value={form.banner}
-                  onChange={handleChange}
-                  helperText="URL da imagem principal do evento"
+                <Typography variant="subtitle2" gutterBottom>
+                  Banner Principal
+                </Typography>
+                <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
+                  Tamanho recomendado: 1920x1080 pixels
+                </Typography>
+                <input
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  id="edit-banner-upload"
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const url = URL.createObjectURL(file);
+                      setForm({...form, banner: url});
+                    }
+                  }}
                 />
+                <label htmlFor="edit-banner-upload">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    fullWidth
+                    sx={{ mb: 2 }}
+                  >
+                    Selecionar Banner Principal
+                  </Button>
+                </label>
                 {form.banner && (
                   <Card sx={{ mt: 2 }}>
                     <CardMedia
@@ -424,14 +445,35 @@ export default function EditarEvento() {
                 )}
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Banner da Página Inicial"
-                  name="banner_home"
-                  value={form.banner_home}
-                  onChange={handleChange}
-                  helperText="URL da imagem que aparecerá na página inicial"
+                <Typography variant="subtitle2" gutterBottom>
+                  Banner da Página Inicial
+                </Typography>
+                <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
+                  Tamanho recomendado: 800x600 pixels
+                </Typography>
+                <input
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  id="edit-banner-home-upload"
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const url = URL.createObjectURL(file);
+                      setForm({...form, banner_home: url});
+                    }
+                  }}
                 />
+                <label htmlFor="edit-banner-home-upload">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    fullWidth
+                    sx={{ mb: 2 }}
+                  >
+                    Selecionar Banner Home
+                  </Button>
+                </label>
                 {form.banner_home && (
                   <Card sx={{ mt: 2 }}>
                     <CardMedia
@@ -444,14 +486,35 @@ export default function EditarEvento() {
                 )}
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Banner Específico do Evento"
-                  name="banner_evento"
-                  value={form.banner_evento}
-                  onChange={handleChange}
-                  helperText="URL da imagem específica para a página do evento"
+                <Typography variant="subtitle2" gutterBottom>
+                  Banner Específico do Evento
+                </Typography>
+                <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
+                  Tamanho recomendado: 1200x400 pixels
+                </Typography>
+                <input
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  id="edit-banner-evento-upload"
+                  type="file"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const url = URL.createObjectURL(file);
+                      setForm({...form, banner_evento: url});
+                    }
+                  }}
                 />
+                <label htmlFor="edit-banner-evento-upload">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    fullWidth
+                    sx={{ mb: 2 }}
+                  >
+                    Selecionar Banner Evento
+                  </Button>
+                </label>
                 {form.banner_evento && (
                   <Card sx={{ mt: 2 }}>
                     <CardMedia
