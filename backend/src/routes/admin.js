@@ -894,4 +894,111 @@ router.delete('/participants/clear', async (req, res) => {
   }
 });
 
+// ROTA TEMPORÁRIA PARA CORRIGIR BANCO (REMOVER APÓS USO)
+router.post('/fix-database-emergency', async (req, res) => {
+  try {
+    console.log('🚨 CORREÇÃO EMERGENCIAL DO BANCO INICIADA');
+    
+    const { db } = require('../database/db');
+    
+    // Verificar se a tabela registrations existe
+    const tableExists = await db.schema.hasTable('registrations');
+    if (!tableExists) {
+      return res.status(400).json({ 
+        error: 'Tabela registrations não existe',
+        action: 'Execute migrations primeiro' 
+      });
+    }
+    
+    // Verificar colunas existentes
+    const columns = await db('registrations').columnInfo();
+    const existingColumns = Object.keys(columns);
+    
+    // Colunas necessárias
+    const requiredColumns = ['address', 'registration_code', 'payment_status', 'form_data'];
+    const missingColumns = requiredColumns.filter(col => !existingColumns.includes(col));
+    
+    if (missingColumns.length === 0) {
+      return res.json({
+        success: true,
+        message: 'Todas as colunas já existem',
+        existingColumns
+      });
+    }
+    
+    // Adicionar colunas faltantes
+    const addedColumns = [];
+    for (const column of missingColumns) {
+      try {
+        await db.schema.table('registrations', function(table) {
+          switch(column) {
+            case 'address':
+              table.string('address').nullable();
+              break;
+            case 'registration_code':
+              table.string('registration_code').nullable();
+              break;
+            case 'payment_status':
+              table.string('payment_status').nullable();
+              break;
+            case 'form_data':
+              table.text('form_data').nullable();
+              break;
+          }
+        });
+        addedColumns.push(column);
+        console.log(`✅ Coluna ${column} adicionada`);
+      } catch (colError) {
+        console.log(`❌ Erro ao adicionar ${column}:`, colError.message);
+      }
+    }
+    
+    // Verificar estrutura final
+    const finalColumns = await db('registrations').columnInfo();
+    
+    // Teste de inserção
+    let testSuccess = false;
+    try {
+      const testData = {
+        event_id: 1,
+        lot_id: 1,
+        name: 'Teste API Fix',
+        email: 'teste@fix.com',
+        phone: '11999999999',
+        address: 'Test Address',
+        registration_code: 'API-FIX-TEST',
+        payment_status: 'pending',
+        form_data: '{"test": true}',
+        status: 'confirmed'
+      };
+      
+      const [testId] = await db('registrations').insert(testData).returning('id');
+      await db('registrations').where('id', testId).delete();
+      testSuccess = true;
+    } catch (testError) {
+      console.log('❌ Teste de inserção falhou:', testError.message);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Banco corrigido com sucesso!',
+      details: {
+        existingColumns,
+        missingColumns,
+        addedColumns,
+        finalColumns: Object.keys(finalColumns),
+        testSuccess
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro na correção emergencial:', error);
+    res.status(500).json({
+      error: 'Erro na correção do banco',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 module.exports = router; 
