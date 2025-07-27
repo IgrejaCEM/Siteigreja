@@ -292,7 +292,9 @@ const initializeDatabase = async () => {
         table.decimal('amount', 10, 2).notNullable();
         table.string('payment_method').notNullable();
         table.string('status').defaultTo('pending');
+        table.string('payment_intent_id'); // Adicionado para webhook
         table.string('gateway_payment_id');
+        table.json('payment_details'); // Adicionado para webhook
         table.json('gateway_response');
         table.timestamps(true, true);
       });
@@ -300,6 +302,25 @@ const initializeDatabase = async () => {
     } catch (error) {
       if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
         console.log('ℹ️ Tabela de pagamentos já existe');
+        
+        // Verificar e adicionar colunas faltantes
+        try {
+          const columns = await db.raw("PRAGMA table_info(payments)");
+          const paymentIntentIdColumn = columns.some(col => col.name === 'payment_intent_id');
+          const paymentDetailsColumn = columns.some(col => col.name === 'payment_details');
+          
+          if (!paymentIntentIdColumn) {
+            console.log('🔧 Adicionando coluna payment_intent_id...');
+            await db.raw("ALTER TABLE payments ADD COLUMN payment_intent_id TEXT");
+          }
+          if (!paymentDetailsColumn) {
+            console.log('🔧 Adicionando coluna payment_details...');
+            await db.raw("ALTER TABLE payments ADD COLUMN payment_details TEXT");
+          }
+          console.log('✅ Colunas de payments verificadas/adicionadas');
+        } catch (alterError) {
+          console.log('⚠️ Erro ao verificar/adicionar colunas de payments:', alterError.message);
+        }
       } else {
         throw error;
       }
