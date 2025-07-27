@@ -1100,7 +1100,6 @@ const Inscricao = () => {
                 </Box>
               )}
               
-              {renderValueSummary()}
             </Box>
           )}
         </Paper>
