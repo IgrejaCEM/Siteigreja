@@ -191,17 +191,37 @@ const Home = () => {
         </Typography>
       </Box>
       {/* Video do YouTube abaixo do banner */}
-      <Box sx={{ width: '100%', background: '#000', py: 4, display: 'flex', justifyContent: 'center' }}>
-        <iframe
-          width="1000"
-          height="450"
-          src="https://www.youtube.com/embed/aNOVuL1JNYk?rel=0&autoplay=0"
-          title="CONNECT CONF Trailer"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          style={{ borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
-        />
+      <Box sx={{ 
+        width: '100%', 
+        background: '#000', 
+        py: { xs: 2, sm: 4 }, 
+        px: { xs: 2, sm: 4 },
+        display: 'flex', 
+        justifyContent: 'center' 
+      }}>
+        <Box sx={{
+          width: '100%',
+          maxWidth: 1000,
+          position: 'relative',
+          paddingTop: '56.25%', // 16:9 aspect ratio
+        }}>
+          <iframe
+            src="https://www.youtube.com/embed/aNOVuL1JNYk?rel=0&autoplay=0"
+            title="CONNECT CONF Trailer"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            style={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              borderRadius: 12, 
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)' 
+            }}
+          />
+        </Box>
       </Box>
       {/* Eventos após o vídeo do YouTube */}
       <Box sx={{ width: '100%', py: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -228,14 +248,27 @@ const Home = () => {
         }}>
           Escolha seu ingresso abaixo
         </Typography>
-        <Box sx={{ width: '100%', py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Box sx={{ 
+          width: '100%', 
+          py: { xs: 2, sm: 4 }, 
+          px: { xs: 2, sm: 4 },
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center' 
+        }}>
           {events.length > 0 ? events.map(ev => (
             <a
               key={ev.id}
               href={`/evento/${ev.slug || ev.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ width: '100%', maxWidth: 900, display: 'block', margin: '24px auto' }}
+              style={{ 
+                width: '100%', 
+                maxWidth: 900, 
+                display: 'block', 
+                margin: '16px auto',
+                padding: '0 16px'
+              }}
             >
               <img
                 src={ev.banner || 'https://via.placeholder.com/900x400?text=Evento'}
@@ -245,7 +278,7 @@ const Home = () => {
                   maxWidth: 900,
                   height: 'auto',
                   objectFit: 'cover',
-                  borderRadius: 24,
+                  borderRadius: { xs: 16, sm: 24 },
                   boxShadow: '0 2px 12px #0002',
                   display: 'block',
                   margin: '0 auto'
@@ -253,7 +286,7 @@ const Home = () => {
               />
             </a>
           )) : (
-            <Typography sx={{ color: '#888', fontSize: 20 }}>Nenhum evento cadastrado</Typography>
+            <Typography sx={{ color: '#888', fontSize: { xs: 16, sm: 20 } }}>Nenhum evento cadastrado</Typography>
           )}
         </Box>
       </Box>

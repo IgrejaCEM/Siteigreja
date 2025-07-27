@@ -515,9 +515,10 @@ const Inscricao = () => {
           value={inscricoes[index].nome}
           onChange={(e) => handleInputChange(index, e)}
           required
+          size="medium"
         />
       </Grid>
-      <Grid item xs={12}>
+      <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
           label="Email"
@@ -526,9 +527,10 @@ const Inscricao = () => {
           value={inscricoes[index].email}
           onChange={(e) => handleInputChange(index, e)}
           required
+          size="medium"
         />
       </Grid>
-      <Grid item xs={12}>
+      <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
           label="Telefone"
@@ -536,6 +538,7 @@ const Inscricao = () => {
           value={inscricoes[index].telefone}
           onChange={(e) => handleInputChange(index, e)}
           required
+          size="medium"
         />
       </Grid>
       {event.registration_form?.cpf && (
@@ -701,12 +704,21 @@ const Inscricao = () => {
         return (
           <Box>
             {renderLotSelection()}
-            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ 
+              mb: 3, 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 2, sm: 0 }
+            }}>
               <Typography variant="h6">Inscrições ({inscricoes.length})</Typography>
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={addInscricao}
+                fullWidth={false}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Adicionar Inscrição
               </Button>
@@ -724,6 +736,7 @@ const Inscricao = () => {
                     startIcon={<DeleteIcon />}
                     onClick={() => removeInscricao(index)}
                     sx={{ mt: 2 }}
+                    fullWidth={false}
                   >
                     Remover Inscrição
                   </Button>
@@ -845,16 +858,16 @@ const Inscricao = () => {
     <Box>
       <ModernHeader />
       
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 8 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom align="center">
+      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 4, sm: 8 }, px: { xs: 2, sm: 3 } }}>
+        <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+          <Typography variant="h4" gutterBottom align="center" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
             Inscrição para {event?.title || 'Carregando...'}
           </Typography>
 
           <Box sx={{ mb: 4 }}>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} md={8}>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   {dayjs(event.date).format('DD [de] MMMM [de] YYYY [às] HH:mm')}
                 </Typography>
                 <Typography variant="body1" color="text.secondary" gutterBottom>
@@ -865,13 +878,13 @@ const Inscricao = () => {
                 {event.lots?.find(lot => 
                   dayjs(lot.end_date).isAfter(dayjs()) && lot.quantity > 0
                 ) && (
-                  <Box sx={{ textAlign: 'right' }}>
+                  <Box sx={{ textAlign: { xs: 'left', md: 'right' }, mt: { xs: 2, md: 0 } }}>
                     <Typography variant="subtitle1" color="primary">
                       {event.lots.find(lot => 
                         dayjs(lot.end_date).isAfter(dayjs()) && lot.quantity > 0
                       ).name}
                     </Typography>
-                    <Typography variant="h5" color="primary" gutterBottom>
+                    <Typography variant="h5" color="primary" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem' } }}>
                       {event.lots.find(lot => 
                         dayjs(lot.end_date).isAfter(dayjs()) && lot.quantity > 0
                       ).price > 0 ? `R$ ${calculateTotal()}` : 'Gratuito'}
@@ -891,20 +904,52 @@ const Inscricao = () => {
 
           <Divider sx={{ my: 4 }} />
 
-          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+          <Stepper activeStep={activeStep} sx={{ mb: 4, display: { xs: 'none', sm: 'flex' } }}>
             {steps.map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
               </Step>
             ))}
           </Stepper>
+          
+          {/* Stepper mobile */}
+          <Box sx={{ display: { xs: 'block', sm: 'none' }, mb: 4 }}>
+            <Typography variant="h6" gutterBottom>
+              Passo {activeStep + 1} de {steps.length}: {steps[activeStep]}
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
+              {steps.map((_, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: index <= activeStep ? 'primary.main' : 'grey.300',
+                    transition: 'background-color 0.3s'
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
 
           {renderStep(activeStep)}
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between', 
+            mt: 4,
+            gap: { xs: 2, sm: 0 }
+          }}>
             <Button
               disabled={activeStep === 0}
               onClick={handleBack}
+              fullWidth={false}
+              sx={{ 
+                order: { xs: 2, sm: 1 },
+                width: { xs: '100%', sm: 'auto' }
+              }}
             >
               Voltar
             </Button>
@@ -916,6 +961,11 @@ const Inscricao = () => {
                 handleNext
               }
               disabled={loading}
+              fullWidth={false}
+              sx={{ 
+                order: { xs: 1, sm: 2 },
+                width: { xs: '100%', sm: 'auto' }
+              }}
             >
               {loading ? <CircularProgress size={24} /> : 
                 activeStep === 1 ? 'Ir para o Checkout' :
