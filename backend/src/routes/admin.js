@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../database/db');
-// const { authenticateToken, requireAdmin } = require('../middleware');
+const { authenticateToken, requireAdmin } = require('../middleware');
 
 // Página do painel admin
 router.get('/', async (req, res) => {
@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
 });
 
 // Listar eventos
-router.get('/events', async (req, res) => {
+router.get('/events', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const events = await db('events')
       .select('*')
@@ -68,7 +68,7 @@ router.get('/events', async (req, res) => {
 });
 
 // Criar evento
-router.post('/events', async (req, res) => {
+router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
   const trx = await db.transaction();
   
   try {
@@ -724,7 +724,7 @@ router.get('/events/:eventId/stats', async (req, res) => {
 });
 
 // Estatísticas gerais
-router.get('/stats', async (req, res) => {
+router.get('/stats', authenticateToken, requireAdmin, async (req, res) => {
   try {
     // Total de eventos
     const [{ totalEvents }] = await db('events').count('* as totalEvents');
@@ -757,7 +757,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // Inscrições recentes
-router.get('/registrations/recent', async (req, res) => {
+router.get('/registrations/recent', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const registrations = await db('registrations')
       .join('events', 'registrations.event_id', 'events.id')

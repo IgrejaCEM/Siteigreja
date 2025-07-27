@@ -11,7 +11,7 @@ const routes = require('./routes');
 const app = express();
 
 // Middlewares
-// Configuração CORS mais robusta
+// Configuração CORS corrigida
 app.use(cors({
   origin: function (origin, callback) {
     // Permitir requests sem origin (como mobile apps)
@@ -38,23 +38,14 @@ app.use(cors({
   credentials: true,
   optionsSuccessStatus: 200
 }));
+
+// Configuração do Helmet mais permissiva para CORS
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// Headers CORS adicionais
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
 app.use(compression());
 app.use(morgan('dev'));
 app.use(express.json());
