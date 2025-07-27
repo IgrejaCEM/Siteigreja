@@ -21,22 +21,7 @@ const initializeDatabase = async () => {
       });
 
       // Criar usuário admin padrão
-      const hashedPassword = await bcrypt.hash('admin123', 10);
-      await db('users').insert({
-        name: 'Admin',
-        email: 'admin@admin.com',
-        password: hashedPassword,
-        is_admin: true
-      });
-
-      console.log('Tabela de usuários criada e usuário admin criado com sucesso');
-    } else {
-      // Verificar se existe usuário admin pelo email
-      const adminUser = await db('users')
-        .where('email', 'admin@admin.com')
-        .first();
-
-      if (!adminUser) {
+      try {
         const hashedPassword = await bcrypt.hash('admin123', 10);
         await db('users').insert({
           name: 'Admin',
@@ -44,7 +29,37 @@ const initializeDatabase = async () => {
           password: hashedPassword,
           is_admin: true
         });
-        console.log('Usuário admin criado com sucesso');
+        console.log('Tabela de usuários criada e usuário admin criado com sucesso');
+      } catch (error) {
+        if (error.code === 'SQLITE_CONSTRAINT') {
+          console.log('Usuário admin já existe, continuando...');
+        } else {
+          throw error;
+        }
+      }
+
+      // Verificar se existe usuário admin pelo email
+      const adminUser = await db('users')
+        .where('email', 'admin@admin.com')
+        .first();
+
+      if (!adminUser) {
+        try {
+          const hashedPassword = await bcrypt.hash('admin123', 10);
+          await db('users').insert({
+            name: 'Admin',
+            email: 'admin@admin.com',
+            password: hashedPassword,
+            is_admin: true
+          });
+          console.log('Usuário admin criado com sucesso');
+        } catch (error) {
+          if (error.code === 'SQLITE_CONSTRAINT') {
+            console.log('Usuário admin já existe, continuando...');
+          } else {
+            throw error;
+          }
+        }
       } else {
         // Atualizar para garantir que é admin
         await db('users')
