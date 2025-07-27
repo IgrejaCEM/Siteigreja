@@ -148,6 +148,9 @@ const initializeDatabase = async () => {
         table.integer('event_id').references('id').inTable('events').onDelete('CASCADE');
         table.integer('user_id').references('id').inTable('users').onDelete('CASCADE');
         table.integer('lot_id').references('id').inTable('lots').onDelete('SET NULL');
+        table.string('name'); // Adicionado
+        table.string('email'); // Adicionado
+        table.string('phone'); // Adicionado
         table.string('payment_status').defaultTo('pending');
         table.json('form_data');
         table.timestamps(true, true);
@@ -156,6 +159,67 @@ const initializeDatabase = async () => {
     } catch (error) {
       if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
         console.log('ℹ️ Tabela de inscrições já existe');
+        
+        // Verificar e adicionar colunas name, email, phone
+        try {
+          const columns = await db.raw("PRAGMA table_info(registrations)");
+          const nameColumn = columns.some(col => col.name === 'name');
+          const emailColumn = columns.some(col => col.name === 'email');
+          const phoneColumn = columns.some(col => col.name === 'phone');
+
+          if (!nameColumn) {
+            console.log('🔧 Adicionando coluna name...');
+            await db.raw("ALTER TABLE registrations ADD COLUMN name TEXT");
+          }
+          if (!emailColumn) {
+            console.log('🔧 Adicionando coluna email...');
+            await db.raw("ALTER TABLE registrations ADD COLUMN email TEXT");
+          }
+          if (!phoneColumn) {
+            console.log('🔧 Adicionando coluna phone...');
+            await db.raw("ALTER TABLE registrations ADD COLUMN phone TEXT");
+          }
+          console.log('✅ Colunas de registrations verificadas/adicionadas');
+        } catch (alterError) {
+          console.log('⚠️ Erro ao verificar/adicionar colunas de registrations:', alterError.message);
+        }
+      } else {
+        throw error;
+      }
+    }
+
+    // Criar tabela de tickets se não existir
+    try {
+      await db.schema.createTable('tickets', table => {
+        table.increments('id').primary();
+        table.integer('inscricao_id').references('id').inTable('registrations').onDelete('CASCADE');
+        table.string('ticket_code').unique().notNullable();
+        table.string('status').defaultTo('active');
+        table.datetime('checkin_time');
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela de tickets criada');
+    } catch (error) {
+      if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
+        console.log('ℹ️ Tabela de tickets já existe');
+      } else {
+        throw error;
+      }
+    }
+
+    // Criar tabela de logs de check-in se não existir
+    try {
+      await db.schema.createTable('checkin_logs', table => {
+        table.increments('id').primary();
+        table.integer('ticket_id').references('id').inTable('tickets').onDelete('CASCADE');
+        table.integer('event_id').references('id').inTable('events').onDelete('CASCADE');
+        table.datetime('checkin_time').notNullable();
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela de checkin_logs criada');
+    } catch (error) {
+      if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
+        console.log('ℹ️ Tabela de checkin_logs já existe');
       } else {
         throw error;
       }
