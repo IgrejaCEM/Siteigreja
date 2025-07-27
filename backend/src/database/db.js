@@ -326,6 +326,29 @@ const initializeDatabase = async () => {
       }
     }
 
+    // Criar tabela de transações financeiras se não existir
+    try {
+      await db.schema.createTable('transactions', table => {
+        table.increments('id').primary();
+        table.integer('event_id').references('id').inTable('events').onDelete('CASCADE');
+        table.integer('user_id').references('id').inTable('users').onDelete('SET NULL');
+        table.string('registration_code').notNullable();
+        table.decimal('amount', 10, 2).notNullable();
+        table.string('payment_method').notNullable();
+        table.string('status').defaultTo('pending');
+        table.string('gateway_payment_id');
+        table.json('gateway_response');
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela de transações criada');
+    } catch (error) {
+      if (error.code === 'SQLITE_ERROR' && error.message.includes('already exists')) {
+        console.log('ℹ️ Tabela de transações já existe');
+      } else {
+        throw error;
+      }
+    }
+
     console.log('✅ Banco de dados inicializado com sucesso');
   } catch (error) {
     console.error('❌ Erro ao inicializar banco de dados:', error);
