@@ -10,24 +10,35 @@ const routes = require('./routes');
 
 const app = express();
 
-// Middlewares
-// Configuração CORS corrigida para resolver problemas de cross-origin
+// Configuração CORS simplificada
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://igrejacemchurch.org',
-    'https://www.igrejacemchurch.org',
-    'https://siteigreja-mctd5i4q8-igrejacems-projects.vercel.app',
-    'https://siteigreja.vercel.app'
-  ],
+  origin: function (origin, callback) {
+    // Permitir requests sem origin (como mobile apps)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://igrejacemchurch.org',
+      'https://www.igrejacemchurch.org',
+      'https://siteigreja-mctd5i4q8-igrejacems-projects.vercel.app',
+      'https://siteigreja.vercel.app'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('🚫 Origin bloqueada:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   optionsSuccessStatus: 200
 }));
 
-// Headers CORS adicionais para garantir
+// Headers CORS adicionais
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://igrejacemchurch.org');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -41,7 +52,7 @@ app.use((req, res, next) => {
   }
 });
 
-// Configuração do Helmet mais permissiva para CORS
+// Configuração do Helmet mais permissiva
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
