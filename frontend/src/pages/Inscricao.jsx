@@ -644,37 +644,61 @@ const Inscricao = () => {
     </Grid>
   );
 
-  const renderLotSelection = () => (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Selecione o Lote
-      </Typography>
-      <Grid container spacing={2}>
-        {event.lots.map((lot) => (
-          <Grid item xs={12} sm={6} md={4} key={lot.id}>
-            <Card
-              sx={{
-                cursor: 'pointer',
-                bgcolor: selectedLotId === lot.id ? 'action.selected' : 'background.paper',
-                '&:hover': { bgcolor: 'action.hover' }
-              }}
-              onClick={() => handleLotChange(lot.id)}
-            >
-              <CardContent>
-                <Typography variant="h6">{lot.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Preço: R$ {lot.price}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Vagas: {lot.quantity}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
-  );
+  const renderLotSelection = () => {
+    const now = dayjs();
+    
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Selecione o Lote
+        </Typography>
+        <Grid container spacing={2}>
+          {event.lots.map((lot) => {
+            const isAvailable = 
+              lot.status === 'active' &&
+              lot.quantity > 0 &&
+              dayjs(lot.start_date).isBefore(now) &&
+              dayjs(lot.end_date).isAfter(now);
+            
+            const isSoldOut = lot.quantity <= 0;
+            const isExpired = dayjs(lot.end_date).isBefore(now);
+            const isFuture = dayjs(lot.start_date).isAfter(now);
+
+            return (
+              <Grid item xs={12} sm={6} md={4} key={lot.id}>
+                <Card
+                  sx={{
+                    cursor: isAvailable ? 'pointer' : 'default',
+                    bgcolor: selectedLotId === lot.id ? 'action.selected' : 'background.paper',
+                    opacity: isAvailable ? 1 : 0.6,
+                    '&:hover': isAvailable ? { bgcolor: 'action.hover' } : {}
+                  }}
+                  onClick={() => isAvailable && handleLotChange(lot.id)}
+                >
+                  <CardContent>
+                    <Typography variant="h6">{lot.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Preço: R$ {lot.price}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Vagas: {lot.quantity}
+                    </Typography>
+                    {!isAvailable && (
+                      <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                        {isSoldOut ? '🔴 Esgotado' : 
+                         isExpired ? '⏰ Período encerrado' :
+                         isFuture ? '⏳ Em breve' : '❌ Indisponível'}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Box>
+    );
+  };
 
   const renderStep = (step) => {
     switch (step) {

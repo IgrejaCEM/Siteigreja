@@ -235,7 +235,7 @@ const Evento = () => {
                   Ingressos
                 </Typography>
                 
-                {hasAvailableLots ? (
+                {event.lots && event.lots.length > 0 ? (
                   event.lots.map((lot) => {
                     const isAvailable = 
                       lot.status === 'active' &&
@@ -243,40 +243,59 @@ const Evento = () => {
                       dayjs(lot.start_date).isBefore(dayjs()) &&
                       dayjs(lot.end_date).isAfter(dayjs());
 
+                    const isExpired = dayjs(lot.end_date).isBefore(dayjs());
+                    const isSoldOut = lot.quantity <= 0;
+                    const isFuture = dayjs(lot.start_date).isAfter(dayjs());
+
                     return (
-                      <Box key={lot.id} sx={{ mb: 2 }}>
+                      <Box key={lot.id} sx={{ mb: 2, opacity: isAvailable ? 1 : 0.6 }}>
                         <Typography variant="subtitle1" gutterBottom>
                           {lot.name}
                         </Typography>
                         <Typography variant="h6" color="primary" gutterBottom>
                           R$ {lot.price ? Number(lot.price).toFixed(2) : '0.00'}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                          {lot.quantity} ingressos disponíveis
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                          Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
-                        </Typography>
+                        
                         {isAvailable ? (
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            onClick={() => navigate(`/evento/${event.slug}/inscricao`)}
-                          >
-                            Comprar Ingresso
-                          </Button>
+                          <>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                              {lot.quantity} ingressos disponíveis
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                              Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
+                            </Typography>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              fullWidth
+                              onClick={() => navigate(`/evento/${event.slug}/inscricao`)}
+                            >
+                              Comprar Ingresso
+                            </Button>
+                          </>
                         ) : (
-                          <Typography variant="body2" color="error">
-                            {lot.quantity <= 0 ? 'Ingressos esgotados' : 'Fora do período de vendas'}
-                          </Typography>
+                          <>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                              Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
+                            </Typography>
+                            <Typography variant="body2" color="error" gutterBottom>
+                              {isSoldOut ? '🔴 Ingressos esgotados' : 
+                               isExpired ? '⏰ Período encerrado' :
+                               isFuture ? '⏳ Em breve' : '❌ Indisponível'}
+                            </Typography>
+                            {isSoldOut && (
+                              <Typography variant="caption" color="text.secondary">
+                                Este lote está esgotado
+                              </Typography>
+                            )}
+                          </>
                         )}
                       </Box>
                     );
                   })
                 ) : (
                   <Typography variant="body1" color="error">
-                    Ingressos esgotados ou fora do período de vendas
+                    Nenhum lote disponível para este evento
                   </Typography>
                 )}
               </CardContent>
