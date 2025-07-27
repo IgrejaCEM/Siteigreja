@@ -21,21 +21,35 @@ class MercadoPagoGateway {
 
   async createPayment({ amount, description, customer, method = 'CREDITCARD' }) {
     try {
-      // Checkout API (normal) - Criar pagamento direto
+      // Checkout Pro - Não precisa especificar método, usuário escolhe dentro do checkout
       const payload = {
-        transaction_amount: Number(amount),
-        description: description || 'Inscrição no Evento',
-        payment_method_id: method === 'PIX' ? 'pix' : 
-                          method === 'BOLETO' ? 'bolbradesco' : 'master',
+        items: [
+          {
+            title: description || 'Inscrição no Evento',
+            quantity: 1,
+            unit_price: Number(amount)
+          }
+        ],
         payer: {
+          name: customer.name || '',
           email: customer.email || '',
-          first_name: customer.name?.split(' ')[0] || '',
-          last_name: customer.name?.split(' ').slice(1).join(' ') || '',
           identification: {
             type: 'CPF',
             number: customer.cpf || ''
           }
         },
+        back_urls: {
+          success: process.env.NODE_ENV === 'production' 
+            ? 'https://igrejacemchurch.org/inscricao/sucesso'
+            : 'http://localhost:5173/inscricao/sucesso',
+          failure: process.env.NODE_ENV === 'production'
+            ? 'https://igrejacemchurch.org/inscricao/erro'
+            : 'http://localhost:5173/inscricao/erro',
+          pending: process.env.NODE_ENV === 'production'
+            ? 'https://igrejacemchurch.org/inscricao/pendente'
+            : 'http://localhost:5173/inscricao/pendente'
+        },
+        auto_return: 'approved',
         external_reference: customer.registration_code || '',
         notification_url: process.env.NODE_ENV === 'production' 
           ? (process.env.MERCADOPAGO_WEBHOOK_URL || 'https://siteigreja-1.onrender.com/api/payments/webhook')
@@ -48,30 +62,19 @@ class MercadoPagoGateway {
         }
       };
 
-      console.log('🔗 Criando pagamento direto no Mercado Pago...');
+      console.log('🔗 Criando checkout Pro do Mercado Pago...');
       console.log('📦 Payload:', JSON.stringify(payload, null, 2));
 
-      // Criar pagamento direto (Checkout API)
-      const response = await this.api.post('/v1/payments', payload);
+      // Criar preferência de pagamento (Checkout Pro)
+      const response = await this.api.post('/v1/preferences', payload);
       
-      console.log('✅ Pagamento criado:', response.data.id);
-
-      // Determinar URL baseada no método de pagamento
-      let paymentUrl = '';
-      if (method === 'PIX' && response.data.point_of_interaction?.transaction_data?.qr_code) {
-        paymentUrl = response.data.point_of_interaction.transaction_data.qr_code;
-      } else if (method === 'BOLETO' && response.data.transaction_details?.external_resource_url) {
-        paymentUrl = response.data.transaction_details.external_resource_url;
-      } else {
-        // Para cartão de crédito, retorna status para processamento
-        paymentUrl = `https://igrejacemchurch.org/payment/status/${response.data.id}`;
-      }
+      console.log('✅ Checkout Pro criado:', response.data.id);
 
       return {
         payment_id: response.data.id,
-        payment_url: paymentUrl,
-        status: response.data.status,
-        status_detail: response.data.status_detail,
+        payment_url: response.data.init_point, // URL do checkout onde usuário escolhe método
+        status: 'pending',
+        status_detail: 'pending',
         external_reference: response.data.external_reference,
         raw: response.data
       };
