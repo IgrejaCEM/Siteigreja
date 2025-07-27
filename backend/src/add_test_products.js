@@ -2,130 +2,117 @@ const { db } = require('./database/db');
 
 async function addTestProducts() {
   try {
-    console.log('🔍 Verificando tabelas...');
+    console.log('🔍 Verificando produtos no banco de dados...');
     
     // Verificar se a tabela event_products existe
     const hasEventProductsTable = await db.schema.hasTable('event_products');
+    console.log('📋 Tabela event_products existe:', hasEventProductsTable);
+    
     if (!hasEventProductsTable) {
       console.log('❌ Tabela event_products não existe!');
       console.log('📋 Criando tabela event_products...');
       
-      await db.schema.createTable('event_products', function(table) {
+      await db.schema.createTable('event_products', (table) => {
         table.increments('id').primary();
-        table.integer('event_id').unsigned().references('id').inTable('events').onDelete('CASCADE');
+        table.integer('event_id').notNullable();
         table.string('name').notNullable();
-        table.text('description').notNullable();
+        table.text('description');
         table.decimal('price', 10, 2).notNullable();
-        table.string('image_url').notNullable();
-        table.integer('stock').notNullable().defaultTo(0);
+        table.integer('stock').defaultTo(100);
         table.boolean('is_active').defaultTo(true);
-        table.timestamp('created_at').defaultTo(db.fn.now());
-        table.timestamp('updated_at').defaultTo(db.fn.now());
+        table.timestamps(true, true);
+        
+        table.foreign('event_id').references('id').inTable('events').onDelete('CASCADE');
       });
       
       console.log('✅ Tabela event_products criada!');
-    } else {
-      console.log('✅ Tabela event_products existe!');
     }
     
-    // Verificar se a tabela registration_products existe
-    const hasRegistrationProductsTable = await db.schema.hasTable('registration_products');
-    if (!hasRegistrationProductsTable) {
-      console.log('❌ Tabela registration_products não existe!');
-      console.log('📋 Criando tabela registration_products...');
-      
-      await db.schema.createTable('registration_products', function(table) {
-        table.increments('id').primary();
-        table.integer('registration_id').unsigned().references('id').inTable('registrations').onDelete('CASCADE');
-        table.integer('product_id').unsigned().references('id').inTable('event_products').onDelete('CASCADE');
-        table.integer('quantity').notNullable().defaultTo(1);
-        table.decimal('unit_price', 10, 2).notNullable();
-        table.timestamp('created_at').defaultTo(db.fn.now());
-        table.timestamp('updated_at').defaultTo(db.fn.now());
-      });
-      
-      console.log('✅ Tabela registration_products criada!');
-    } else {
-      console.log('✅ Tabela registration_products existe!');
-    }
-    
-    // Buscar eventos existentes
-    const events = await db('events').select('id', 'title');
-    console.log(`📅 Eventos encontrados: ${events.length}`);
-    
-    if (events.length === 0) {
-      console.log('❌ Nenhum evento encontrado! Crie um evento primeiro.');
-      return;
-    }
-    
-    // Verificar produtos existentes
+    // Verificar se há produtos cadastrados
     const existingProducts = await db('event_products').select('*');
-    console.log(`🛍️ Produtos existentes: ${existingProducts.length}`);
+    console.log('️ Total de produtos encontrados:', existingProducts.length);
     
     if (existingProducts.length === 0) {
       console.log('📦 Adicionando produtos de teste...');
       
-      // Adicionar produtos para o primeiro evento
-      const firstEvent = events[0];
-      console.log(`🎪 Adicionando produtos para o evento: ${firstEvent.title} (ID: ${firstEvent.id})`);
+      // Buscar o primeiro evento
+      const event = await db('events').first();
+      if (!event) {
+        console.log('❌ Nenhum evento encontrado!');
+        return;
+      }
       
+      // Adicionar produtos de teste
       const testProducts = [
         {
-          event_id: firstEvent.id,
+          event_id: event.id,
           name: 'Camiseta do Evento',
-          description: 'Camiseta exclusiva do evento com design personalizado',
+          description: 'Camiseta personalizada do evento',
           price: 35.00,
-          image_url: 'https://via.placeholder.com/300x300?text=Camiseta',
           stock: 50,
           is_active: true
         },
         {
-          event_id: firstEvent.id,
+          event_id: event.id,
           name: 'Caneca Personalizada',
-          description: 'Caneca com logo do evento, perfeita para café',
+          description: 'Caneca com logo do evento',
           price: 15.00,
-          image_url: 'https://via.placeholder.com/300x300?text=Caneca',
           stock: 30,
           is_active: true
         },
         {
-          event_id: firstEvent.id,
+          event_id: event.id,
           name: 'Kit Completo',
-          description: 'Kit com camiseta, caneca e adesivos do evento',
+          description: 'Kit com camiseta + caneca + adesivo',
           price: 45.00,
-          image_url: 'https://via.placeholder.com/300x300?text=Kit',
           stock: 20,
           is_active: true
         }
       ];
       
-      for (const product of testProducts) {
-        await db('event_products').insert(product);
-        console.log(`✅ Produto adicionado: ${product.name} - R$ ${product.price}`);
-      }
-      
-      console.log('🎉 Produtos de teste adicionados com sucesso!');
+      await db('event_products').insert(testProducts);
+      console.log('✅ Produtos de teste adicionados!');
     } else {
-      console.log('✅ Já existem produtos cadastrados!');
+      console.log('✅ Produtos encontrados:');
       existingProducts.forEach(product => {
-        console.log(`  - ${product.name} (R$ ${product.price}) - Estoque: ${product.stock}`);
+        console.log(`  - ID: ${product.id}, Nome: ${product.name}, Preço: R$ ${product.price}, Ativo: ${product.is_active}`);
       });
     }
     
-    // Testar a API de produtos
-    console.log('\n🧪 Testando API de produtos...');
-    const products = await db('event_products')
-      .where('event_id', events[0].id)
-      .where('is_active', true)
-      .select('*');
+    // Testar API de produtos
+    console.log('🧪 Testando API de produtos...');
     
-    console.log(`📡 API retornou ${products.length} produtos para o evento ${events[0].id}`);
+    // Criar usuário admin se não existir
+    const adminUser = await db('users').where('email', 'admin@example.com').first();
+    if (!adminUser) {
+      await db('users').insert({
+        name: 'Admin',
+        email: 'admin@example.com',
+        password: 'admin123',
+        role: 'admin',
+        created_at: new Date(),
+        updated_at: new Date()
+      });
+      console.log('👤 Usuário admin criado');
+    } else {
+      console.log('👤 Usuário admin já existe, privilégios de admin garantidos');
+    }
+    
+    // Buscar produtos via API
+    const event = await db('events').first();
+    if (event) {
+      const products = await db('event_products')
+        .where('event_id', event.id)
+        .where('is_active', true)
+        .orderBy('created_at', 'desc');
+      
+      console.log(`✅ API retornou ${products.length} produtos para evento ${event.id}`);
+    }
     
   } catch (error) {
     console.error('❌ Erro:', error);
   } finally {
     await db.destroy();
-    console.log('🔚 Conexão fechada');
   }
 }
 
