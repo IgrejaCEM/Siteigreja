@@ -4,6 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import ModernHeader from '../components/ModernHeader';
 import HeroSection from '../components/HeroSection';
+import ImpactSection from '../components/ImpactSection';
+import ScrollSection from '../components/ScrollSection';
 import Footer from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 import {
@@ -162,9 +164,19 @@ const Home = () => {
   return (
     <Box>
       <ModernHeader />
-      <img
-        src="https://i.postimg.cc/nrtZwtNn/BANNER-CONNECT-CONF.gif"
-        alt="Hero Banner"
+      <div style={{
+        width: '100vw',
+        background: '#000',
+        paddingTop: '00px',
+        margin: 0,
+        boxSizing: 'border-box',
+      }}>
+        <video
+          src="/images_site/banner.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
         style={{
           width: '100vw',
           height: '100vh',
@@ -176,34 +188,69 @@ const Home = () => {
           padding: 0,
         }}
       />
+      </div>
+      <ImpactSection />
+      <ScrollSection />
       {/* Título acima do vídeo do YouTube */}
-      <Box sx={{ width: '100%', background: '#000', py: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Box sx={{ 
+        width: '100%', 
+        background: '#000', 
+        py: 6, 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        position: 'relative',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '80%',
+          height: '2px',
+          background: 'linear-gradient(90deg, transparent, #fff, transparent)'
+        }
+      }}>
         <Typography sx={{
           color: '#fff',
-          fontSize: { xs: '2rem', md: '3rem' },
+          fontSize: { xs: '3.5rem', sm: '4.5rem', md: '6rem' },
           fontWeight: 900,
           textAlign: 'center',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
           fontFamily: `'Oswald', 'Impact', 'Arial Narrow', Arial, sans-serif`,
+          textShadow: '0 0 20px rgba(255,255,255,0.3)',
+          animation: 'pulse 2s infinite',
+          '@keyframes pulse': {
+            '0%': {
+              textShadow: '0 0 20px rgba(255,255,255,0.3)'
+            },
+            '50%': {
+              textShadow: '0 0 40px rgba(255,255,255,0.5)'
+            },
+            '100%': {
+              textShadow: '0 0 20px rgba(255,255,255,0.3)'
+            }
+          }
         }}>
           Entrou para a festa!
         </Typography>
       </Box>
       {/* Video do YouTube abaixo do banner */}
       <Box sx={{ 
-        width: '100%', 
-        background: '#000', 
-        py: { xs: 2, sm: 4 }, 
-        px: { xs: 2, sm: 4 },
-        display: 'flex', 
-        justifyContent: 'center' 
+        width: '100vw',
+        height: '100vh',
+        background: '#000',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+        position: 'relative'
       }}>
         <Box sx={{
           width: '100%',
-          maxWidth: 1000,
-          position: 'relative',
-          paddingTop: '56.25%', // 16:9 aspect ratio
+          height: '100%',
+          position: 'relative'
         }}>
           <iframe
             src="https://www.youtube.com/embed/aNOVuL1JNYk?rel=0&autoplay=0"
@@ -217,44 +264,95 @@ const Home = () => {
               left: 0,
               width: '100%',
               height: '100%',
-              borderRadius: 12, 
-              boxShadow: '0 8px 32px rgba(0,0,0,0.3)' 
+              border: 'none'
             }}
           />
         </Box>
       </Box>
       {/* Eventos após o vídeo do YouTube */}
-      <Box sx={{ width: '100%', py: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography sx={{
-          mb: 0,
-          textAlign: 'center',
-          fontWeight: 900,
-          color: '#222',
-          fontSize: { xs: '2.2rem', md: '3.2rem' },
-          textTransform: 'uppercase',
-          letterSpacing: '0.03em',
-          lineHeight: 1.05,
-          fontFamily: `'Oswald', 'Impact', 'Arial Narrow', Arial, sans-serif`,
-        }}>
-          JÁ ENTENDEU QUE<br />NÃO PODE FICAR DE FORA NÉ?
-        </Typography>
-        <Typography sx={{
-          mb: 4,
-          textAlign: 'center',
-          color: '#222',
-          fontSize: { xs: '1.2rem', md: '1.6rem' },
-          fontWeight: 500,
-          fontFamily: 'inherit',
-        }}>
-          Escolha seu ingresso abaixo
-        </Typography>
+      <Box sx={{ 
+        width: '100%', 
+        py: 2, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        mt: 10 // Adicionando margin-top
+      }}>
+        <Box sx={{ pt: 8, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography sx={{
+            mb: 0,
+            textAlign: 'center',
+            fontWeight: 900,
+            color: '#222',
+            fontSize: { xs: '3.5rem', md: '5rem' },
+            textTransform: 'uppercase',
+            letterSpacing: '0.03em',
+            lineHeight: 1.05,
+            fontFamily: `'Oswald', 'Impact', 'Arial Narrow', Arial, sans-serif`,
+            position: 'relative',
+            zIndex: 2,
+            textShadow: '2px 2px 0 rgba(0,0,0,0.1)',
+            background: 'linear-gradient(45deg, #000 0%, #333 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            animation: 'titlePulse 2s infinite',
+            '@keyframes titlePulse': {
+              '0%, 100%': {
+                transform: 'scale(1)'
+              },
+              '50%': {
+                transform: 'scale(1.02)'
+              }
+            }
+          }}>
+            JÁ ENTENDEU QUE<br />NÃO PODE FICAR DE FORA NÉ?
+          </Typography>
+          <Typography sx={{
+            mb: 4,
+            textAlign: 'center',
+            color: '#666',
+            fontSize: { xs: '1.5rem', md: '2rem' },
+            fontWeight: 500,
+            fontFamily: 'inherit',
+            position: 'relative',
+            zIndex: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2
+          }}>
+            GARANTA JÁ SEU INGRESSO ABAIXO
+            <Box
+              component="span"
+              sx={{
+                fontSize: '2em',
+                color: '#000',
+                animation: 'bounce 2s infinite',
+                mt: 2,
+                '@keyframes bounce': {
+                  '0%, 20%, 50%, 80%, 100%': {
+                    transform: 'translateY(0)'
+                  },
+                  '40%': {
+                    transform: 'translateY(10px)'
+                  },
+                  '60%': {
+                    transform: 'translateY(5px)'
+                  }
+                }
+              }}
+            >
+              ↓
+            </Box>
+          </Typography>
+        </Box>
         <Box sx={{ 
-          width: '100%', 
-          py: { xs: 2, sm: 4 }, 
-          px: { xs: 2, sm: 4 },
+          width: '100vw',
           display: 'flex', 
           flexDirection: 'column', 
-          alignItems: 'center' 
+          alignItems: 'center',
+          margin: 0,
+          padding: 0
         }}>
           {events.length > 0 ? events.map(ev => (
             <a
@@ -263,11 +361,12 @@ const Home = () => {
               target="_blank"
               rel="noopener noreferrer"
               style={{ 
-                width: '100%', 
-                maxWidth: 900, 
-                display: 'block', 
-                margin: '16px auto',
-                padding: '0 16px'
+                width: '100vw', 
+                height: '100vh',
+                display: 'block',
+                margin: 0,
+                padding: 0,
+                position: 'relative'
               }}
             >
               <img
@@ -275,13 +374,11 @@ const Home = () => {
                 alt={ev.title}
                 style={{
                   width: '100%',
-                  maxWidth: 900,
-                  height: 'auto',
+                  height: '100%',
                   objectFit: 'cover',
-                  borderRadius: { xs: 16, sm: 24 },
-                  boxShadow: '0 2px 12px #0002',
                   display: 'block',
-                  margin: '0 auto'
+                  margin: 0,
+                  padding: 0
                 }}
               />
             </a>

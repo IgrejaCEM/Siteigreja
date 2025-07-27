@@ -9,12 +9,13 @@ const { uploadToS3 } = require('../services/s3Service');
 const upload = multer({
   dest: 'uploads/',
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
+    fileSize: 25 * 1024 * 1024, // 25MB para permitir imagens de alta qualidade
   },
   fileFilter: (req, file, cb) => {
-    // Aceitar apenas imagens
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Apenas imagens são permitidas'));
+    // Aceitar apenas imagens de alta qualidade
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return cb(new Error('Apenas imagens JPG, PNG ou WebP são permitidas'));
     }
     cb(null, true);
   },
@@ -28,7 +29,12 @@ router.post('/', upload.single('image'), async (req, res) => {
     }
 
     const folder = req.body.folder || 'uploads';
-    const imageUrl = await uploadToS3(req.file, folder);
+    
+    // Adiciona informações de qualidade no corpo da requisição
+    req.body.quality = 'high';
+    req.body.preserveQuality = true;
+    
+    const imageUrl = await uploadToS3(req.file, folder, req.body);
 
     // Remover o arquivo temporário após o upload
     fs.unlinkSync(req.file.path);

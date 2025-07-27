@@ -1,0 +1,3 @@
+# Manter apenas os últimos 5 backups
+*.sqlite
+!database_backup_*.sqlite

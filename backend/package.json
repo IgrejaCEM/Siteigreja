@@ -9,7 +9,12 @@
     "migrate": "knex migrate:latest",
     "seed": "knex seed:run",
     "migrate:rollback": "knex migrate:rollback",
-    "backup": "node backup_database.js",
+    "backup": "node src/backup_database.js",
+    "restore": "node src/restore_database.js",
+    "fix-tables": "node src/fix_database_tables.js",
+    "check-db": "node src/check_database_persistence.js",
+    "check-backups": "node src/check_backups.js",
+    "setup-render": "node src/setup_render_backup.js",
     "deploy": "node deploy_safe.js",
     "deploy:safe": "node deploy_safe.js",
     "test": "echo \"Error: no test specified\" && exit 1"

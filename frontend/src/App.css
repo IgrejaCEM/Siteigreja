@@ -162,3 +162,32 @@ body {
 .thumb-swiper .swiper-button-prev:after {
   font-size: 16px;
 }
+
+.impact {
+  color: #000;
+  background: #fff;
+  font-weight: bold;
+  padding: 0 4px;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 #0002;
+  filter: none;
+}
+
+.impact-yellow {
+  color: #FFD600 !important;
+  background: transparent !important;
+  font-weight: 900;
+  text-shadow: 0 2px 8px #000a;
+}
+.impact-white {
+  color: #fff !important;
+  background: transparent !important;
+  font-weight: 900;
+  text-shadow: 0 2px 8px #000a;
+}
+.impact-black {
+  color: #111 !important;
+  background: transparent !important;
+  font-weight: 900;
+  text-shadow: none;
+}

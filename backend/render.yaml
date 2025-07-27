@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: siteigreja-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MERCADOPAGO_ACCESS_TOKEN
+        sync: false
+      - key: MERCADOPAGO_PUBLIC_KEY
+        sync: false
+      - key: MERCADOPAGO_CLIENT_ID
+        sync: false
+      - key: MERCADOPAGO_CLIENT_SECRET
+        sync: false
+    volumes:
+      - name: database-storage
+        mountPath: /opt/render/project/src
+        sourcePath: /opt/render/project/src
+
+  - type: cron
+    name: database-backup
+    env: node
+    schedule: "0 2 * * *"
+    buildCommand: npm install
+    startCommand: cd /opt/render/project/src && npm run backup
+    envVars:
+      - key: NODE_ENV
+        value: production

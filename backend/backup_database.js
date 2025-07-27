@@ -1,10 +1,10 @@
-const { db } = require('./src/database/db');
 const fs = require('fs');
 const path = require('path');
+const { db } = require('./src/database/db');
 
 async function backupDatabase() {
   try {
-    console.log('🔄 Iniciando backup automático...');
+    console.log('💾 Iniciando backup automático do banco de dados...');
     
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupDir = path.join(__dirname, 'backups');
@@ -14,48 +14,49 @@ async function backupDatabase() {
       fs.mkdirSync(backupDir, { recursive: true });
     }
 
-    // Backup completo do banco
+    // Backup do banco SQLite
+    const dbPath = path.join(__dirname, 'database.sqlite');
     const dbBackupPath = path.join(backupDir, `database_backup_${timestamp}.sqlite`);
-    const currentDbPath = path.join(__dirname, 'database.sqlite');
-    
-    if (fs.existsSync(currentDbPath)) {
-      fs.copyFileSync(currentDbPath, dbBackupPath);
-      console.log(`✅ Backup completo: ${dbBackupPath}`);
-    }
+    fs.copyFileSync(dbPath, dbBackupPath);
+    console.log(`✅ Backup do banco: ${dbBackupPath}`);
 
-    // Backup específico dos dados críticos (JSON)
-    const criticalData = {
+    // Backup em JSON para fácil restauração
+    const jsonBackupPath = path.join(backupDir, `data_backup_${timestamp}.json`);
+    const backupData = {
       timestamp: new Date().toISOString(),
       events: await db('events').select('*'),
       lots: await db('lots').select('*'),
       registrations: await db('registrations').select('*'),
       users: await db('users').select('*'),
       payments: await db('payments').select('*'),
-      tickets: await db('tickets').select('*')
+      tickets: await db('tickets').select('*'),
+      event_products: await db('event_products').select('*'),
+      registration_products: await db('registration_products').select('*')
     };
-
-    const jsonBackupPath = path.join(backupDir, `critical_data_${timestamp}.json`);
-    fs.writeFileSync(jsonBackupPath, JSON.stringify(criticalData, null, 2));
+    
+    fs.writeFileSync(jsonBackupPath, JSON.stringify(backupData, null, 2));
     console.log(`✅ Backup JSON: ${jsonBackupPath}`);
 
-    // Backup resumido para deploy
+    // Backup para deploy
     const deployBackup = {
       timestamp: new Date().toISOString(),
       summary: {
-        events_count: criticalData.events.length,
-        lots_count: criticalData.lots.length,
-        registrations_count: criticalData.registrations.length,
-        users_count: criticalData.users.length,
-        payments_count: criticalData.payments.length,
-        tickets_count: criticalData.tickets.length
+        events: backupData.events.length,
+        lots: backupData.lots.length,
+        registrations: backupData.registrations.length,
+        users: backupData.users.length,
+        payments: backupData.payments.length,
+        tickets: backupData.tickets.length,
+        products: backupData.event_products.length
       },
-      events: criticalData.events.map(e => ({
+      events: backupData.events.map(e => ({
         id: e.id,
         title: e.title,
         date: e.date,
+        location: e.location,
         status: e.status
       })),
-      lots: criticalData.lots.map(l => ({
+      lots: backupData.lots.map(l => ({
         id: l.id,
         event_id: l.event_id,
         name: l.name,
@@ -69,18 +70,21 @@ async function backupDatabase() {
     fs.writeFileSync(deployBackupPath, JSON.stringify(deployBackup, null, 2));
     console.log(`✅ Backup para deploy: ${deployBackupPath}`);
 
-    // Limpar backups antigos (manter apenas os últimos 10)
+    // Limpar backups antigos (manter apenas os últimos 24 - 1 dia completo)
     const backupFiles = fs.readdirSync(backupDir)
       .filter(file => file.startsWith('database_backup_'))
       .sort()
       .reverse();
 
-    if (backupFiles.length > 10) {
-      const filesToDelete = backupFiles.slice(10);
+    if (backupFiles.length > 24) {
+      const filesToDelete = backupFiles.slice(24);
       filesToDelete.forEach(file => {
         fs.unlinkSync(path.join(backupDir, file));
         console.log(`🗑️ Removido backup antigo: ${file}`);
       });
+      console.log(`✅ Mantidos os últimos ${backupFiles.length - filesToDelete.length} backups (1 dia completo)`);
+    } else {
+      console.log(`✅ Total de backups: ${backupFiles.length}`);
     }
 
     console.log('🎉 Backup automático concluído com sucesso!');
@@ -106,7 +110,7 @@ async function backupDatabase() {
 // Função para restaurar backup
 async function restoreBackup(backupPath) {
   try {
-    console.log(`🔄 Restaurando backup: ${backupPath}`);
+    console.log(` Restaurando backup: ${backupPath}`);
     
     if (backupPath.endsWith('.sqlite')) {
       // Restaurar banco completo

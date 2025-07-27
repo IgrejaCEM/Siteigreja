@@ -2,14 +2,16 @@
 
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
 
 // Salva a imagem localmente e retorna a URL local
-async function uploadToS3(file, folder) {
+async function uploadToS3(file, folder, options = {}) {
   // Garante que a pasta existe
   const uploadDir = path.join(__dirname, '../uploads', folder);
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
+
   // Gera um nome único para o arquivo
   const timestamp = Date.now();
   const ext = path.extname(file.originalname || 'imagem.jpg');
@@ -17,8 +19,18 @@ async function uploadToS3(file, folder) {
   const filename = `${base}-${timestamp}${ext}`;
   const destPath = path.join(uploadDir, filename);
 
-  // Move o arquivo para a pasta de destino
-  fs.copyFileSync(file.path, destPath);
+  // Processa a imagem com sharp para preservar a qualidade
+  if (options.preserveQuality) {
+    await sharp(file.path)
+      .withMetadata() // Preserva metadados da imagem
+      .jpeg({ quality: 100, force: false }) // Mantém qualidade máxima para JPG
+      .png({ quality: 100, force: false }) // Mantém qualidade máxima para PNG
+      .webp({ quality: 100, force: false }) // Mantém qualidade máxima para WebP
+      .toFile(destPath);
+  } else {
+    // Move o arquivo para a pasta de destino sem processamento
+    fs.copyFileSync(file.path, destPath);
+  }
 
   // Remove o arquivo temporário
   fs.unlinkSync(file.path);
