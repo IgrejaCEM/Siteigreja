@@ -69,6 +69,8 @@ router.get('/events', authenticateToken, requireAdmin, async (req, res) => {
 
 // Criar evento
 router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
+  console.log('🎯 Tentativa de criar evento:', req.body);
+  
   const trx = await db.transaction();
   
   try {
@@ -87,8 +89,18 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
       payment_gateway
     } = req.body;
 
+    console.log('📝 Dados recebidos:', {
+      title,
+      description: description?.substring(0, 50) + '...',
+      date,
+      location,
+      has_payment,
+      payment_gateway
+    });
+
     // Validar campos obrigatórios
     if (!title || !description || !date || !location) {
+      console.log('❌ Validação falhou:', { title: !!title, description: !!description, date: !!date, location: !!location });
       return res.status(400).json({ 
         error: 'Campos obrigatórios faltando',
         details: {
@@ -108,8 +120,11 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
       .replace(/\s+/g, '-') // substitui espaços por hífens
       .replace(/-+/g, '-'); // substitui múltiplos hífens por um único hífen
 
+    console.log('🔗 Slug gerado:', slug);
+
     // Validar lotes se houver pagamento
     if (has_payment && (!lots || !Array.isArray(lots) || lots.length === 0)) {
+      console.log('❌ Lotes obrigatórios para pagamento');
       return res.status(400).json({
         error: 'É necessário definir pelo menos um lote quando o pagamento está habilitado'
       });
@@ -117,33 +132,43 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
 
     // Validar gateway de pagamento se houver pagamento
     if (has_payment && !payment_gateway) {
+      console.log('❌ Gateway obrigatório para pagamento');
       return res.status(400).json({
         error: 'É necessário definir um gateway de pagamento quando o pagamento está habilitado'
       });
     }
 
+    console.log('✅ Validações passaram, criando evento...');
+
     // Criar evento principal
+    const eventData = {
+      title,
+      description,
+      date: date.includes('T') ? date : date + ' 00:00:00', // Garantir formato correto
+      location,
+      banner: banner || null,
+      banner_home: banner_home || null,
+      banner_evento: banner_evento || null,
+      status: status || 'active',
+      slug,
+      registration_form: registration_form ? JSON.stringify(registration_form) : null,
+      has_payment: Boolean(has_payment),
+      payment_gateway: has_payment ? payment_gateway : null,
+      created_at: trx.fn.now(),
+      updated_at: trx.fn.now()
+    };
+
+    console.log('📊 Dados do evento para inserção:', eventData);
+
     const [event] = await trx('events')
-      .insert({
-        title,
-        description,
-        date,
-        location,
-        banner: banner || null,
-        banner_home: banner_home || null,
-        banner_evento: banner_evento || null,
-        status: status || 'active',
-        slug,
-        registration_form: registration_form ? JSON.stringify(registration_form) : null,
-        has_payment: Boolean(has_payment),
-        payment_gateway: has_payment ? payment_gateway : null,
-        created_at: trx.fn.now(),
-        updated_at: trx.fn.now()
-      })
+      .insert(eventData)
       .returning('*');
+
+    console.log('✅ Evento criado:', event.id, event.title);
 
     // Inserir lotes se existirem
     if (lots && Array.isArray(lots) && lots.length > 0) {
+      console.log('📦 Criando lotes:', lots.length);
       const lotsToInsert = lots.map(lot => {
         let startDate = lot.start_date;
         let endDate = lot.end_date;

@@ -240,8 +240,8 @@ const Home = () => {
       <Box sx={{ 
         width: '100vw',
         height: '100vh',
-        background: '#000',
-        display: 'flex',
+        background: '#000', 
+        display: 'flex', 
         justifyContent: 'center',
         alignItems: 'center',
         overflow: 'hidden',
@@ -285,16 +285,16 @@ const Home = () => {
         }}
       >
         <Box sx={{ pt: 8, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography sx={{
-            mb: 0,
-            textAlign: 'center',
-            fontWeight: 900,
-            color: '#222',
+        <Typography sx={{
+          mb: 0,
+          textAlign: 'center',
+          fontWeight: 900,
+          color: '#222',
             fontSize: { xs: '3.5rem', md: '5rem' },
-            textTransform: 'uppercase',
-            letterSpacing: '0.03em',
-            lineHeight: 1.05,
-            fontFamily: `'Oswald', 'Impact', 'Arial Narrow', Arial, sans-serif`,
+          textTransform: 'uppercase',
+          letterSpacing: '0.03em',
+          lineHeight: 1.05,
+          fontFamily: `'Oswald', 'Impact', 'Arial Narrow', Arial, sans-serif`,
             position: 'relative',
             zIndex: 2,
             textShadow: '2px 2px 0 rgba(0,0,0,0.1)',
@@ -310,16 +310,16 @@ const Home = () => {
                 transform: 'scale(1.02)'
               }
             }
-          }}>
-            JÁ ENTENDEU QUE<br />NÃO PODE FICAR DE FORA NÉ?
-          </Typography>
-          <Typography sx={{
-            mb: 4,
-            textAlign: 'center',
+        }}>
+          JÁ ENTENDEU QUE<br />NÃO PODE FICAR DE FORA NÉ?
+        </Typography>
+        <Typography sx={{
+          mb: 4,
+          textAlign: 'center',
             color: '#666',
             fontSize: { xs: '1.5rem', md: '2rem' },
-            fontWeight: 500,
-            fontFamily: 'inherit',
+          fontWeight: 500,
+          fontFamily: 'inherit',
             position: 'relative',
             zIndex: 2,
             display: 'flex',
@@ -350,7 +350,7 @@ const Home = () => {
             >
               ↓
             </Box>
-          </Typography>
+        </Typography>
         </Box>
         <Box sx={{ 
           width: '100vw',
@@ -369,7 +369,7 @@ const Home = () => {
               style={{ 
                 width: '100vw', 
                 height: '100vh',
-                display: 'block',
+                display: 'block', 
                 margin: 0,
                 padding: 0,
                 position: 'relative'
