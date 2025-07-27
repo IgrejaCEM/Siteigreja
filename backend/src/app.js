@@ -29,7 +29,7 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log('🚫 Origin bloqueada:', origin);
-      callback(new Error('Not allowed by CORS'));
+      callback(null, true); // Permitir temporariamente para debug
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -37,20 +37,6 @@ app.use(cors({
   credentials: true,
   optionsSuccessStatus: 200
 }));
-
-// Headers CORS adicionais
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://igrejacemchurch.org');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Content-Length');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
 
 // Configuração do Helmet mais permissiva
 app.use(helmet({
