@@ -1,3 +1,4 @@
+// Cache busting - 2025-07-27 20:50 - Frontend fix
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { AuthProvider } from './contexts/AuthContext';
