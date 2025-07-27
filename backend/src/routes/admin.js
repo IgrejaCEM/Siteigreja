@@ -1001,4 +1001,161 @@ router.post('/fix-database-emergency', async (req, res) => {
   }
 });
 
+// ROTA EMERGENCIAL PARA EXECUTAR MIGRATIONS E CRIAR EVENTO
+router.post('/setup-database-complete', async (req, res) => {
+  try {
+    console.log('🚨 SETUP COMPLETO DO BANCO INICIADO');
+    
+    const { db } = require('../database/db');
+    const results = {
+      migrations: [],
+      tablesCreated: [],
+      eventCreated: null,
+      lotCreated: null,
+      errors: []
+    };
+
+    // 1. Verificar e criar tabela users se não existir
+    const usersExists = await db.schema.hasTable('users');
+    if (!usersExists) {
+      await db.schema.createTable('users', function(table) {
+        table.increments('id').primary();
+        table.string('name').notNullable();
+        table.string('email').notNullable().unique();
+        table.string('password').notNullable();
+        table.string('role').defaultTo('user');
+        table.boolean('is_admin').defaultTo(false);
+        table.string('phone').nullable();
+        table.timestamps(true, true);
+      });
+      results.tablesCreated.push('users');
+    }
+
+    // 2. Verificar e criar tabela events se não existir
+    const eventsExists = await db.schema.hasTable('events');
+    if (!eventsExists) {
+      await db.schema.createTable('events', function(table) {
+        table.increments('id').primary();
+        table.string('title').notNullable();
+        table.text('description').nullable();
+        table.datetime('start_date').notNullable();
+        table.datetime('end_date').notNullable();
+        table.string('location').nullable();
+        table.string('status').defaultTo('draft');
+        table.integer('max_participants').defaultTo(0);
+        table.decimal('price', 10, 2).defaultTo(0);
+        table.string('image_url').nullable();
+        table.text('home_content').nullable();
+        table.string('slug').nullable();
+        table.timestamps(true, true);
+      });
+      results.tablesCreated.push('events');
+    }
+
+    // 3. Verificar e criar tabela lots se não existir
+    const lotsExists = await db.schema.hasTable('lots');
+    if (!lotsExists) {
+      await db.schema.createTable('lots', function(table) {
+        table.increments('id').primary();
+        table.integer('event_id').unsigned().references('id').inTable('events').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.text('description').nullable();
+        table.decimal('price', 10, 2).notNullable();
+        table.integer('quantity').notNullable();
+        table.datetime('start_date').notNullable();
+        table.datetime('end_date').notNullable();
+        table.string('status').defaultTo('active');
+        table.boolean('is_free').defaultTo(false);
+        table.timestamps(true, true);
+      });
+      results.tablesCreated.push('lots');
+    }
+
+    // 4. Verificar e criar tabela registrations com TODAS as colunas
+    const registrationsExists = await db.schema.hasTable('registrations');
+    if (!registrationsExists) {
+      await db.schema.createTable('registrations', function(table) {
+        table.increments('id').primary();
+        table.integer('event_id').unsigned().references('id').inTable('events').onDelete('CASCADE');
+        table.integer('lot_id').unsigned().references('id').inTable('lots').onDelete('SET NULL');
+        table.integer('user_id').unsigned().references('id').inTable('users').onDelete('SET NULL');
+        table.string('name').notNullable();
+        table.string('email').notNullable();
+        table.string('phone').notNullable();
+        table.string('cpf').nullable();
+        table.string('address').nullable();
+        table.string('registration_code').nullable();
+        table.string('status').defaultTo('pending');
+        table.string('payment_status').nullable();
+        table.text('form_data').nullable();
+        table.timestamps(true, true);
+      });
+      results.tablesCreated.push('registrations');
+    }
+
+    // 5. Criar evento de teste se não existir
+    const existingEvents = await db('events').count('id as count').first();
+    const eventCount = existingEvents.count || 0;
+
+    if (eventCount === 0) {
+      const [eventoId] = await db('events').insert({
+        title: 'CONNECT CONF 2025 - Igreja CEM',
+        description: 'Evento principal da Igreja CEM para 2025',
+        start_date: '2025-08-01 19:00:00',
+        end_date: '2025-08-03 22:00:00',
+        location: 'Igreja CEM - São Paulo',
+        status: 'active',
+        max_participants: 1000,
+        price: 0,
+        image_url: '/images_site/banner-home.png',
+        slug: 'connect-conf-2025'
+      }).returning('id');
+
+      const finalEventId = typeof eventoId === 'object' ? eventoId.id : eventoId;
+      results.eventCreated = finalEventId;
+
+      // 6. Criar lote gratuito
+      const [loteId] = await db('lots').insert({
+        event_id: finalEventId,
+        name: 'Entrada Gratuita',
+        description: 'Acesso completo ao evento',
+        price: 0,
+        quantity: 1000,
+        start_date: '2025-01-01 00:00:00',
+        end_date: '2025-07-31 23:59:59',
+        status: 'active',
+        is_free: true
+      }).returning('id');
+
+      results.lotCreated = typeof loteId === 'object' ? loteId.id : loteId;
+    }
+
+    // 7. Verificar estrutura final
+    const finalTables = [];
+    const tables = ['users', 'events', 'lots', 'registrations'];
+    for (const table of tables) {
+      const exists = await db.schema.hasTable(table);
+      if (exists) finalTables.push(table);
+    }
+
+    res.json({
+      success: true,
+      message: 'Banco configurado com sucesso!',
+      results: {
+        ...results,
+        finalTables,
+        eventCount: await db('events').count('id as count').first()
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Erro no setup do banco:', error);
+    res.status(500).json({
+      error: 'Erro no setup do banco',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 module.exports = router; 
