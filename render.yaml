@@ -2,7 +2,7 @@ services:
   - type: web
     name: siteigreja-backend
     env: node
-    buildCommand: npm install
+    buildCommand: npm ci && npm rebuild
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -24,7 +24,7 @@ services:
     name: database-backup
     env: node
     schedule: "0 2 * * *"
-    buildCommand: npm install
+    buildCommand: npm ci && npm rebuild
     startCommand: cd /opt/render/project/src && npm run backup
     envVars:
       - key: NODE_ENV
