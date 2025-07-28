@@ -29,25 +29,14 @@ class MercadoPagoGateway {
       const payload = {
         items: [
           {
-            id: `item-${customer.registration_code || Date.now()}`,
             title: description || 'Inscrição no Evento',
-            description: `Inscrição no evento - ${description}`,
-            category_id: 'eventos',
             quantity: 1,
             unit_price: Number(amount)
           }
         ],
         payer: {
           name: customer.name || '',
-          email: customer.email || '',
-          phone: customer.phone ? {
-            area_code: customer.phone.substring(0, 2),
-            number: customer.phone.substring(2)
-          } : undefined,
-          identification: customer.cpf ? {
-            type: 'CPF',
-            number: customer.cpf
-          } : undefined
+          email: customer.email || ''
         },
         back_urls: {
           success: process.env.NODE_ENV === 'production' 
@@ -68,20 +57,6 @@ class MercadoPagoGateway {
         statement_descriptor: 'INSCRICAO',
         // Configurações para forçar web checkout
         binary_mode: true,
-        expires: true,
-        expiration_date_from: new Date().toISOString(),
-        expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 horas
-        // Configurações de pagamento
-        payment_methods: {
-          installments: 1,
-          default_installments: 1,
-          excluded_payment_types: [
-            { id: "ticket" }
-          ],
-          excluded_payment_methods: [
-            { id: "amex" }
-          ]
-        },
         metadata: {
           registration_code: customer.registration_code,
           customer_id: customer.id,
