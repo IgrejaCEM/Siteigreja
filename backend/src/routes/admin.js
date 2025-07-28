@@ -501,15 +501,22 @@ router.get('/registrations', async (req, res) => {
     const formatted = registrations.map(reg => {
       let name = reg.name;
       let email = reg.email;
+      
+      // Se não tem nome/email, tentar extrair do form_data
       if ((!name || name === '-') || (!email || email === '-')) {
         try {
           const data = reg.form_data ? (typeof reg.form_data === 'string' ? JSON.parse(reg.form_data) : reg.form_data) : {};
-          name = name || data.nome || data.name || '-';
-          email = email || data.email || '-';
+          name = name || data.nome || data.name || data.participantes?.[0]?.name || '-';
+          email = email || data.email || data.participantes?.[0]?.email || '-';
         } catch {
           // ignora
         }
       }
+      
+      // Garantir que sempre tenha um valor
+      name = name || reg.user_name || '-';
+      email = email || reg.user_email || '-';
+      
       return { ...reg, name, email };
     });
 
@@ -787,9 +794,9 @@ router.get('/stats', authenticateToken, requireAdmin, async (req, res) => {
       .where('status', 'active')
       .count('* as activeEvents');
     
-    // Total de participantes
+    // Total de participantes (contando por email único)
     const [{ totalParticipants }] = await db('registrations')
-      .countDistinct('user_id as totalParticipants');
+      .countDistinct('email as totalParticipants');
     
     // Receita total
     const [{ totalRevenue }] = await db('registrations')
