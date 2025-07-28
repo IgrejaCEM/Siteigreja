@@ -875,17 +875,24 @@ router.get('/registrations/recent', authenticateToken, requireAdmin, async (req,
 
     // Garantir nome/email mesmo sem usuário
     const formatted = registrations.map(reg => {
-      let name = reg.user_name || reg.reg_name || '-';
-      let email = reg.user_email || reg.reg_email || '-';
+      let name = reg.reg_name || reg.user_name || '-';
+      let email = reg.reg_email || reg.user_email || '-';
+      
+      // Se ainda não tem nome/email, tentar extrair do form_data
       if ((!name || name === '-') || (!email || email === '-')) {
         try {
           const data = reg.form_data ? (typeof reg.form_data === 'string' ? JSON.parse(reg.form_data) : reg.form_data) : {};
-          name = name || data.nome || data.name || '-';
-          email = email || data.email || '-';
+          name = name || data.nome || data.name || data.participantes?.[0]?.name || '-';
+          email = email || data.email || data.participantes?.[0]?.email || '-';
         } catch {
           // ignora
         }
       }
+      
+      // Garantir que sempre tenha um valor válido
+      name = name || '-';
+      email = email || '-';
+      
       return {
         id: reg.id,
         name,
