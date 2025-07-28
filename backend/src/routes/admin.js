@@ -1356,4 +1356,36 @@ router.get('/check-database-structure', async (req, res) => {
   }
 });
 
+// ROTA PARA VERIFICAR EVENTOS AUTOMÁTICOS (REMOVER APÓS USO)
+router.get('/check-auto-events', async (req, res) => {
+  try {
+    console.log('🔍 VERIFICANDO EVENTOS AUTOMÁTICOS');
+    
+    const events = await db('events').select('*').orderBy('created_at', 'desc');
+    
+    console.log('📋 Eventos encontrados:', events.length);
+    events.forEach(event => {
+      console.log(`- ${event.title} (ID: ${event.id}) - Criado: ${event.created_at}`);
+    });
+    
+    res.json({
+      success: true,
+      message: 'Eventos verificados',
+      events: events.map(e => ({
+        id: e.id,
+        title: e.title,
+        created_at: e.created_at,
+        updated_at: e.updated_at
+      }))
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao verificar eventos:', error);
+    res.status(500).json({
+      error: 'Erro ao verificar eventos',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router; 
