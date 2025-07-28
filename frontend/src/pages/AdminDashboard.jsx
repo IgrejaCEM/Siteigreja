@@ -135,9 +135,34 @@ const AdminDashboard = forwardRef((props, ref) => {
       const recentRegistrationsRes = await api.get('/admin/registrations/recent');
       setRecentRegistrations(Array.isArray(recentRegistrationsRes.data) ? recentRegistrationsRes.data : []);
 
-      // Buscar todas as inscrições
+      // Buscar todas as inscrições (usar a mesma estrutura da rota recent)
       const registrationsRes = await api.get('/admin/registrations');
-      setRegistrations(Array.isArray(registrationsRes.data) ? registrationsRes.data : []);
+      const allRegistrations = Array.isArray(registrationsRes.data) ? registrationsRes.data : [];
+      
+      // Garantir que os dados tenham a mesma estrutura da rota recent
+      const formattedRegistrations = allRegistrations.map(reg => {
+        let name = reg.name || '-';
+        let email = reg.email || '-';
+        
+        // Se ainda não tem nome/email, tentar extrair do form_data
+        if ((!name || name === '-') || (!email || email === '-')) {
+          try {
+            const data = reg.form_data ? (typeof reg.form_data === 'string' ? JSON.parse(reg.form_data) : reg.form_data) : {};
+            name = name || data.nome || data.name || data.participantes?.[0]?.name || '-';
+            email = email || data.email || data.participantes?.[0]?.email || '-';
+          } catch {
+            // ignora
+          }
+        }
+        
+        return {
+          ...reg,
+          name: name || '-',
+          email: email || '-'
+        };
+      });
+      
+      setRegistrations(formattedRegistrations);
 
       // Buscar participantes
       const participantsRes = await api.get('/admin/participants');
@@ -704,14 +729,13 @@ const AdminDashboard = forwardRef((props, ref) => {
                 <TableBody>
                   {(filterEventId ? registrations.filter(r => r.event_id === Number(filterEventId)) : registrations).map((registration) => {
                     const event = events.find(e => e.id === registration.event_id);
-                    const participant = participants.find(p => p.id === registration.user_id);
                     const lote = event?.lots?.find(l => l.id === registration.lot_id);
                     return (
                       <TableRow key={registration.id}>
                         <TableCell>{registration.id}</TableCell>
                         <TableCell>{event?.title || '-'}</TableCell>
-                        <TableCell>{participant?.name || '-'}</TableCell>
-                        <TableCell>{participant?.email || '-'}</TableCell>
+                        <TableCell>{registration.name || '-'}</TableCell>
+                        <TableCell>{registration.email || '-'}</TableCell>
                         <TableCell>{registration.payment_status}</TableCell>
                         <TableCell>{new Date(registration.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>{lote?.name || '-'}</TableCell>
