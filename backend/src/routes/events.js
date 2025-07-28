@@ -545,7 +545,7 @@ router.post('/:id/register-multiple', async (req, res) => {
 
         // Criar ticket - Comentado temporariamente
         /*
-        const ticketCode = `TICKET-${uuidv4()}`;
+        const ticketCode = `TICKET-${generateId()}`;
         const [ticketId] = await trx('tickets').insert({
           inscricao_id: inscricaoId,
           ticket_code: ticketCode,
