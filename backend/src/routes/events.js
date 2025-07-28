@@ -1189,4 +1189,34 @@ router.post('/:id/inscricao-simples', async (req, res) => {
   }
 });
 
+// ROTA ULTRA-SIMPLIFICADA PARA TESTE (REMOVER APÓS USO)
+router.post('/:id/inscricao-ultra-simples', async (req, res) => {
+  try {
+    console.log('🧪 INSCRIÇÃO ULTRA-SIMPLIFICADA');
+    console.log('📦 Dados recebidos:', req.body);
+    
+    const { id } = req.params;
+    
+    // Verificar se o evento existe
+    const event = await db('events').where('id', id).first();
+    if (!event) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
+    
+    // Resposta simples
+    res.status(201).json({
+      success: true,
+      registration_code: `TEST-${Date.now()}`,
+      message: 'Inscrição de teste criada com sucesso'
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro na inscrição ultra-simplificada:', error);
+    res.status(500).json({
+      error: 'Erro na inscrição ultra-simplificada',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router; 
