@@ -125,8 +125,17 @@ const Inscricao = () => {
         setError('Erro ao carregar evento');
       } finally {
         setLoading(false);
-        // NÃO ir para o próximo step automaticamente
-        // A pessoa só vai para a última etapa após pagamento confirmado
+        
+        // Verificar se é lote gratuito
+        const selectedLot = event.lots.find(lot => lot.id === selectedLotId);
+        const isFree = selectedLot && selectedLot.price === 0 && cartProducts.length === 0;
+        
+        if (isFree) {
+          // Para lotes gratuitos, ir direto para a última etapa
+          setPaymentStatus('completed');
+          setActiveStep(2);
+        }
+        // Para lotes pagos, aguardar confirmação do pagamento
       }
     };
 
@@ -568,6 +577,7 @@ const Inscricao = () => {
       return total + (Number(product.price) * product.quantity);
     }, 0);
     const total = inscriptionsTotal + productsTotal;
+    const isFree = selectedLot && selectedLot.price === 0 && cartProducts.length === 0;
 
     return (
       <Box sx={{ mt: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
@@ -577,7 +587,7 @@ const Inscricao = () => {
         
         <Box sx={{ mb: 2 }}>
           <Typography variant="body1">
-            Inscrições ({inscricoes.length}x): R$ {inscriptionsTotal.toFixed(2)}
+            Inscrições ({inscricoes.length}x): {selectedLot && selectedLot.price === 0 ? 'Gratuito' : `R$ ${inscriptionsTotal.toFixed(2)}`}
           </Typography>
           {cartProducts.length > 0 && (
             <Typography variant="body1">
@@ -589,7 +599,7 @@ const Inscricao = () => {
         <Divider sx={{ my: 2 }} />
         
         <Typography variant="h5" color="primary" fontWeight="bold">
-          Total: R$ {total.toFixed(2)}
+          Total: {isFree ? 'Gratuito' : `R$ ${total.toFixed(2)}`}
         </Typography>
       </Box>
     );
@@ -802,7 +812,7 @@ const Inscricao = () => {
                   <CardContent>
                     <Typography variant="h6">{lot.name}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Preço: R$ {lot.price}
+                      Preço: {lot.price === 0 ? 'Gratuito' : `R$ ${lot.price}`}
                     </Typography>
 
                     {!isAvailable && (
@@ -899,7 +909,10 @@ const Inscricao = () => {
             {renderValueSummary()}
 
             <Typography variant="body1" sx={{ mb: 2 }}>
-              Clique no botão "Ir para o Checkout" abaixo para ir ao checkout do Mercado Pago, onde você poderá escolher a forma de pagamento (PIX, Cartão de Crédito, Boleto, etc.).
+              {selectedLot && selectedLot.price === 0 && cartProducts.length === 0 
+                ? 'Clique no botão "Confirmar Inscrição" abaixo para finalizar sua inscrição gratuita.'
+                : 'Clique no botão "Ir para o Checkout" abaixo para ir ao checkout do Mercado Pago, onde você poderá escolher a forma de pagamento (PIX, Cartão de Crédito, Boleto, etc.).'
+              }
             </Typography>
             
             {error && (
@@ -1107,7 +1120,12 @@ const Inscricao = () => {
                 }}
               >
                 {loading ? <CircularProgress size={24} /> : 
-                  activeStep === 1 ? 'Ir para o Checkout' : 'Próximo'}
+                  activeStep === 1 
+                    ? (selectedLot && selectedLot.price === 0 && cartProducts.length === 0 
+                        ? 'Confirmar Inscrição' 
+                        : 'Ir para o Checkout'
+                      )
+                    : 'Próximo'}
               </Button>
             )}
           </Box>

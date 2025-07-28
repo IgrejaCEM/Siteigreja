@@ -915,24 +915,25 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     const stats = await updateEventStats(id, trx);
     await trx.commit();
     // Resposta clara
+    const isFree = selectedLot.price === 0 && productsTotal === 0;
     const responseObj = {
       registration_code: registrationCode,
       inscricoes: inscricoesIds,
       tickets,
-      payment_required: selectedLot.price > 0 || productsTotal > 0,
+      payment_required: !isFree,
       total_amount: totalAmount,
       payment_method: payment_method,
       payment_info: paymentInfo,
-      status: (selectedLot.price > 0 || productsTotal > 0) ? 'pending_payment' : 'confirmed',
-      message: (selectedLot.price > 0 || productsTotal > 0)
-        ? (paymentInfo && paymentInfo.payment_url 
+      status: isFree ? 'confirmed' : 'pending_payment',
+      message: isFree 
+        ? 'Inscrição confirmada com sucesso! Sua vaga está garantida.'
+        : (paymentInfo && paymentInfo.payment_url 
             ? (isBoleto 
                 ? `Boleto gerado! Você tem 3 dias para pagar. A vaga está reservada até o vencimento. Link: ${paymentInfo.payment_url}`
                 : `Inscrição recebida! Realize o pagamento no link: ${paymentInfo.payment_url}`
               )
             : 'Inscrição recebida! Realize o pagamento para confirmar sua vaga.'
           )
-        : 'Inscrição confirmada com sucesso!'
     };
     console.log('📤 Resposta enviada ao frontend:', JSON.stringify(responseObj, null, 2));
     console.log('🔍 Payment Info é null?', paymentInfo === null);
