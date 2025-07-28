@@ -1227,4 +1227,103 @@ router.post('/check-upload', async (req, res) => {
   }
 });
 
+// ROTA DE EMERGÊNCIA PARA RECRIAR EVENTO (REMOVER APÓS USO)
+router.post('/recreate-event-emergency', async (req, res) => {
+  try {
+    console.log('🚨 RECRIANDO EVENTO DE EMERGÊNCIA');
+    
+    // Verificar se a tabela events existe
+    const eventsExists = await db.schema.hasTable('events');
+    if (!eventsExists) {
+      await db.schema.createTable('events', function(table) {
+        table.increments('id').primary();
+        table.string('title').notNullable();
+        table.text('description').nullable();
+        table.datetime('date').notNullable();
+        table.string('location').notNullable();
+        table.decimal('price', 10, 2);
+        table.string('banner');
+        table.string('banner_home');
+        table.string('banner_evento');
+        table.string('slug').unique();
+        table.string('status').defaultTo('active');
+        table.json('registration_form');
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela events criada');
+    }
+
+    // Verificar se a tabela lots existe
+    const lotsExists = await db.schema.hasTable('lots');
+    if (!lotsExists) {
+      await db.schema.createTable('lots', function(table) {
+        table.increments('id').primary();
+        table.integer('event_id').unsigned().references('id').inTable('events').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.decimal('price', 10, 2);
+        table.integer('quantity');
+        table.datetime('start_date');
+        table.datetime('end_date');
+        table.string('status').defaultTo('active');
+        table.boolean('is_free').defaultTo(false);
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela lots criada');
+    }
+
+    // Deletar evento existente se houver
+    await db('events').where('id', 1).del();
+    console.log('🗑️ Evento anterior deletado');
+
+    // Criar novo evento
+    const [eventId] = await db('events').insert({
+      title: 'CONNECT CONF 2025 - INPROVÁVEIS',
+      description: 'A Connect Conf 2025 é mais do que uma conferência – é um chamado para aqueles que se acham fora do padrão, esquecidos ou desacreditados.',
+      date: '2025-10-24 19:00:00',
+      location: 'Igreja CEM - CAJATI, localizada na Av. dos trabalhadores, Nº99 - Centro, Cajati/SP.',
+      price: 60,
+      banner: 'https://i.ibb.co/tpzV7gt4/jpg-foto.jpg',
+      banner_home: 'https://i.ibb.co/tpzV7gt4/jpg-foto.jpg',
+      banner_evento: 'https://i.ibb.co/tpzV7gt4/jpg-foto.jpg',
+      slug: 'connect-conf-2025-inprovveis',
+      status: 'active'
+    }).returning('id');
+
+    console.log('✅ Evento criado com ID:', eventId);
+
+    // Deletar lotes existentes se houver
+    await db('lots').where('event_id', eventId).del();
+    console.log('🗑️ Lotes anteriores deletados');
+
+    // Criar novo lote
+    const [lotId] = await db('lots').insert({
+      event_id: eventId,
+      name: 'LOTE 1',
+      description: 'Lote principal do evento',
+      price: 60,
+      quantity: 100,
+      start_date: '2025-01-01 00:00:00',
+      end_date: '2025-07-30 23:59:59',
+      status: 'active',
+      is_free: false
+    }).returning('id');
+
+    console.log('✅ Lote criado com ID:', lotId);
+
+    res.json({
+      success: true,
+      message: 'Evento recriado com sucesso!',
+      eventId,
+      lotId
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao recriar evento:', error);
+    res.status(500).json({
+      error: 'Erro ao recriar evento',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router; 
