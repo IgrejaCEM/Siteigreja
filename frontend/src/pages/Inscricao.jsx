@@ -125,6 +125,8 @@ const Inscricao = () => {
         setError('Erro ao carregar evento');
       } finally {
         setLoading(false);
+        // NÃO ir para o próximo step automaticamente
+        // A pessoa só vai para a última etapa após pagamento confirmado
       }
     };
 
@@ -184,6 +186,8 @@ const Inscricao = () => {
           // Limpa o flag de checkout em andamento
           sessionStorage.removeItem('checkout_in_progress');
           setPreventRedirect(false);
+          // Ir para a última etapa quando pagamento for confirmado
+          setActiveStep(2);
         }
       } catch (err) {
         console.log('Erro ao verificar status do pagamento:', err);
@@ -199,6 +203,8 @@ const Inscricao = () => {
         if (response.data.status === 'completed') {
           setPaymentPending(false);
           setPaymentStatus('completed');
+          // Ir para a última etapa quando pagamento for confirmado
+          setActiveStep(2);
         }
       } catch (err) {
         // Ignora erros de polling
@@ -906,7 +912,7 @@ const Inscricao = () => {
         return (
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h5" gutterBottom>
-              Inscrição Confirmada!
+              {paymentStatus === 'completed' ? 'Inscrição Confirmada!' : 'Aguardando Confirmação do Pagamento'}
             </Typography>
             {paymentPending ? (
               <>
@@ -954,7 +960,7 @@ const Inscricao = () => {
                 Sua inscrição foi realizada com sucesso!
               </Alert>
             )}
-            {registrationCode && (
+            {registrationCode && paymentStatus === 'completed' && (
               <Box sx={{ my: 3 }}>
                 <Typography variant="subtitle1" gutterBottom>
                   Código de Inscrição: {registrationCode}
@@ -962,25 +968,27 @@ const Inscricao = () => {
                 <QRCode value={registrationCode} size={200} />
               </Box>
             )}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', mt: 3 }}>
-              <TicketGenerator 
-                registrationData={{
-                  name: inscricoes[0]?.nome,
-                  email: inscricoes[0]?.email,
-                  phone: inscricoes[0]?.telefone,
-                  registration_code: registrationCode
-                }}
-                eventData={event}
-              />
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => navigate('/')}
-                sx={{ mt: 2 }}
-              >
-                Voltar para Home
-              </Button>
-            </Box>
+            {paymentStatus === 'completed' && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', mt: 3 }}>
+                <TicketGenerator 
+                  registrationData={{
+                    name: inscricoes[0]?.nome,
+                    email: inscricoes[0]?.email,
+                    phone: inscricoes[0]?.telefone,
+                    registration_code: registrationCode
+                  }}
+                  eventData={event}
+                />
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => navigate('/')}
+                  sx={{ mt: 2 }}
+                >
+                  Voltar para Home
+                </Button>
+              </Box>
+            )}
           </Box>
         );
 
@@ -1084,7 +1092,7 @@ const Inscricao = () => {
             >
               Voltar
             </Button>
-            {activeStep !== steps.length - 1 && (
+            {activeStep < steps.length - 1 && (
               <Button
                 variant="contained"
                 onClick={
