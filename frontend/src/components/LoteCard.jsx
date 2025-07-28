@@ -58,11 +58,7 @@ export default function LoteCard({ lote, onSelect, disabled }) {
               </Typography>
             </Box>
 
-            {isAvailable && (
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Restam: {lote.quantity} ingressos
-              </Typography>
-            )}
+
 
             <Box display="flex" justifyContent="center" mt={2}>
               <Tooltip title={!isAvailable ? status.label : ''}>
