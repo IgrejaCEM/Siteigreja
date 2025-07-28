@@ -711,6 +711,21 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           throw new Error('Já existe uma inscrição recente para este participante neste evento. Aguarde alguns minutos e tente novamente.');
         }
         const isFree = selectedLot.price === 0 && productsTotal === 0;
+        const isBoleto = payment_method === 'boleto' || payment_method === 'ticket';
+        
+        // Definir status baseado no tipo de pagamento
+        let status, payment_status;
+        if (isFree) {
+          status = 'confirmed';
+          payment_status = 'paid';
+        } else if (isBoleto) {
+          status = 'pending_payment'; // Reserva temporária
+          payment_status = 'pending';
+        } else {
+          status = selectedLot.price > 0 ? 'pending_payment' : 'confirmed';
+          payment_status = selectedLot.price > 0 ? 'pending' : null;
+        }
+        
         const inscricaoData = {
           event_id: id,
           lot_id: selectedLot.id,
@@ -720,8 +735,8 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           phone: participante.phone,
           cpf: participante.cpf || null,
           address: participante.address || null,
-          status: isFree ? 'confirmed' : (selectedLot.price > 0 ? 'pending_payment' : 'confirmed'),
-          payment_status: isFree ? 'paid' : (selectedLot.price > 0 ? 'pending' : null),
+          status: status,
+          payment_status: payment_status,
           registration_code: registrationCode,
           created_at: new Date(),
           updated_at: new Date(),
@@ -834,9 +849,9 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           
           const boletoGateway = new BoletoPaymentGateway();
           
-          // ESTRATÉGIA ESCOLHIDA: CONFIRMAÇÃO IMEDIATA
-          // Você pode mudar para: createBoletoWithTemporaryReservation ou createBoletoWithTimeLimit
-          paymentInfo = await boletoGateway.createBoletoWithImmediateConfirmation({
+          // ESTRATÉGIA ESCOLHIDA: RESERVA TEMPORÁRIA (3 dias)
+          // Você pode mudar para: createBoletoWithImmediateConfirmation ou createBoletoWithTimeLimit
+          paymentInfo = await boletoGateway.createBoletoWithTemporaryReservation({
             amount: totalAmount,
             description: `Inscrição - ${event.title} - ${selectedLot.name}`,
             customer: participantes[0],
@@ -910,7 +925,13 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
       payment_info: paymentInfo,
       status: (selectedLot.price > 0 || productsTotal > 0) ? 'pending_payment' : 'confirmed',
       message: (selectedLot.price > 0 || productsTotal > 0)
-        ? (paymentInfo && paymentInfo.payment_url ? `Inscrição recebida! Realize o pagamento no link: ${paymentInfo.payment_url}` : 'Inscrição recebida! Realize o pagamento para confirmar sua vaga.')
+        ? (paymentInfo && paymentInfo.payment_url 
+            ? (isBoleto 
+                ? `Boleto gerado! Você tem 3 dias para pagar. A vaga está reservada até o vencimento. Link: ${paymentInfo.payment_url}`
+                : `Inscrição recebida! Realize o pagamento no link: ${paymentInfo.payment_url}`
+              )
+            : 'Inscrição recebida! Realize o pagamento para confirmar sua vaga.'
+          )
         : 'Inscrição confirmada com sucesso!'
     };
     console.log('📤 Resposta enviada ao frontend:', JSON.stringify(responseObj, null, 2));
