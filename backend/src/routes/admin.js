@@ -1265,4 +1265,57 @@ router.post('/restore-participants-emergency', async (req, res) => {
   }
 });
 
+// ROTA PARA VERIFICAR ESTRUTURA DO BANCO (REMOVER APÓS USO)
+router.get('/check-database-structure', async (req, res) => {
+  try {
+    console.log('🔍 VERIFICANDO ESTRUTURA DO BANCO');
+    
+    const results = {
+      tables: {},
+      events: [],
+      lots: [],
+      registrations: []
+    };
+    
+    // Verificar se as tabelas existem
+    const tables = ['events', 'lots', 'registrations'];
+    for (const table of tables) {
+      const exists = await db.schema.hasTable(table);
+      results.tables[table] = exists;
+      
+      if (exists) {
+        // Verificar colunas
+        const columns = await db(table).columnInfo();
+        results.tables[`${table}_columns`] = Object.keys(columns);
+        
+        // Contar registros
+        const count = await db(table).count('* as count').first();
+        results.tables[`${table}_count`] = count.count;
+        
+        // Listar dados (limitado)
+        if (table === 'events') {
+          results.events = await db(table).select('*').limit(5);
+        } else if (table === 'lots') {
+          results.lots = await db(table).select('*').limit(5);
+        } else if (table === 'registrations') {
+          results.registrations = await db(table).select('*').limit(5);
+        }
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: 'Estrutura do banco verificada',
+      results
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao verificar estrutura:', error);
+    res.status(500).json({
+      error: 'Erro ao verificar estrutura',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router; 
