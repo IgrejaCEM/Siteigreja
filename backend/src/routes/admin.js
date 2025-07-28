@@ -1054,6 +1054,44 @@ router.post('/fix-database-emergency', async (req, res) => {
   }
 });
 
+// ROTA DE EMERGÊNCIA PARA LIMPAR EVENTOS (REMOVER APÓS USO)
+router.post('/clear-events-emergency', async (req, res) => {
+  try {
+    console.log('🚨 LIMPANDO EVENTOS DE EMERGÊNCIA');
+    
+    // Limpar todas as inscrições primeiro
+    const deletedRegistrations = await db('registrations').del();
+    console.log(`🗑️ ${deletedRegistrations} inscrições removidas`);
+    
+    // Limpar todos os lotes
+    const deletedLots = await db('lots').del();
+    console.log(`🗑️ ${deletedLots} lotes removidos`);
+    
+    // Limpar todos os eventos
+    const deletedEvents = await db('events').del();
+    console.log(`🗑️ ${deletedEvents} eventos removidos`);
+    
+    console.log('✅ Banco limpo com sucesso!');
+    
+    res.json({
+      success: true,
+      message: 'Banco limpo com sucesso!',
+      deleted: {
+        events: deletedEvents,
+        lots: deletedLots,
+        registrations: deletedRegistrations
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao limpar banco:', error);
+    res.status(500).json({
+      error: 'Erro ao limpar banco',
+      details: error.message
+    });
+  }
+});
+
 // ROTA DE EMERGÊNCIA PARA VERIFICAR UPLOAD
 router.post('/check-upload', async (req, res) => {
   try {
