@@ -240,6 +240,16 @@ const CriarEvento = () => {
     }
   };
 
+  const handleImageUrl = (imageType) => {
+    const url = prompt('Digite a URL da imagem:');
+    if (url && url.trim()) {
+      setForm(prev => ({
+        ...prev,
+        [imageType]: url.trim()
+      }));
+    }
+  };
+
   const handleBannerChange = async (e, imageType) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -462,6 +472,14 @@ const CriarEvento = () => {
                             Selecionar Banner Principal
                           </Button>
                         </label>
+                        <Button
+                          variant="text"
+                          fullWidth
+                          onClick={() => handleImageUrl('banner')}
+                          sx={{ mb: 2 }}
+                        >
+                          Ou inserir URL
+                        </Button>
                         {form.banner && (
                           <Box sx={{ mt: 2 }}>
                             <img
@@ -502,6 +520,14 @@ const CriarEvento = () => {
                             Selecionar Banner Home
                           </Button>
                         </label>
+                        <Button
+                          variant="text"
+                          fullWidth
+                          onClick={() => handleImageUrl('banner_home')}
+                          sx={{ mb: 2 }}
+                        >
+                          Ou inserir URL
+                        </Button>
                         {form.banner_home && (
                           <Box sx={{ mt: 2 }}>
                             <img
@@ -542,6 +568,14 @@ const CriarEvento = () => {
                             Selecionar Banner Evento
                           </Button>
                         </label>
+                        <Button
+                          variant="text"
+                          fullWidth
+                          onClick={() => handleImageUrl('banner_evento')}
+                          sx={{ mb: 2 }}
+                        >
+                          Ou inserir URL
+                        </Button>
                         {form.banner_evento && (
                           <Box sx={{ mt: 2 }}>
                             <img

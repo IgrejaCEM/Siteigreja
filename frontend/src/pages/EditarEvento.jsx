@@ -375,6 +375,16 @@ export default function EditarEvento() {
     }
   };
 
+  const handleImageUrl = (imageType) => {
+    const url = prompt('Digite a URL da imagem:');
+    if (url && url.trim()) {
+      setForm(prev => ({
+        ...prev,
+        [imageType]: url.trim()
+      }));
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -510,6 +520,14 @@ export default function EditarEvento() {
                     Selecionar Banner Principal
                   </Button>
                 </label>
+                <Button
+                  variant="text"
+                  fullWidth
+                  onClick={() => handleImageUrl('banner')}
+                  sx={{ mb: 2 }}
+                >
+                  Ou inserir URL
+                </Button>
                 {form.banner && (
                   <Card sx={{ mt: 2 }}>
                     <CardMedia
@@ -542,9 +560,17 @@ export default function EditarEvento() {
                     fullWidth
                     sx={{ mb: 2 }}
                   >
-                    Selecionar Banner Home
+                    Selecionar Banner da Página Inicial
                   </Button>
                 </label>
+                <Button
+                  variant="text"
+                  fullWidth
+                  onClick={() => handleImageUrl('banner_home')}
+                  sx={{ mb: 2 }}
+                >
+                  Ou inserir URL
+                </Button>
                 {form.banner_home && (
                   <Card sx={{ mt: 2 }}>
                     <CardMedia
@@ -580,6 +606,14 @@ export default function EditarEvento() {
                     Selecionar Banner Evento
                   </Button>
                 </label>
+                <Button
+                  variant="text"
+                  fullWidth
+                  onClick={() => handleImageUrl('banner_evento')}
+                  sx={{ mb: 2 }}
+                >
+                  Ou inserir URL
+                </Button>
                 {form.banner_evento && (
                   <Card sx={{ mt: 2 }}>
                     <CardMedia
