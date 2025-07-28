@@ -5,7 +5,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 const TicketGenerator = ({ registrationData, eventData }) => {
-  const generateTicket = () => {
+  const generateTicket = async () => {
     const doc = new jsPDF();
     
     // Configurações do documento
@@ -24,19 +24,33 @@ const TicketGenerator = ({ registrationData, eventData }) => {
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
     // Header com logo do evento (se disponível)
+    let logoLoaded = false;
     if (eventData?.logo) {
       try {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          const logoWidth = 60;
-          const logoHeight = 60;
-          const logoX = margin;
-          const logoY = 15;
-          
-          doc.addImage(img, 'JPEG', logoX, logoY, logoWidth, logoHeight);
+        // Carregar logo de forma síncrona
+        const loadLogo = () => {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              const logoWidth = 60;
+              const logoHeight = 60;
+              const logoX = margin;
+              const logoY = 15;
+              
+              doc.addImage(img, 'JPEG', logoX, logoY, logoWidth, logoHeight);
+              logoLoaded = true;
+              resolve();
+            };
+            img.onerror = () => {
+              console.log('Erro ao carregar logo, continuando sem logo');
+              resolve();
+            };
+            img.src = eventData.logo;
+          });
         };
-        img.src = eventData.logo;
+        
+        await loadLogo();
       } catch (error) {
         console.log('Erro ao carregar logo:', error);
       }
@@ -84,19 +98,27 @@ const TicketGenerator = ({ registrationData, eventData }) => {
     doc.setFont('helvetica', 'bold');
     doc.text('CÓDIGO DE INSCRIÇÃO', margin, 200);
     
+    // Fundo branco para o código
+    doc.setFillColor('#ffffff');
+    doc.rect(margin, 205, pageWidth - 2 * margin, 20, 'F');
+    
     doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
-    doc.text(registrationData?.registration_code || 'CÓDIGO', pageWidth / 2, 215, { align: 'center' });
+    doc.setTextColor('#000000'); // Texto preto no fundo branco
+    doc.text(registrationData?.registration_code || 'CÓDIGO', pageWidth / 2, 218, { align: 'center' });
     
-    // QR Code (simulado)
+    // QR Code (simulado) com fundo branco
+    doc.setFillColor('#ffffff');
+    doc.rect(margin, 230, pageWidth - 2 * margin, 30, 'F');
+    
     doc.setFontSize(10);
-    doc.setTextColor(secondaryColor);
-    doc.text('QR Code para Check-in', pageWidth / 2, 235, { align: 'center' });
+    doc.setTextColor('#000000'); // Texto preto no fundo branco
+    doc.text('QR Code para Check-in', pageWidth / 2, 245, { align: 'center' });
     
     // Linha decorativa branca final
     doc.setDrawColor(255, 255, 255);
     doc.setLineWidth(1);
-    doc.line(margin, 250, pageWidth - margin, 250);
+    doc.line(margin, 270, pageWidth - margin, 270);
     
     // Footer em branco
     doc.setFontSize(10);
