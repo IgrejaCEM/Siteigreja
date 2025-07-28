@@ -130,11 +130,12 @@ const CriarEvento = () => {
           setForm({
             title: event.title,
             description: event.description,
-            date: dayjs(event.date).format('YYYY-MM-DD'),
+            date: event.date ? dayjs(event.date) : null, // ✅ CORRIGIDO: Converter para objeto dayjs
             location: event.location,
             banner: event.banner,
             banner_home: event.banner_home,
             banner_evento: event.banner_evento,
+            logo: event.logo, // ✅ NOVO: Campo para logo do evento
             status: event.status,
             has_payment: event.has_payment,
             payment_gateway: event.payment_gateway,
@@ -323,9 +324,15 @@ const CriarEvento = () => {
         status: lot.status || 'active'
       }));
 
+      console.log('📅 Dados do formulário:', {
+        date: form.date,
+        dateFormatted: form.date ? dayjs(form.date).format('YYYY-MM-DD HH:mm:ss') : null,
+        isDayjs: form.date ? dayjs.isDayjs(form.date) : false
+      });
+
       const formData = {
         ...form,
-        date: dayjs(form.date).format('YYYY-MM-DD HH:mm:ss'),
+        date: form.date ? dayjs(form.date).format('YYYY-MM-DD HH:mm:ss') : null, // ✅ CORRIGIDO: Formato correto
         registration_form: {
           ...form.registration_form,
           custom_fields: form.registration_form.custom_fields.map(field => ({
