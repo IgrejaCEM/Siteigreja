@@ -29,10 +29,10 @@ const TicketGenerator = ({ registrationData, eventData }) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
-          const logoWidth = 40;
-          const logoHeight = 40;
+          const logoWidth = 60;
+          const logoHeight = 60;
           const logoX = margin;
-          const logoY = 10;
+          const logoY = 15;
           
           doc.addImage(img, 'JPEG', logoX, logoY, logoWidth, logoHeight);
         };
@@ -46,15 +46,15 @@ const TicketGenerator = ({ registrationData, eventData }) => {
     doc.setTextColor(textColor);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text('IGREJA CEM', pageWidth / 2, 35, { align: 'center' });
+    doc.text('IGREJA CEM', pageWidth / 2, 45, { align: 'center' });
     
     doc.setFontSize(14);
-    doc.text('CONNECT CONF 2025', pageWidth / 2, 48, { align: 'center' });
+    doc.text('CONNECT CONF 2025', pageWidth / 2, 58, { align: 'center' });
     
     // Linha decorativa branca
     doc.setDrawColor(255, 255, 255);
     doc.setLineWidth(2);
-    doc.line(margin, 60, pageWidth - margin, 60);
+    doc.line(margin, 70, pageWidth - margin, 70);
     
     // Informações do evento em branco
     doc.setTextColor(textColor);
