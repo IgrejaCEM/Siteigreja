@@ -851,7 +851,7 @@ router.get('/stats', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// Inscrições recentes
+// Inscrições recentes - CORREÇÃO APLICADA: priorizar dados da inscrição
 router.get('/registrations/recent', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const registrations = await db('registrations')
