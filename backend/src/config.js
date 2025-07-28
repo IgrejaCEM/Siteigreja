@@ -17,7 +17,7 @@ const config = {
   // MODO DE PAGAMENTO
   // true = modo fake (pagamentos sempre aprovados)
   // false = modo real (integração com gateway de pagamento)
-  PAYMENT_FAKE_MODE: false,
+  PAYMENT_FAKE_MODE: true,
   
   // Status padrão para pagamentos no modo fake
   FAKE_PAYMENT_STATUS: 'paid',
