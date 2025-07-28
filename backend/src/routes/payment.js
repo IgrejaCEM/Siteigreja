@@ -220,6 +220,60 @@ router.get('/payments/:paymentId/status', authenticateToken, async (req, res) =>
   }
 });
 
+// Consultar status do pagamento por código de inscrição
+router.get('/payments/:registrationCode', async (req, res) => {
+  try {
+    const { registrationCode } = req.params;
+    
+    // Buscar pagamento pelo código de inscrição
+    const payment = await db('payments')
+      .where('registration_code', registrationCode)
+      .first();
+    
+    if (!payment) {
+      return res.status(404).json({ 
+        error: 'Pagamento não encontrado',
+        status: 'not_found'
+      });
+    }
+    
+    // Se o pagamento tem payment_intent_id, verificar no gateway
+    if (payment.payment_intent_id) {
+      try {
+        const gatewayStatus = await PaymentGateway.getPaymentStatus(payment.payment_intent_id);
+        
+        // Atualizar status no banco se mudou
+        if (gatewayStatus.status !== payment.status) {
+          await db('payments')
+            .where('id', payment.id)
+            .update({
+              status: gatewayStatus.status,
+              updated_at: new Date()
+            });
+          
+          payment.status = gatewayStatus.status;
+        }
+      } catch (gatewayError) {
+        console.log('Erro ao verificar no gateway:', gatewayError.message);
+        // Continua com o status do banco
+      }
+    }
+    
+    res.json({
+      status: payment.status,
+      registration_code: payment.registration_code,
+      amount: payment.amount,
+      payment_method: payment.payment_method,
+      created_at: payment.created_at,
+      updated_at: payment.updated_at
+    });
+    
+  } catch (error) {
+    console.error('Erro ao consultar status do pagamento:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // Webhook para receber notificações do gateway de pagamento
 router.post('/payments/webhook', async (req, res) => {
   try {
