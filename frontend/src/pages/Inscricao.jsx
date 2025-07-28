@@ -352,7 +352,7 @@ const Inscricao = () => {
         })
       }));
 
-      const response = await api.post(`/events/${event.id}/inscricao-unificada`, {
+      const response = await api.post(`/events/${event.id}/inscricao-simples`, {
         participantes: participantesToSend,
         payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
         lot_id: selectedLotId,
@@ -498,47 +498,22 @@ const Inscricao = () => {
       setRegistrationComplete(true);
       setError('');
       
-      // Sempre exibe o link de pagamento se houver
-      if (response.data.payment_info && response.data.payment_info.payment_url) {
-        const paymentUrl = response.data.payment_info.payment_url;
-        console.log('🔗 URL do pagamento recebida:', paymentUrl);
-        
-        // Forçar web checkout
-        const forcedUrl = forceWebCheckout(paymentUrl);
-        console.log('🔧 URL forçada para web:', forcedUrl);
-        
-        if (isValidCheckoutUrl(forcedUrl)) {
-          console.log('✅ URL válida, abrindo checkout...');
-          const checkoutWindow = openCheckout(forcedUrl);
-          
-          // Verificar se a janela foi fechada
-          const checkWindowClosed = setInterval(() => {
-            if (checkoutWindow && checkoutWindow.closed) {
-              console.log('🔒 Janela do checkout fechada');
-              clearInterval(checkWindowClosed);
-              // Opcional: verificar status do pagamento
-              // checkPaymentStatus();
-            }
-          }, 1000);
-          
-          // Limpar intervalo após 5 minutos
-          setTimeout(() => {
-            clearInterval(checkWindowClosed);
-          }, 300000);
-          
-        } else {
-          console.error('❌ URL do checkout inválida:', forcedUrl);
-          setError('URL do checkout inválida. Tente novamente ou entre em contato com o suporte.');
-          setLoading(false);
-          return;
-        }
-        
-        setPaymentUrl(forcedUrl);
-        setPaymentPending(true);
+      // Verificar se é lote gratuito
+      const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
+      
+      if (isFree) {
+        // Para lotes gratuitos, ir direto para a última etapa
+        setPaymentStatus('completed');
+        setActiveStep(2);
       } else {
-        console.log('❌ Nenhuma URL de pagamento recebida');
-        setPaymentUrl('');
-        setPaymentPending(false);
+        // Para lotes pagos, verificar se há link de pagamento
+        if (response.data.payment_info && response.data.payment_info.payment_url) {
+          setPaymentUrl(response.data.payment_info.payment_url);
+          setPaymentPending(true);
+        } else {
+          setPaymentUrl('');
+          setPaymentPending(false);
+        }
       }
       
       // Atualizar os dados nos painéis administrativos
