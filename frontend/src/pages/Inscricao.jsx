@@ -753,9 +753,7 @@ const Inscricao = () => {
                     <Typography variant="body2" color="text.secondary">
                       Preço: R$ {lot.price}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Vagas: {lot.quantity}
-                    </Typography>
+
                     {!isAvailable && (
                       <Typography variant="body2" color="error" sx={{ mt: 1 }}>
                         {isSoldOut ? '🔴 Esgotado' : 
@@ -972,13 +970,7 @@ const Inscricao = () => {
                         dayjs(lot.end_date).isAfter(dayjs()) && lot.quantity > 0
                       ).price > 0 ? `R$ ${calculateTotal()}` : 'Gratuito'}
                     </Typography>
-                    <Chip
-                      label={`${event.lots.find(lot => 
-                        dayjs(lot.end_date).isAfter(dayjs()) && lot.quantity > 0
-                      ).quantity} vagas disponíveis`}
-                      color="primary"
-                      variant="outlined"
-                    />
+
                   </Box>
                 )}
               </Grid>

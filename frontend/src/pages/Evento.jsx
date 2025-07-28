@@ -435,26 +435,15 @@ const Evento = () => {
                                 R$ {lot.price ? Number(lot.price).toFixed(2) : '0.00'}
                               </Typography>
                               
-                              {isAvailable ? (
-                                <>
-                                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                                    {lot.quantity} ingressos disponíveis
-                                  </Typography>
-                                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                                    Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
-                                  </Typography>
-                                </>
-                              ) : (
-                                <>
-                                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                                    Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
-                                  </Typography>
-                                  <Typography variant="body2" color="error" gutterBottom>
-                                    {isSoldOut ? '🔴 Ingressos esgotados' : 
-                                     isExpired ? '⏰ Período encerrado' :
-                                     isFuture ? '⏳ Em breve' : '❌ Indisponível'}
-                                  </Typography>
-                                </>
+                              <Typography variant="body2" color="text.secondary" gutterBottom>
+                                Válido até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
+                              </Typography>
+                              {!isAvailable && (
+                                <Typography variant="body2" color="error" gutterBottom>
+                                  {isSoldOut ? '🔴 Ingressos esgotados' : 
+                                   isExpired ? '⏰ Período encerrado' :
+                                   isFuture ? '⏳ Em breve' : '❌ Indisponível'}
+                                </Typography>
                               )}
                             </Box>
                           </Box>
