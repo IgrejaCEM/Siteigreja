@@ -927,4 +927,70 @@ const formatDateForInput = (dateString) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+// ROTA DE TESTE ULTRA-SIMPLIFICADA (REMOVER APÓS USO)
+router.post('/:id/inscricao-test', async (req, res) => {
+  try {
+    console.log('🧪 TESTE ULTRA-SIMPLIFICADO');
+    console.log('📦 Body recebido:', req.body);
+    
+    // Resposta simples
+    res.json({
+      success: true,
+      message: 'Teste funcionando',
+      data: req.body
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro no teste:', error);
+    res.status(500).json({
+      error: 'Erro no teste',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+// ROTA DE TESTE COM BANCO (REMOVER APÓS USO)
+router.post('/:id/inscricao-test-db', async (req, res) => {
+  try {
+    console.log('🧪 TESTE COM BANCO DE DADOS');
+    
+    // Verificar se o evento existe
+    const event = await db('events').where('id', req.params.id).first();
+    if (!event) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
+    
+    console.log('✅ Evento encontrado:', event.title);
+    
+    // Verificar se o lote existe
+    const lot = await db('lots').where('id', req.body.lote_id).first();
+    if (!lot) {
+      return res.status(404).json({ error: 'Lote não encontrado' });
+    }
+    
+    console.log('✅ Lote encontrado:', lot.name);
+    
+    // Verificar se a tabela registrations existe
+    const registrationsExists = await db.schema.hasTable('registrations');
+    console.log('✅ Tabela registrations existe:', registrationsExists);
+    
+    res.json({
+      success: true,
+      message: 'Teste com banco funcionando',
+      event: event.title,
+      lot: lot.name,
+      registrations_table_exists: registrationsExists
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro no teste com banco:', error);
+    res.status(500).json({
+      error: 'Erro no teste com banco',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 module.exports = router; 
