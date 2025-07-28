@@ -491,7 +491,7 @@ const Inscricao = () => {
 
       console.log('📦 Dados sendo enviados para a API:', JSON.stringify(requestData, null, 2));
 
-      const response = await api.post(`/events/${event.id}/inscricao-unificada`, requestData);
+      const response = await api.post(`/events/${event.id}/inscricao-simples`, requestData);
 
       console.log('✅ Resposta da API:', response.data);
       setRegistrationCode(response.data.registration_code);
