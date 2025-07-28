@@ -1134,4 +1134,59 @@ router.post('/:id/inscricao-simples', async (req, res) => {
   }
 });
 
+// ROTA SIMPLIFICADA PARA TESTE (REMOVER APÓS USO)
+router.post('/:id/inscricao-simples', async (req, res) => {
+  try {
+    console.log('🧪 INSCRIÇÃO SIMPLIFICADA');
+    console.log('📦 Dados recebidos:', req.body);
+    
+    const { id } = req.params;
+    const { participantes, lot_id } = req.body;
+    
+    // Verificar se o evento existe
+    const event = await db('events').where('id', id).first();
+    if (!event) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
+    
+    // Verificar se o lote existe
+    const lot = await db('lots').where('id', lot_id).first();
+    if (!lot) {
+      return res.status(404).json({ error: 'Lote não encontrado' });
+    }
+    
+    // Criar inscrição simples
+    const registrationCode = `REG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const inscricaoData = {
+      event_id: id,
+      lot_id: lot_id,
+      name: participantes[0]?.name || 'Teste',
+      email: participantes[0]?.email || 'teste@teste.com',
+      phone: participantes[0]?.phone || '11999999999',
+      status: lot.price === 0 ? 'confirmed' : 'pending_payment',
+      payment_status: lot.price === 0 ? 'paid' : 'pending',
+      registration_code: registrationCode,
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+    
+    const [inscricaoId] = await db('registrations').insert(inscricaoData).returning('id');
+    
+    res.status(201).json({
+      success: true,
+      registration_code: registrationCode,
+      inscricao_id: inscricaoId,
+      message: 'Inscrição criada com sucesso (versão simplificada)'
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro na inscrição simplificada:', error);
+    res.status(500).json({
+      error: 'Erro na inscrição simplificada',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router; 
