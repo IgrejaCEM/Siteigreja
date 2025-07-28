@@ -108,41 +108,55 @@ export const interceptDeepLinks = () => {
     return originalOpen.call(this, url, ...args);
   };
 
-  // Interceptar mudanças de location
-  const originalAssign = window.location.assign;
-  window.location.assign = function(url) {
-    if (url && (url.includes('mercadopago://') || url.includes('meli://'))) {
-      console.log('🚫 Deep link interceptado no location.assign:', url);
-      const fixedUrl = fixMercadoPagoUrl(url);
-      return originalAssign.call(this, fixedUrl);
-    }
-    return originalAssign.call(this, url);
-  };
-
-  // Interceptar mudanças de href
-  const originalHref = Object.getOwnPropertyDescriptor(window.location, 'href');
-  Object.defineProperty(window.location, 'href', {
-    set: function(url) {
+  // Interceptar mudanças de location (versão segura)
+  try {
+    const originalAssign = window.location.assign;
+    window.location.assign = function(url) {
       if (url && (url.includes('mercadopago://') || url.includes('meli://'))) {
-        console.log('🚫 Deep link interceptado no location.href:', url);
+        console.log('🚫 Deep link interceptado no location.assign:', url);
         const fixedUrl = fixMercadoPagoUrl(url);
-        return originalHref.set.call(this, fixedUrl);
+        return originalAssign.call(this, fixedUrl);
       }
-      return originalHref.set.call(this, url);
-    },
-    get: originalHref.get
-  });
+      return originalAssign.call(this, url);
+    };
+  } catch (error) {
+    console.log('⚠️ Não foi possível interceptar location.assign:', error.message);
+  }
 
-  // Interceptar mudanças de replace
-  const originalReplace = window.location.replace;
-  window.location.replace = function(url) {
-    if (url && (url.includes('mercadopago://') || url.includes('meli://'))) {
-      console.log('🚫 Deep link interceptado no location.replace:', url);
-      const fixedUrl = fixMercadoPagoUrl(url);
-      return originalReplace.call(this, fixedUrl);
+  // Interceptar mudanças de href (versão segura)
+  try {
+    const originalHref = Object.getOwnPropertyDescriptor(window.location, 'href');
+    if (originalHref && originalHref.set) {
+      Object.defineProperty(window.location, 'href', {
+        set: function(url) {
+          if (url && (url.includes('mercadopago://') || url.includes('meli://'))) {
+            console.log('🚫 Deep link interceptado no location.href:', url);
+            const fixedUrl = fixMercadoPagoUrl(url);
+            return originalHref.set.call(this, fixedUrl);
+          }
+          return originalHref.set.call(this, url);
+        },
+        get: originalHref.get
+      });
     }
-    return originalReplace.call(this, url);
-  };
+  } catch (error) {
+    console.log('⚠️ Não foi possível interceptar location.href:', error.message);
+  }
+
+  // Interceptar mudanças de replace (versão segura)
+  try {
+    const originalReplace = window.location.replace;
+    window.location.replace = function(url) {
+      if (url && (url.includes('mercadopago://') || url.includes('meli://'))) {
+        console.log('🚫 Deep link interceptado no location.replace:', url);
+        const fixedUrl = fixMercadoPagoUrl(url);
+        return originalReplace.call(this, fixedUrl);
+      }
+      return originalReplace.call(this, url);
+    };
+  } catch (error) {
+    console.log('⚠️ Não foi possível interceptar location.replace:', error.message);
+  }
 
   console.log('✅ Interceptação de deep links inicializada');
 };
