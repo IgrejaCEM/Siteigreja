@@ -229,11 +229,20 @@ const CriarEvento = () => {
         },
       });
 
+      // Construir URL completa do servidor
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://siteigreja-1.onrender.com' 
+        : 'http://localhost:3005';
+      
+      const fullImageUrl = baseUrl + response.data.url;
+
       // Atualizar o formulário com a URL real do servidor
       setForm(prev => ({
         ...prev,
-        [imageType]: response.data.url
+        [imageType]: fullImageUrl
       }));
+
+      console.log('✅ Imagem enviada com sucesso:', fullImageUrl);
 
     } catch (error) {
       console.error('Erro ao fazer upload da imagem:', error);
