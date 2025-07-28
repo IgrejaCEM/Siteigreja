@@ -227,9 +227,10 @@ const Evento = () => {
     <Box>
       {/* Hero Section */}
       <Box sx={{ 
-        background: `url(${event.banner_evento || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento'})`,
+        background: `url(${event.banner_evento || event.banner || 'https://via.placeholder.com/1920x1080/4a90e2/ffffff?text=Banner+do+Evento'})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         minHeight: '100vh',
         width: '100%',
         position: 'relative'
