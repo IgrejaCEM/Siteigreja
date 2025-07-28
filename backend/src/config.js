@@ -52,7 +52,7 @@ const config = {
           enabled: true,
           maxInstallments: 12,
           defaultInstallments: 1,
-          processingMode: 'aggregator' // ou 'gateway'
+          processingMode: 'gateway' // Mudado para gateway pro
         },
         pix: {
           enabled: true,

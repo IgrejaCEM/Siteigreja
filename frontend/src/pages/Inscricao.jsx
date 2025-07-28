@@ -47,6 +47,7 @@ import { useAuth } from '../contexts/AuthContext';
 import QRCode from 'qrcode.react';
 import EventProducts from '../components/EventProducts';
 import { useInterval } from '../utils/useInterval';
+import { openCheckout, fixMercadoPagoUrl, isValidCheckoutUrl, interceptDeepLinks, forceWebCheckout } from '../utils/checkoutUtils';
 
 dayjs.locale('pt-br');
 
@@ -204,6 +205,11 @@ const Inscricao = () => {
     }
   }, paymentPending ? 5000 : null);
 
+  useEffect(() => {
+    // Interceptar deep links automaticamente
+    interceptDeepLinks();
+  }, []);
+
   const handleInputChange = (index, e) => {
     const { name, value, type, checked } = e.target;
     setInscricoes(prev => prev.map((inscricao, i) => 
@@ -226,7 +232,7 @@ const Inscricao = () => {
     ));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (activeStep === 0) {
       if (!selectedLotId) {
         setError('Por favor, selecione um lote antes de continuar.');
@@ -448,60 +454,95 @@ const Inscricao = () => {
         }),
         ...(event.registration_form?.custom_fields && {
           custom_fields: inscricao.custom_fields
-        })
+        }),
+        form_data: {
+          nome: inscricao.nome,
+          email: inscricao.email,
+          telefone: inscricao.telefone,
+          cpf: inscricao.cpf,
+          idade: inscricao.idade,
+          genero: inscricao.genero,
+          endereco: inscricao.endereco,
+          autorizacao_imagem: inscricao.autorizacao_imagem,
+          custom_fields: inscricao.custom_fields
+        }
       }));
-      const total = calculateTotal();
-      if (total > 0) {
-        console.log('💰 Total a pagar:', total);
-        console.log('📝 Dados da inscrição:', { participantes: participantesToSend, lot_id: selectedLotId, payment_method: 'CHECKOUT_PRO' });
+
+      const requestData = {
+        participantes: participantesToSend,
+        payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
+        lot_id: selectedLotId,
+        products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
+      };
+
+      console.log('📦 Dados sendo enviados para a API:', JSON.stringify(requestData, null, 2));
+
+      const response = await api.post(`/events/${event.id}/inscricao-unificada`, requestData);
+
+      console.log('✅ Resposta da API:', response.data);
+      setRegistrationCode(response.data.registration_code);
+      setRegistrationComplete(true);
+      setError('');
+      
+      // Sempre exibe o link de pagamento se houver
+      if (response.data.payment_info && response.data.payment_info.payment_url) {
+        const paymentUrl = response.data.payment_info.payment_url;
+        console.log('🔗 URL do pagamento recebida:', paymentUrl);
         
-        // Gera cobrança e obtém link do checkout
-        const response = await api.post(`/events/${event.id}/inscricao-unificada`, {
-          participantes: participantesToSend,
-          lot_id: selectedLotId,
-          payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
-          products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
-        });
-        if (response.data.payment_info && response.data.payment_info.payment_url) {
-          console.log('✅ Resposta do servidor:', response.data);
-          console.log('🔗 URL do checkout:', response.data.payment_info.payment_url);
+        // Forçar web checkout
+        const forcedUrl = forceWebCheckout(paymentUrl);
+        console.log('🔧 URL forçada para web:', forcedUrl);
+        
+        if (isValidCheckoutUrl(forcedUrl)) {
+          console.log('✅ URL válida, abrindo checkout...');
+          const checkoutWindow = openCheckout(forcedUrl);
           
-          // Abre o checkout em uma nova aba
-          const checkoutWindow = window.open(response.data.payment_info.payment_url, '_blank');
+          // Verificar se a janela foi fechada
+          const checkWindowClosed = setInterval(() => {
+            if (checkoutWindow && checkoutWindow.closed) {
+              console.log('🔒 Janela do checkout fechada');
+              clearInterval(checkWindowClosed);
+              // Opcional: verificar status do pagamento
+              // checkPaymentStatus();
+            }
+          }, 1000);
           
-          // Adiciona um listener para detectar quando a aba é fechada
-          if (checkoutWindow) {
-            const checkClosed = setInterval(() => {
-              if (checkoutWindow.closed) {
-                clearInterval(checkClosed);
-                console.log('Checkout fechado, verificando status do pagamento...');
-                // Verifica o status do pagamento quando a aba é fechada
-                checkPaymentStatus();
-              }
-            }, 1000);
-          }
+          // Limpar intervalo após 5 minutos
+          setTimeout(() => {
+            clearInterval(checkWindowClosed);
+          }, 300000);
+          
         } else {
-          setError('Não foi possível obter o link do checkout. Tente novamente ou entre em contato com o suporte.');
+          console.error('❌ URL do checkout inválida:', forcedUrl);
+          setError('URL do checkout inválida. Tente novamente ou entre em contato com o suporte.');
           setLoading(false);
           return;
         }
-        setRegistrationCode(response.data.registration_code);
-        setRegistrationComplete(true);
-        setPaymentUrl(response.data.payment_info?.payment_url || '');
-        setPaymentPending(!!response.data.payment_info?.payment_url);
-        setActiveStep((prevStep) => prevStep + 1);
+        
+        setPaymentUrl(forcedUrl);
+        setPaymentPending(true);
       } else {
-        setActiveStep((prevStep) => prevStep + 1);
+        console.log('❌ Nenhuma URL de pagamento recebida');
+        setPaymentUrl('');
+        setPaymentPending(false);
+      }
+      
+      // Atualizar os dados nos painéis administrativos
+      try {
+        await Promise.all([
+          api.get('/admin/stats'),
+          api.get('/admin/registrations/recent'),
+          api.get(`/admin/events/${event.id}/stats`)
+        ]);
+        window.dispatchEvent(new Event('registration-updated'));
+      } catch (error) {
+        console.error('Erro ao atualizar estatísticas:', error);
       }
     } catch (error) {
       console.error('❌ Erro ao fazer inscrição:', error);
-      console.error('📊 Detalhes do erro:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
+      console.error('📊 Status:', error.response?.status);
+      console.error('📦 Data do erro:', error.response?.data);
       
-      // Não redireciona em caso de erro, apenas mostra a mensagem
       setError(
         error.response?.data?.error ||
         error.response?.data?.details ||
