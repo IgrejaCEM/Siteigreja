@@ -1,45 +1,14 @@
 {
-  "timestamp": "2025-07-27T00:43:31.797Z",
+  "timestamp": "2025-07-28T02:15:24.352Z",
   "summary": {
-    "events_count": 1,
-    "lots_count": 3,
-    "registrations_count": 57,
-    "users_count": 1,
-    "payments_count": 49,
-    "tickets_count": 65
+    "events": 0,
+    "lots": 0,
+    "registrations": 0,
+    "users": 1,
+    "payments": 0,
+    "tickets": 0,
+    "products": 0
   },
-  "events": [
-    {
-      "id": 3,
-      "title": "CONNECT CONF - 2025",
-      "date": "2025-11-28 00:00:00",
-      "status": "active"
-    }
-  ],
-  "lots": [
-    {
-      "id": 1,
-      "event_id": 1,
-      "name": "CONF",
-      "price": 0,
-      "quantity": 26,
-      "status": "active"
-    },
-    {
-      "id": 3,
-      "event_id": 2,
-      "name": "TESTE",
-      "price": 50,
-      "quantity": 50,
-      "status": "active"
-    },
-    {
-      "id": 4,
-      "event_id": 3,
-      "name": "TESTE",
-      "price": 50,
-      "quantity": 0,
-      "status": "active"
-    }
-  ]
+  "events": [],
+  "lots": []
 }

@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../database/db');
 const { authenticateToken, requireAdmin } = require('../middleware');
-// const QRCode = require('qrcode'); // Comentado temporariamente
-// const { v4: uuidv4 } = require('uuid'); // Comentado temporariamente
+const QRCode = require('qrcode');
+// Função alternativa para gerar IDs únicos
+const generateId = () => {
+  return 'id-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+};
 const dayjs = require('dayjs');
 const EventProduct = require('../models/EventProduct');
 const RegistrationProduct = require('../models/RegistrationProduct');
@@ -322,7 +325,7 @@ router.post('/:eventId/inscricoes', async (req, res) => {
     });
 
     // Gerar código do ticket
-    const ticketCode = `TICKET-${uuidv4()}`;
+    const ticketCode = `TICKET-${generateId()}`;
     
     // Gerar QR Code
     const qrCodeData = {
@@ -457,7 +460,7 @@ router.post('/:id/register-multiple', async (req, res) => {
     }
 
     // Criar as inscrições e tickets
-    const registrationCode = `REG-${uuidv4()}`;
+    const registrationCode = `REG-${generateId()}`;
     const inscricoesIds = [];
     const tickets = [];
 
@@ -556,7 +559,7 @@ router.post('/:id/register-multiple', async (req, res) => {
         */
         
         // Ticket simulado
-        const ticketCode = `TICKET-${uuidv4()}`;
+        const ticketCode = `TICKET-${generateId()}`;
         tickets.push({
           ticketId: inscricaoId,
           ticketCode
@@ -689,7 +692,7 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
       }
     }
     // Criar inscrições e tickets
-    const registrationCode = `REG-${uuidv4()}`;
+    const registrationCode = `REG-${generateId()}`;
     const inscricoesIds = [];
     const tickets = [];
     for (const participante of participantes) {
@@ -762,7 +765,7 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         
         // Ticket - Comentado temporariamente para resolver erro 500
         /*
-        const ticketCode = `TICKET-${uuidv4()}`;
+        const ticketCode = `TICKET-${generateId()}`;
         const [ticketId] = await trx('tickets').insert({
           inscricao_id: inscricaoId,
           ticket_code: ticketCode,
