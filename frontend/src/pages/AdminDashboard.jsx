@@ -114,9 +114,24 @@ const AdminDashboard = forwardRef((props, ref) => {
     setError("");
 
     try {
-      // Buscar eventos
+      // Buscar eventos com lotes
       const eventsRes = await api.get('/admin/events');
-      setEvents(Array.isArray(eventsRes.data) ? eventsRes.data : []);
+      const eventsData = Array.isArray(eventsRes.data) ? eventsRes.data : [];
+      
+      // Buscar lotes para cada evento
+      const eventsWithLots = await Promise.all(
+        eventsData.map(async (event) => {
+          try {
+            const eventWithLotsRes = await api.get(`/admin/events/${event.id}`);
+            return eventWithLotsRes.data;
+          } catch (error) {
+            console.error(`Erro ao buscar lotes do evento ${event.id}:`, error);
+            return event; // Retorna evento sem lotes se der erro
+          }
+        })
+      );
+      
+      setEvents(eventsWithLots);
 
       // Buscar estatísticas
       const statsRes = await api.get('/admin/stats');
