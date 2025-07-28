@@ -1339,6 +1339,113 @@ router.post('/recreate-event-emergency', async (req, res) => {
   }
 });
 
+// ROTA DE EMERGÊNCIA PARA RESTAURAR EVENTO COMPLETO (REMOVER APÓS USO)
+router.post('/restore-complete-event-emergency', async (req, res) => {
+  try {
+    console.log('🚨 RESTAURANDO EVENTO COMPLETO DE EMERGÊNCIA');
+    
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Ler backup
+    const backupPath = path.join(__dirname, '../backups/critical_data_2025-07-27T00-43-31-763Z.json');
+    const backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+    
+    console.log('📋 Backup carregado com timestamp:', backupData.timestamp);
+    
+    // 1. Limpar tabelas existentes
+    await db('registrations').del();
+    await db('lots').del();
+    await db('events').del();
+    console.log('🗑️ Tabelas limpas');
+    
+    // 2. Restaurar eventos
+    for (const event of backupData.events) {
+      const eventData = {
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        location: event.location,
+        banner: event.banner,
+        banner_home: event.banner_home,
+        banner_evento: event.banner_evento,
+        slug: event.slug,
+        status: event.status,
+        registration_form: event.registration_form,
+        created_at: event.created_at,
+        updated_at: event.updated_at
+      };
+      
+      const [eventId] = await db('events').insert(eventData).returning('id');
+      console.log(`✅ Evento restaurado: ${event.title} (ID: ${eventId})`);
+    }
+    
+    // 3. Restaurar lotes
+    for (const lot of backupData.lots) {
+      const lotData = {
+        event_id: lot.event_id,
+        name: lot.name,
+        price: lot.price,
+        quantity: lot.quantity,
+        start_date: lot.start_date,
+        end_date: lot.end_date,
+        status: lot.status,
+        is_free: lot.is_free,
+        created_at: lot.created_at,
+        updated_at: lot.updated_at
+      };
+      
+      const [lotId] = await db('lots').insert(lotData).returning('id');
+      console.log(`✅ Lote restaurado: ${lot.name} (ID: ${lotId})`);
+    }
+    
+    // 4. Restaurar participantes
+    let participantCount = 0;
+    for (const registration of backupData.registrations) {
+      const registrationData = {
+        event_id: registration.event_id,
+        lot_id: registration.lot_id,
+        user_id: registration.user_id,
+        name: registration.name,
+        email: registration.email,
+        phone: registration.phone,
+        cpf: registration.cpf,
+        address: registration.address,
+        registration_code: registration.registration_code,
+        status: registration.status,
+        payment_status: registration.payment_status,
+        form_data: registration.form_data,
+        created_at: registration.created_at,
+        updated_at: registration.updated_at
+      };
+      
+      await db('registrations').insert(registrationData);
+      participantCount++;
+      console.log(`✅ Participante restaurado: ${registration.name} (${registration.email})`);
+    }
+    
+    console.log(`🎉 RESTAURAÇÃO COMPLETA CONCLUÍDA!`);
+    console.log(`   📅 Eventos: ${backupData.events.length}`);
+    console.log(`   🎫 Lotes: ${backupData.lots.length}`);
+    console.log(`   👥 Participantes: ${participantCount}`);
+    
+    res.json({
+      success: true,
+      message: 'Evento completo restaurado com sucesso!',
+      events: backupData.events.length,
+      lots: backupData.lots.length,
+      participants: participantCount
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao restaurar evento completo:', error);
+    res.status(500).json({
+      error: 'Erro ao restaurar evento completo',
+      details: error.message
+    });
+  }
+});
+
 // ROTA DE EMERGÊNCIA PARA RESTAURAR PARTICIPANTES (REMOVER APÓS USO)
 router.post('/restore-participants-emergency', async (req, res) => {
   try {
