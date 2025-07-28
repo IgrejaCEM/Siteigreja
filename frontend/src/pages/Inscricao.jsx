@@ -48,6 +48,7 @@ import QRCode from 'qrcode.react';
 import EventProducts from '../components/EventProducts';
 import { useInterval } from '../utils/useInterval';
 import { openCheckout, fixMercadoPagoUrl, isValidCheckoutUrl, interceptDeepLinks, forceWebCheckout } from '../utils/checkoutUtils';
+import TicketGenerator from '../components/TicketGenerator';
 
 dayjs.locale('pt-br');
 
@@ -961,14 +962,25 @@ const Inscricao = () => {
                 <QRCode value={registrationCode} size={200} />
               </Box>
             )}
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => navigate('/')}
-              sx={{ mt: 2 }}
-            >
-              Voltar para Home
-            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', mt: 3 }}>
+              <TicketGenerator 
+                registrationData={{
+                  name: inscricoes[0]?.nome,
+                  email: inscricoes[0]?.email,
+                  phone: inscricoes[0]?.telefone,
+                  registration_code: registrationCode
+                }}
+                eventData={event}
+              />
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => navigate('/')}
+                sx={{ mt: 2 }}
+              >
+                Voltar para Home
+              </Button>
+            </Box>
           </Box>
         );
 

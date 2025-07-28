@@ -1,60 +1,58 @@
-const config = require('./src/config');
+const axios = require('axios');
+
+const ACCESS_TOKEN = 'APP_USR-7906695833613236-072622-a7c53bcaf7bc8b8289f1961ce3937843-2568627728';
 
 console.log('🔍 VERIFICANDO CREDENCIAIS DO MERCADO PAGO');
 console.log('==========================================');
 
-console.log('🎭 PAYMENT_FAKE_MODE:', config.PAYMENT_FAKE_MODE);
-console.log('🔑 MERCADOPAGO_ACCESS_TOKEN:', process.env.MERCADOPAGO_ACCESS_TOKEN ? 'CONFIGURADO' : 'NÃO CONFIGURADO');
-console.log('🔑 MERCADOPAGO_PUBLIC_KEY:', process.env.MERCADOPAGO_PUBLIC_KEY ? 'CONFIGURADO' : 'NÃO CONFIGURADO');
-
-console.log('\n📋 Configurações do Payment Gateway:');
-console.log('🔑 Access Token:', config.payment.mercadopago.accessToken ? 'CONFIGURADO' : 'NÃO CONFIGURADO');
-console.log('🔑 Public Key:', config.payment.mercadopago.publicKey ? 'CONFIGURADO' : 'NÃO CONFIGURADO');
-
-if (config.payment.mercadopago.accessToken) {
-  console.log('🔑 Token prefixo:', config.payment.mercadopago.accessToken.substring(0, 10) + '...');
-  console.log('🔑 Tipo de credencial:', config.payment.mercadopago.accessToken.startsWith('APP_USR') ? 'PRODUÇÃO' : 'SANDBOX');
-}
-
-console.log('\n🌍 Ambiente:', process.env.NODE_ENV || 'development');
-console.log('🔗 Webhook URL:', config.payment.mercadopago.webhookUrl);
-
-// Testar se consegue fazer uma requisição simples para o Mercado Pago
-const axios = require('axios');
-
-async function testarConexaoMP() {
+async function verificarCredenciais() {
   try {
-    console.log('\n🧪 TESTANDO CONEXÃO COM MERCADO PAGO...');
+    console.log('📋 Testando token de acesso...');
     
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN || config.payment.mercadopago.accessToken;
-    
-    if (!accessToken) {
-      console.log('❌ Nenhum token configurado');
-      return;
-    }
-    
-    const response = await axios.get('https://api.mercadopago.com/v1/payment_methods', {
+    const response = await axios.get('https://api.mercadopago.com/v1/account', {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${ACCESS_TOKEN}`,
         'Content-Type': 'application/json'
-      },
-      timeout: 10000
+      }
     });
     
-    console.log('✅ Conexão com Mercado Pago OK');
+    console.log('✅ Token válido!');
     console.log('📊 Status:', response.status);
-    console.log('📦 Métodos de pagamento disponíveis:', response.data.length);
+    console.log('📦 Dados da conta:');
+    console.log('   - ID:', response.data.id);
+    console.log('   - Nome:', response.data.name);
+    console.log('   - Email:', response.data.email);
+    console.log('   - Tipo:', response.data.type);
+    console.log('   - País:', response.data.country_id);
+    
+    // Verificar se é sandbox ou produção
+    const isSandbox = ACCESS_TOKEN.includes('TEST');
+    console.log('🌐 Ambiente:', isSandbox ? 'SANDBOX (TESTE)' : 'PRODUÇÃO');
+    
+    if (isSandbox) {
+      console.log('⚠️ ATENÇÃO: Usando ambiente de TESTE!');
+      console.log('💡 Para produção, use token sem TEST');
+    }
+    
+    console.log('\n🎯 RECOMENDAÇÃO:');
+    if (isSandbox) {
+      console.log('🔧 Mude para token de PRODUÇÃO');
+    } else {
+      console.log('✅ Token de produção configurado');
+    }
     
   } catch (error) {
-    console.error('❌ Erro na conexão com Mercado Pago:');
+    console.error('❌ Erro ao verificar credenciais:', error.response?.data || error.message);
     console.error('📊 Status:', error.response?.status);
-    console.error('📊 Status Text:', error.response?.statusText);
-    console.error('📋 Message:', error.message);
     
-    if (error.response?.data) {
-      console.error('📦 Data:', JSON.stringify(error.response.data, null, 2));
+    if (error.response?.status === 401) {
+      console.log('🔑 Token inválido ou expirado!');
+      console.log('💡 Verifique se o token está correto');
+    } else if (error.response?.status === 403) {
+      console.log('🚫 Acesso negado!');
+      console.log('💡 Verifique permissões da conta');
     }
   }
 }
 
-testarConexaoMP(); 
+verificarCredenciais(); 
