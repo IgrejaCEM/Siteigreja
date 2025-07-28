@@ -6,6 +6,20 @@ const { db } = require('../database/db');
 const config = require('../config');
 const { authenticateToken } = require('../middleware');
 
+// Middleware CORS específico para rotas de auth
+router.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Content-Length');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Health check
 router.get('/health', (req, res) => {
   res.json({ 
@@ -13,6 +27,75 @@ router.get('/health', (req, res) => {
     message: 'Auth API está funcionando',
     timestamp: new Date().toISOString()
   });
+});
+
+// Rota de emergência para criar admin (REMOVER APÓS USO)
+router.post('/create-admin-emergency', async (req, res) => {
+  try {
+    console.log('🚨 CRIANDO ADMIN DE EMERGÊNCIA');
+    
+    // Verificar se a tabela users existe
+    const usersExists = await db.schema.hasTable('users');
+    if (!usersExists) {
+      await db.schema.createTable('users', function(table) {
+        table.increments('id').primary();
+        table.string('name').notNullable();
+        table.string('username').unique();
+        table.string('email').unique().notNullable();
+        table.string('password').notNullable();
+        table.date('birthdate');
+        table.string('gender');
+        table.boolean('is_admin').defaultTo(false);
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela users criada');
+    }
+    
+    // Verificar se já existe um admin
+    const existingAdmin = await db('users').where('is_admin', true).first();
+    if (existingAdmin) {
+      console.log('✅ Admin já existe:', existingAdmin.email);
+      return res.json({
+        success: true,
+        message: 'Admin já existe',
+        admin: {
+          email: existingAdmin.email,
+          is_admin: existingAdmin.is_admin
+        }
+      });
+    }
+    
+    // Criar admin
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const [adminId] = await db('users').insert({
+      name: 'Administrador',
+      username: 'admin',
+      email: 'admin@admin.com',
+      password: hashedPassword,
+      is_admin: true,
+      created_at: new Date(),
+      updated_at: new Date()
+    }).returning('id');
+    
+    console.log('✅ Admin criado com ID:', adminId);
+    
+    res.json({
+      success: true,
+      message: 'Admin criado com sucesso!',
+      admin: {
+        email: 'admin@admin.com',
+        password: 'admin123',
+        is_admin: true
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao criar admin:', error);
+    res.status(500).json({
+      error: 'Erro ao criar admin',
+      details: error.message
+    });
+  }
 });
 
 // Login
