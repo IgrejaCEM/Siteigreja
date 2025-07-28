@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { QrReader } from 'react-qr-reader';
 import {
   Box,
   Container,
@@ -536,14 +535,17 @@ const CheckIn = () => {
 
                     {scanning && (
                       <Box sx={{ width: '100%', maxWidth: 400, mx: 'auto' }}>
-                        <QrReader
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                          Leitor QR temporariamente desabilitado
+                        </Alert>
+                        {/* <QrReader
                           constraints={{
                             facingMode: useFrontCamera ? 'user' : 'environment'
                           }}
                           onResult={handleScan}
                           onError={handleError}
                           style={{ width: '100%' }}
-                        />
+                        /> */}
                       </Box>
                     )}
                   </>
