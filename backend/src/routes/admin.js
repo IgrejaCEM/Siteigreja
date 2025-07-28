@@ -404,19 +404,53 @@ router.put('/events/:id', async (req, res) => {
 
 // Deletar evento
 router.delete('/events/:id', async (req, res) => {
+  const trx = await db.transaction();
+  
   try {
-    const deleted = await db('events')
-      .where('id', req.params.id)
-      .del();
+    const { id } = req.params;
     
-    if (!deleted) {
+    console.log('🗑️ Tentando deletar evento:', id);
+    
+    // Verificar se o evento existe
+    const event = await trx('events').where('id', id).first();
+    if (!event) {
+      await trx.rollback();
       return res.status(404).json({ error: 'Evento não encontrado' });
     }
     
+    // Verificar se há inscrições vinculadas
+    const registrations = await trx('registrations').where('event_id', id).first();
+    if (registrations) {
+      await trx.rollback();
+      return res.status(400).json({ 
+        error: 'Não é possível deletar este evento pois existem inscrições vinculadas a ele. Delete as inscrições primeiro.' 
+      });
+    }
+    
+    // Verificar se há lotes vinculados
+    const lots = await trx('lots').where('event_id', id).first();
+    if (lots) {
+      // Deletar lotes primeiro
+      await trx('lots').where('event_id', id).del();
+      console.log('🗑️ Lotes deletados para evento:', id);
+    }
+    
+    // Deletar evento
+    const deleted = await trx('events').where('id', id).del();
+    
+    if (!deleted) {
+      await trx.rollback();
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
+    
+    await trx.commit();
+    console.log('✅ Evento deletado com sucesso:', id);
+    
     res.status(204).send();
   } catch (error) {
-    console.error('Erro ao deletar evento:', error);
-    res.status(500).json({ error: 'Erro ao deletar evento' });
+    await trx.rollback();
+    console.error('❌ Erro ao deletar evento:', error);
+    res.status(500).json({ error: 'Erro ao deletar evento: ' + error.message });
   }
 });
 
@@ -1383,6 +1417,65 @@ router.get('/check-auto-events', async (req, res) => {
     console.error('❌ Erro ao verificar eventos:', error);
     res.status(500).json({
       error: 'Erro ao verificar eventos',
+      details: error.message
+    });
+  }
+});
+
+// ROTA PARA LIMPAR EVENTOS AUTOMÁTICOS (REMOVER APÓS USO)
+router.post('/clear-auto-events', async (req, res) => {
+  try {
+    console.log('🗑️ LIMPANDO EVENTOS AUTOMÁTICOS');
+    
+    // Buscar eventos que parecem ser automáticos
+    const autoEvents = await db('events')
+      .where('title', 'like', '%TESTE%')
+      .orWhere('title', 'like', '%Culto de Celebração%')
+      .orWhere('description', 'like', '%teste%')
+      .select('*');
+    
+    console.log('🎯 Eventos automáticos encontrados:', autoEvents.length);
+    
+    let deletedCount = 0;
+    
+    for (const event of autoEvents) {
+      try {
+        console.log(`🗑️ Deletando evento: ${event.title} (ID: ${event.id})`);
+        
+        // Verificar se há inscrições
+        const registrations = await db('registrations').where('event_id', event.id).first();
+        if (registrations) {
+          console.log(`⚠️ Evento ${event.title} tem inscrições, pulando...`);
+          continue;
+        }
+        
+        // Deletar lotes primeiro
+        await db('lots').where('event_id', event.id).del();
+        
+        // Deletar evento
+        await db('events').where('id', event.id).del();
+        
+        deletedCount++;
+        console.log(`✅ Evento ${event.title} deletado`);
+        
+      } catch (error) {
+        console.log(`❌ Erro ao deletar evento ${event.title}:`, error.message);
+      }
+    }
+    
+    console.log(`🎉 LIMPEZA CONCLUÍDA: ${deletedCount} eventos deletados`);
+    
+    res.json({
+      success: true,
+      message: 'Eventos automáticos limpos com sucesso!',
+      deletedCount,
+      totalFound: autoEvents.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao limpar eventos automáticos:', error);
+    res.status(500).json({
+      error: 'Erro ao limpar eventos automáticos',
       details: error.message
     });
   }
