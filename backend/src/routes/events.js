@@ -419,12 +419,11 @@ router.post('/:id/register-multiple', async (req, res) => {
     const selectedLot = await trx('lots')
       .where('id', lot_id)
       .andWhere('event_id', id)
-      .andWhere('status', 'active')
       .first();
 
     if (!selectedLot) {
       await trx.rollback();
-      return res.status(400).json({ error: 'Lote selecionado inválido ou inativo' });
+      return res.status(400).json({ error: 'Lote selecionado inválido' });
     }
 
     // Verificar se há vagas suficientes no lote
@@ -657,11 +656,10 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     const selectedLot = await trx('lots')
       .where('id', lot_id)
       .andWhere('event_id', id)
-      .andWhere('status', 'active')
       .first();
     if (!selectedLot) {
       await trx.rollback();
-      return res.status(400).json({ error: 'Lote selecionado inválido ou inativo' });
+      return res.status(400).json({ error: 'Lote selecionado inválido' });
     }
     if (selectedLot.quantity < participantes.length) {
       await trx.rollback();
