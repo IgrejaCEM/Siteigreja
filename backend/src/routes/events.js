@@ -11,6 +11,7 @@ const dayjs = require('dayjs');
 const EventProduct = require('../models/EventProduct');
 const RegistrationProduct = require('../models/RegistrationProduct');
 const PaymentGateway = require('../services/PaymentGateway');
+const BoletoPaymentGateway = require('../services/BoletoPaymentGateway');
 
 // Função auxiliar para atualizar estatísticas
 const updateEventStats = async (eventId, trx) => {
@@ -825,30 +826,51 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           }).returning('id');
         }
         
-        // Integração com gateway (Mercado Pago)
-        console.log('🔗 Iniciando criação de pagamento...');
-        console.log('📊 Dados do pagamento:', {
-          amount: totalAmount,
-          description: `Inscrição - ${event.title} - ${selectedLot.name}`,
-          customer: participantes[0],
-          method: payment_method || 'CHECKOUT_PRO'
-        });
+        // Verificar se é boleto bancário
+        const isBoleto = payment_method === 'boleto' || payment_method === 'ticket';
         
-        try {
-          paymentInfo = await PaymentGateway.createPayment({
+        if (isBoleto) {
+          console.log('🏦 Criando boleto bancário...');
+          
+          const boletoGateway = new BoletoPaymentGateway();
+          
+          // ESTRATÉGIA ESCOLHIDA: CONFIRMAÇÃO IMEDIATA
+          // Você pode mudar para: createBoletoWithTemporaryReservation ou createBoletoWithTimeLimit
+          paymentInfo = await boletoGateway.createBoletoWithImmediateConfirmation({
+            amount: totalAmount,
+            description: `Inscrição - ${event.title} - ${selectedLot.name}`,
+            customer: participantes[0],
+            registrationCode: registrationCode
+          });
+          
+          console.log('✅ Boleto criado:', paymentInfo);
+          
+        } else {
+          // Pagamento normal (cartão, PIX, etc.)
+          console.log('🔗 Iniciando criação de pagamento...');
+          console.log('📊 Dados do pagamento:', {
             amount: totalAmount,
             description: `Inscrição - ${event.title} - ${selectedLot.name}`,
             customer: participantes[0],
             method: payment_method || 'CHECKOUT_PRO'
           });
           
-          console.log('✅ Retorno do PaymentGateway:', paymentInfo);
-        } catch (paymentError) {
-          console.error('❌ Erro específico do PaymentGateway:', paymentError);
-          console.error('📋 Stack do erro:', paymentError.stack);
-          
-          // Se o PaymentGateway falhar, retornar erro em vez de usar fallback fake
-          throw new Error(`Erro na criação do pagamento: ${paymentError.message}`);
+          try {
+            paymentInfo = await PaymentGateway.createPayment({
+              amount: totalAmount,
+              description: `Inscrição - ${event.title} - ${selectedLot.name}`,
+              customer: participantes[0],
+              method: payment_method || 'CHECKOUT_PRO'
+            });
+            
+            console.log('✅ Retorno do PaymentGateway:', paymentInfo);
+          } catch (paymentError) {
+            console.error('❌ Erro específico do PaymentGateway:', paymentError);
+            console.error('📋 Stack do erro:', paymentError.stack);
+            
+            // Se o PaymentGateway falhar, retornar erro em vez de usar fallback fake
+            throw new Error(`Erro na criação do pagamento: ${paymentError.message}`);
+          }
         }
       } catch (pgErr) {
         console.error('❌ Erro ao criar pagamento no gateway:', pgErr);
