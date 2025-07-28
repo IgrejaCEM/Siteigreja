@@ -1481,4 +1481,43 @@ router.post('/clear-auto-events', async (req, res) => {
   }
 });
 
+// ROTA DE EMERGÊNCIA PARA FORÇAR DELEÇÃO (REMOVER APÓS USO)
+router.delete('/events/:id/force', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log('🚨 FORÇANDO DELEÇÃO DO EVENTO:', id);
+    
+    // Verificar se o evento existe
+    const event = await db('events').where('id', id).first();
+    if (!event) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
+    
+    console.log('🗑️ Deletando inscrições do evento:', id);
+    await db('registrations').where('event_id', id).del();
+    
+    console.log('🗑️ Deletando lotes do evento:', id);
+    await db('lots').where('event_id', id).del();
+    
+    console.log('🗑️ Deletando evento:', id);
+    await db('events').where('id', id).del();
+    
+    console.log('✅ Evento forçadamente deletado:', id);
+    
+    res.json({
+      success: true,
+      message: 'Evento forçadamente deletado com sucesso!',
+      eventId: id
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao forçar deleção:', error);
+    res.status(500).json({
+      error: 'Erro ao forçar deleção',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router; 
