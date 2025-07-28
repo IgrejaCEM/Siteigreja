@@ -62,6 +62,48 @@ router.get('/payment-methods', async (req, res) => {
   }
 });
 
+// Rota de teste para Mercado Pago (REMOVER APÓS USO)
+router.post('/test-mercadopago', async (req, res) => {
+  try {
+    console.log('🧪 TESTANDO MERCADO PAGO...');
+    
+    const paymentGateway = new PaymentGateway();
+    const paymentData = {
+      amount: 50.00,
+      description: 'Teste de Pagamento',
+      customer: {
+        name: 'Teste Usuario',
+        email: 'teste@teste.com',
+        cpf: '12345678901',
+        registration_code: 'TEST-001',
+        id: 1,
+        event_id: 1
+      },
+      method: 'CREDITCARD'
+    };
+    
+    console.log('📦 Dados do pagamento:', paymentData);
+    
+    const payment = await paymentGateway.createPayment(paymentData);
+    
+    console.log('✅ Pagamento criado:', payment);
+    
+    res.json({
+      success: true,
+      payment: payment,
+      message: 'Teste do Mercado Pago realizado com sucesso!'
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro no teste do Mercado Pago:', error);
+    res.status(500).json({
+      error: 'Erro no teste do Mercado Pago',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // Criar uma nova intenção de pagamento
 router.post('/payments/create', authenticateToken, async (req, res) => {
   try {
