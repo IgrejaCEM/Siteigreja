@@ -1219,4 +1219,28 @@ router.post('/:id/inscricao-ultra-simples', async (req, res) => {
   }
 });
 
+// ROTA DE TESTE SEM BANCO (REMOVER APÓS USO)
+router.post('/:id/teste-sem-banco', async (req, res) => {
+  try {
+    console.log('🧪 TESTE SEM BANCO DE DADOS');
+    console.log('📦 Dados recebidos:', req.body);
+    
+    // Resposta simples sem acessar banco
+    res.status(200).json({
+      success: true,
+      message: 'Teste sem banco funcionando',
+      timestamp: new Date().toISOString(),
+      received_data: req.body
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro no teste sem banco:', error);
+    res.status(500).json({
+      error: 'Erro no teste sem banco',
+      details: error.message
+    });
+  }
+});
+
+// ROTA ULTRA-SIMPLIFICADA PARA TESTE (REMOVER APÓS USO)
 module.exports = router; 
