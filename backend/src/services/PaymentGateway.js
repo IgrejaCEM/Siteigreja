@@ -238,6 +238,26 @@ class PaymentGateway {
   }
 
   async createPayment(paymentData) {
+    // Verificar se modo fake está ativado
+    const config = require('../config');
+    if (config.PAYMENT_FAKE_MODE) {
+      console.log('🎭 MODO FAKE ATIVADO - Criando pagamento fake');
+      
+      return {
+        payment_id: 'FAKE-' + Date.now(),
+        payment_url: 'https://igrejacemchurch.org/inscricao/sucesso',
+        status: 'paid',
+        status_detail: 'approved',
+        external_reference: paymentData.customer.registration_code,
+        amount: paymentData.amount,
+        description: paymentData.description,
+        customer: paymentData.customer,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+    }
+    
+    // Modo real
     if (this.activeGateway === 'mercadopago') {
       return await this.mercadoPago.createPayment(paymentData);
     } else {

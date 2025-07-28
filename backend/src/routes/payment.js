@@ -62,6 +62,44 @@ router.get('/payment-methods', async (req, res) => {
   }
 });
 
+// Rota de teste para pagamento fake (REMOVER APÓS USO)
+router.post('/test-fake-payment', async (req, res) => {
+  try {
+    console.log('🎭 TESTANDO PAGAMENTO FAKE...');
+    
+    const { amount, description, customer } = req.body;
+    
+    // Simular pagamento fake
+    const fakePayment = {
+      payment_id: 'FAKE-' + Date.now(),
+      payment_url: 'https://igrejacemchurch.org/inscricao/sucesso',
+      status: 'paid',
+      status_detail: 'approved',
+      external_reference: customer.registration_code,
+      amount: amount,
+      description: description,
+      customer: customer,
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+    
+    console.log('✅ Pagamento fake criado:', fakePayment);
+    
+    res.json({
+      success: true,
+      payment: fakePayment,
+      message: 'Pagamento fake realizado com sucesso!'
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro no pagamento fake:', error);
+    res.status(500).json({
+      error: 'Erro no pagamento fake',
+      details: error.message
+    });
+  }
+});
+
 // Rota de teste para Mercado Pago (REMOVER APÓS USO)
 router.post('/test-mercadopago', async (req, res) => {
   try {

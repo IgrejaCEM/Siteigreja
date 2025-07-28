@@ -1508,6 +1508,38 @@ router.post('/restore-complete-event-emergency', async (req, res) => {
   }
 });
 
+// ROTA DE EMERGÊNCIA PARA ATIVAR MODO FAKE (REMOVER APÓS USO)
+router.post('/activate-fake-payment', async (req, res) => {
+  try {
+    console.log('🎭 ATIVANDO MODO FAKE DE PAGAMENTO');
+    
+    // Ativar modo fake no config
+    const config = require('../config');
+    config.PAYMENT_FAKE_MODE = true;
+    config.REAL_PAYMENT_STATUS = 'paid'; // Pagamentos sempre aprovados
+    
+    console.log('✅ Modo fake ativado');
+    console.log('💰 PAYMENT_FAKE_MODE:', config.PAYMENT_FAKE_MODE);
+    console.log('📊 REAL_PAYMENT_STATUS:', config.REAL_PAYMENT_STATUS);
+    
+    res.json({
+      success: true,
+      message: 'Modo fake de pagamento ativado com sucesso!',
+      config: {
+        PAYMENT_FAKE_MODE: config.PAYMENT_FAKE_MODE,
+        REAL_PAYMENT_STATUS: config.REAL_PAYMENT_STATUS
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao ativar modo fake:', error);
+    res.status(500).json({
+      error: 'Erro ao ativar modo fake',
+      details: error.message
+    });
+  }
+});
+
 // ROTA DE EMERGÊNCIA PARA VERIFICAR PERSISTÊNCIA (REMOVER APÓS USO)
 router.post('/check-persistence-emergency', async (req, res) => {
   try {
