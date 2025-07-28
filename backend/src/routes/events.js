@@ -744,8 +744,7 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           });
           await trx('event_products').where('id', p.id).decrement('stock', p.quantity);
         }
-        // QR Code - Comentado temporariamente para resolver erro 500
-        /*
+        // QR Code - Reativado
         const qrCodeData = JSON.stringify({
           inscricaoId: inscricaoId,
           eventId: id,
@@ -756,12 +755,11 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         let qrCode;
         try {
           qrCode = await QRCode.toDataURL(qrCodeData, { errorCorrectionLevel: 'L', margin: 1, width: 200 });
+          console.log('✅ QR Code gerado com sucesso');
         } catch (qrError) {
-          console.error('Erro ao gerar QR code:', qrError);
+          console.error('❌ Erro ao gerar QR code:', qrError);
           qrCode = null;
         }
-        */
-        let qrCode = null; // QR Code desabilitado temporariamente
         
         // Ticket - Comentado temporariamente para resolver erro 500
         /*
