@@ -376,7 +376,7 @@ const Home = () => {
               }}
             >
               <img
-                src={ev.banner || 'https://via.placeholder.com/900x400?text=Evento'}
+                src={ev.banner || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iOTAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2Y1ZjVmNSIvPgogIDx0ZXh0IHg9IjQ1MCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5FdmVudG88L3RleHQ+Cjwvc3ZnPg=='}
                 alt={ev.title}
                 style={{
                   width: '100%',

@@ -310,8 +310,8 @@ export default function PublicEvents() {
       {/* Banner grande centralizado, ocupando 100vw */}
       <div className="banner-evento">
         <img
-          src={(evento.banner_evento || evento.banner || 'https://via.placeholder.com/1200x400?text=Banner+do+Evento').startsWith('http') 
-            ? (evento.banner_evento || evento.banner || 'https://via.placeholder.com/1200x400?text=Banner+do+Evento')
+          src={(evento.banner_evento || evento.banner || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjVmNWY1Ii8+CiAgPHRleHQgeD0iNjAwIiB5PSIyMDAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJhbm5lciBkbyBFdmVudG88L3RleHQ+Cjwvc3ZnPg==').startsWith('http')
+            ? (evento.banner_evento || evento.banner || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI0MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjVmNWY1Ii8+CiAgPHRleHQgeD0iNjAwIiB5PSIyMDAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkJhbm5lciBkbyBFdmVudG88L3RleHQ+Cjwvc3ZnPg==')
             : `${API_BASE_URL}${evento.banner_evento || evento.banner || '/uploads/banners/default.jpg'}`}
           alt="Banner"
         />

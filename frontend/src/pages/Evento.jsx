@@ -227,7 +227,7 @@ const Evento = () => {
     <Box>
       {/* Hero Section */}
       <Box sx={{ 
-        background: `url(${event.banner_evento || event.banner || 'https://via.placeholder.com/1920x1080/4a90e2/ffffff?text=Banner+do+Evento'})`,
+        background: `url(${event.banner_evento || event.banner || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyMCIgaGVpZ2h0PSIxMDgwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxyZWN0IHdpZHRoPSIxOTIwIiBoZWlnaHQ9IjEwODAiIGZpbGw9IiM0YTkwZTIiLz4KICA8dGV4dCB4PSI5NjAiIHk9IjU0MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+QmFubmVyIGRvIEV2ZW50bzwvdGV4dD4KPC9zdmc+'})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
