@@ -17,7 +17,8 @@ class MercadoPagoGateway {
       baseURL: 'https://api.mercadopago.com/v1',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
   }
@@ -28,7 +29,10 @@ class MercadoPagoGateway {
       const payload = {
         items: [
           {
+            id: `item-${customer.registration_code || Date.now()}`,
             title: description || 'Inscrição no Evento',
+            description: `Inscrição no evento - ${description}`,
+            category_id: 'eventos',
             quantity: 1,
             unit_price: Number(amount)
           }
@@ -36,10 +40,14 @@ class MercadoPagoGateway {
         payer: {
           name: customer.name || '',
           email: customer.email || '',
-          identification: {
+          phone: customer.phone ? {
+            area_code: customer.phone.substring(0, 2),
+            number: customer.phone.substring(2)
+          } : undefined,
+          identification: customer.cpf ? {
             type: 'CPF',
-            number: customer.cpf || ''
-          }
+            number: customer.cpf
+          } : undefined
         },
         back_urls: {
           success: process.env.NODE_ENV === 'production' 
@@ -58,6 +66,22 @@ class MercadoPagoGateway {
           ? (process.env.MERCADOPAGO_WEBHOOK_URL || 'https://siteigreja-1.onrender.com/api/payments/webhook')
           : 'http://localhost:3005/api/payments/webhook',
         statement_descriptor: 'INSCRICAO',
+        // Configurações para forçar web checkout
+        binary_mode: true,
+        expires: true,
+        expiration_date_from: new Date().toISOString(),
+        expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 horas
+        // Configurações de pagamento
+        payment_methods: {
+          installments: 1,
+          default_installments: 1,
+          excluded_payment_types: [
+            { id: "ticket" }
+          ],
+          excluded_payment_methods: [
+            { id: "amex" }
+          ]
+        },
         metadata: {
           registration_code: customer.registration_code,
           customer_id: customer.id,
