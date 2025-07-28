@@ -1016,4 +1016,89 @@ router.post('/:id/inscricao-test-db', async (req, res) => {
   }
 });
 
+// ROTA DE INSCRIÇÃO ULTRA-SIMPLIFICADA (REMOVER APÓS USO)
+router.post('/:id/inscricao-simples', async (req, res) => {
+  try {
+    console.log('🎯 INSCRIÇÃO ULTRA-SIMPLIFICADA');
+    console.log('📦 Dados recebidos:', req.body);
+    
+    const { id } = req.params;
+    const { participantes, lote_id, payment_method, products = [] } = req.body;
+    
+    // Verificar se o evento existe
+    const event = await db('events').where('id', id).first();
+    if (!event) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
+    
+    console.log('✅ Evento encontrado:', event.title);
+    
+    // Verificar se o lote existe
+    const lot = await db('lots').where('id', lote_id).where('event_id', id).first();
+    if (!lot) {
+      return res.status(404).json({ error: 'Lote não encontrado' });
+    }
+    
+    console.log('✅ Lote encontrado:', lot.name);
+    
+    // Verificar se a tabela registrations existe
+    const registrationsExists = await db.schema.hasTable('registrations');
+    if (!registrationsExists) {
+      return res.status(500).json({ error: 'Tabela registrations não existe' });
+    }
+    
+    console.log('✅ Tabela registrations existe');
+    
+    // Criar inscrição simples
+    const registrationCode = `REG-${Date.now()}`;
+    const inscricoesIds = [];
+    
+    for (const participante of participantes) {
+      const inscricaoData = {
+        event_id: id,
+        lot_id: lot.id,
+        name: participante.name,
+        email: participante.email,
+        phone: participante.phone,
+        cpf: participante.cpf || null,
+        status: 'confirmed',
+        payment_status: 'paid',
+        registration_code: registrationCode,
+        created_at: new Date(),
+        updated_at: new Date(),
+        form_data: JSON.stringify(participante)
+      };
+      
+      const [inscricaoId] = await db('registrations').insert(inscricaoData).returning('id');
+      inscricoesIds.push(inscricaoId);
+      console.log('✅ Inscrição criada:', inscricaoId);
+    }
+    
+    // Atualizar quantidade do lote
+    await db('lots')
+      .where('id', lot.id)
+      .update({
+        quantity: db.raw(`quantity - ${participantes.length}`),
+        updated_at: new Date()
+      });
+    
+    console.log('✅ Quantidade do lote atualizada');
+    
+    res.json({
+      success: true,
+      registration_code: registrationCode,
+      inscricoes: inscricoesIds,
+      message: 'Inscrição realizada com sucesso!'
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro na inscrição simples:', error);
+    res.status(500).json({
+      error: 'Erro na inscrição',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 module.exports = router; 
