@@ -114,10 +114,9 @@ const Inscricao = () => {
         const response = await api.get(`/events/${id}`);
         console.log('✅ Evento carregado:', response.data.title);
         setEvent(response.data);
-        // Seleciona o primeiro lote disponível por padrão
+        // Não seleciona lote automaticamente - usuário deve escolher
         if (response.data.lots && response.data.lots.length > 0) {
-          setSelectedLotId(response.data.lots[0].id);
-          console.log('🎫 Lote selecionado:', response.data.lots[0].name);
+          console.log('📋 Lotes disponíveis:', response.data.lots.map(l => `${l.name} - R$ ${l.price}`));
         }
       } catch (error) {
         console.error('❌ Erro ao carregar evento:', error);
@@ -229,6 +228,10 @@ const Inscricao = () => {
 
   const handleNext = () => {
     if (activeStep === 0) {
+      if (!selectedLotId) {
+        setError('Por favor, selecione um lote antes de continuar.');
+        return;
+      }
       if (!isAllInscricoesValid()) {
         setError('Por favor, preencha todos os campos obrigatórios.');
         return;

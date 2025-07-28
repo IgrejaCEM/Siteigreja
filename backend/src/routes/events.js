@@ -849,19 +849,8 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           console.error('❌ Erro específico do PaymentGateway:', paymentError);
           console.error('📋 Stack do erro:', paymentError.stack);
           
-          // Se o PaymentGateway falhar, usar modo fake
-          console.log('🎭 Usando modo fake como fallback...');
-          paymentInfo = {
-            payment_id: 'FAKE-' + Date.now(),
-            payment_url: 'https://igrejacemchurch.org/inscricao/sucesso',
-            status: 'paid',
-            status_detail: 'approved',
-            external_reference: registrationCode,
-            amount: totalAmount,
-            description: `Inscrição - ${event.title} - ${selectedLot.name}`,
-            customer: participantes[0]
-          };
-          console.log('✅ Pagamento fake criado:', paymentInfo);
+          // Se o PaymentGateway falhar, retornar erro em vez de usar fallback fake
+          throw new Error(`Erro na criação do pagamento: ${paymentError.message}`);
         }
       } catch (pgErr) {
         console.error('❌ Erro ao criar pagamento no gateway:', pgErr);

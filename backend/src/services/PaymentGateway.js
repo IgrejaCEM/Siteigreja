@@ -235,12 +235,13 @@ class PaymentGateway {
     this.mercadoPago = new MercadoPagoGateway();
     this.abacatePay = new AbacatePayGateway();
     this.activeGateway = 'mercadopago'; // Define Mercado Pago como gateway padrão
+    this.config = require('../config');
+    console.log('🔧 PaymentGateway inicializado com PAYMENT_FAKE_MODE:', this.config.PAYMENT_FAKE_MODE);
   }
 
   async createPayment(paymentData) {
     // Verificar se modo fake está ativado
-    const config = require('../config');
-    if (config.PAYMENT_FAKE_MODE) {
+    if (this.config.PAYMENT_FAKE_MODE) {
       console.log('🎭 MODO FAKE ATIVADO - Criando pagamento fake');
       
       const fakeUrl = `https://igrejacemchurch.org/inscricao/checkout-fake?amount=${paymentData.amount}&description=${encodeURIComponent(paymentData.description)}`;

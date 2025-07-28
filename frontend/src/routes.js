@@ -12,7 +12,6 @@ import PaymentSettings from './components/PaymentSettings';
 import PaymentSummary from './components/PaymentSummary';
 import PrivateRoute from './components/PrivateRoute';
 import Inscricao from './pages/Inscricao';
-
 const AppRoutes = () => {
   return (
     <Routes>
