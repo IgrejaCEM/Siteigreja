@@ -1158,4 +1158,66 @@ router.post('/setup-database-complete', async (req, res) => {
   }
 });
 
+// ROTA DE EMERGÊNCIA PARA VERIFICAR UPLOAD
+router.post('/check-upload', async (req, res) => {
+  try {
+    console.log('🔍 VERIFICANDO UPLOAD...');
+    
+    const fs = require('fs');
+    const path = require('path');
+    
+    // 1. Verificar pasta uploads
+    const uploadsPath = path.join(__dirname, '../uploads');
+    console.log('📁 Caminho uploads:', uploadsPath);
+    
+    if (!fs.existsSync(uploadsPath)) {
+      console.log('❌ Pasta uploads não existe! Criando...');
+      fs.mkdirSync(uploadsPath, { recursive: true });
+      console.log('✅ Pasta uploads criada');
+    } else {
+      console.log('✅ Pasta uploads existe');
+    }
+    
+    // 2. Verificar pasta events
+    const eventsPath = path.join(uploadsPath, 'events');
+    if (!fs.existsSync(eventsPath)) {
+      console.log('❌ Pasta events não existe! Criando...');
+      fs.mkdirSync(eventsPath, { recursive: true });
+      console.log('✅ Pasta events criada');
+    } else {
+      console.log('✅ Pasta events existe');
+    }
+    
+    // 3. Testar permissões
+    try {
+      const testFile = path.join(eventsPath, 'test.txt');
+      fs.writeFileSync(testFile, 'test');
+      fs.unlinkSync(testFile);
+      console.log('✅ Permissões OK');
+    } catch (error) {
+      console.log('❌ Erro de permissões:', error.message);
+    }
+    
+    // 4. Listar arquivos existentes
+    const files = fs.readdirSync(uploadsPath);
+    console.log('📋 Arquivos em uploads:', files);
+    
+    res.json({
+      success: true,
+      message: 'Upload verificado',
+      uploadsPath,
+      eventsPath,
+      files,
+      permissions: 'OK'
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro na verificação:', error);
+    res.status(500).json({
+      error: 'Erro na verificação',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router; 
