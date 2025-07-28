@@ -625,8 +625,22 @@ router.post('/:id/register-multiple', async (req, res) => {
 
 // Endpoint unificado para inscrição e pagamento
 router.post('/:id/inscricao-unificada', async (req, res) => {
-  const trx = await db.transaction();
+  console.log('🚀 INICIANDO INSCRIÇÃO ULTRA-ROBUSTA');
+  console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
+  
+  let trx = null;
   try {
+    // Iniciar transação com tratamento de erro
+    try {
+      trx = await db.transaction();
+      console.log('✅ Transação iniciada');
+    } catch (txError) {
+      console.error('❌ Erro ao iniciar transação:', txError);
+      return res.status(500).json({
+        error: 'Erro ao iniciar transação',
+        details: txError.message
+      });
+    }
     const { id } = req.params;
     const { participantes, payment_method, lot_id, products = [] } = req.body;
     if (!Array.isArray(participantes) || participantes.length === 0) {
@@ -894,8 +908,19 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     console.log('🔍 Payment Info tem payment_url?', paymentInfo?.payment_url ? 'SIM' : 'NÃO');
     res.status(201).json(responseObj);
   } catch (error) {
-    await trx.rollback();
-    console.error('Erro ao registrar inscrição unificada:', error);
+    console.error('❌ ERRO CRÍTICO NA INSCRIÇÃO:', error);
+    console.error('📋 Stack:', error.stack);
+    
+    // Rollback seguro
+    if (trx) {
+      try {
+        await trx.rollback();
+        console.log('✅ Rollback realizado com sucesso');
+      } catch (rollbackError) {
+        console.error('❌ Erro no rollback:', rollbackError);
+      }
+    }
+    
     res.status(500).json({
       error: 'Erro ao registrar inscrição',
       details: error.message,
