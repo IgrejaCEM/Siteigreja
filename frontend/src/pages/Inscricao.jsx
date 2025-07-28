@@ -1072,24 +1072,24 @@ const Inscricao = () => {
             >
               Voltar
             </Button>
-            <Button
-              variant="contained"
-              onClick={
-                activeStep === 1 ? handleCheckoutAndNext : 
-                activeStep === steps.length - 1 ? handleSubmit : 
-                handleNext
-              }
-              disabled={loading}
-              fullWidth={false}
-              sx={{ 
-                order: { xs: 1, sm: 2 },
-                width: { xs: '100%', sm: 'auto' }
-              }}
-            >
-              {loading ? <CircularProgress size={24} /> : 
-                activeStep === 1 ? 'Ir para o Checkout' :
-                activeStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
-            </Button>
+            {activeStep !== steps.length - 1 && (
+              <Button
+                variant="contained"
+                onClick={
+                  activeStep === 1 ? handleCheckoutAndNext : 
+                  handleNext
+                }
+                disabled={loading}
+                fullWidth={false}
+                sx={{ 
+                  order: { xs: 1, sm: 2 },
+                  width: { xs: '100%', sm: 'auto' }
+                }}
+              >
+                {loading ? <CircularProgress size={24} /> : 
+                  activeStep === 1 ? 'Ir para o Checkout' : 'Próximo'}
+              </Button>
+            )}
           </Box>
 
           {event && (
