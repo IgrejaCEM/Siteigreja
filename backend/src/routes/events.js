@@ -1219,28 +1219,73 @@ router.post('/:id/inscricao-simples', async (req, res) => {
 // ROTA ULTRA-SIMPLIFICADA PARA TESTE (REMOVER APÓS USO)
 router.post('/:id/inscricao-ultra-simples', async (req, res) => {
   try {
-    console.log('🧪 INSCRIÇÃO ULTRA-SIMPLIFICADA');
+    console.log('🧪 INSCRIÇÃO ULTRA-SIMPLES');
     console.log('📦 Dados recebidos:', req.body);
     
     const { id } = req.params;
+    const { participantes, payment_method, lot_id } = req.body;
     
-    // Verificar se o evento existe
+    // Validações básicas
+    if (!participantes || !Array.isArray(participantes) || participantes.length === 0) {
+      return res.status(400).json({ error: 'Participantes obrigatórios' });
+    }
+    
+    if (!lot_id) {
+      return res.status(400).json({ error: 'Lote obrigatório' });
+    }
+    
+    // Verificar evento
     const event = await db('events').where('id', id).first();
     if (!event) {
       return res.status(404).json({ error: 'Evento não encontrado' });
     }
     
+    // Verificar lote
+    const lot = await db('lots').where('id', lot_id).andWhere('event_id', id).first();
+    if (!lot) {
+      return res.status(400).json({ error: 'Lote não encontrado' });
+    }
+    
+    // Gerar código
+    const registrationCode = `REG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Criar inscrição simples
+    const inscricaoData = {
+      event_id: id,
+      lot_id: lot_id,
+      name: participantes[0].name || 'Teste',
+      email: participantes[0].email || 'teste@teste.com',
+      phone: participantes[0].phone || '11999999999',
+      status: lot.price === 0 ? 'confirmed' : 'pending_payment',
+      payment_status: lot.price === 0 ? 'paid' : 'pending',
+      registration_code: registrationCode,
+      created_at: new Date(),
+      updated_at: new Date(),
+      form_data: JSON.stringify(participantes[0])
+    };
+    
+    const [inscricaoId] = await db('registrations').insert(inscricaoData).returning('id');
+    
+    // Atualizar quantidade do lote
+    await db('lots').where('id', lot_id).decrement('quantity', participantes.length);
+    
     // Resposta simples
-    res.status(201).json({
+    const response = {
       success: true,
-      registration_code: `TEST-${Date.now()}`,
-      message: 'Inscrição de teste criada com sucesso'
-    });
+      registration_code: registrationCode,
+      inscricao_id: inscricaoId,
+      message: lot.price === 0 ? 'Inscrição confirmada!' : 'Inscrição pendente de pagamento',
+      payment_required: lot.price > 0,
+      total_amount: lot.price * participantes.length
+    };
+    
+    console.log('✅ Resposta:', response);
+    res.status(201).json(response);
     
   } catch (error) {
-    console.error('❌ Erro na inscrição ultra-simplificada:', error);
+    console.error('❌ Erro na inscrição ultra-simples:', error);
     res.status(500).json({
-      error: 'Erro na inscrição ultra-simplificada',
+      error: 'Erro na inscrição',
       details: error.message
     });
   }
