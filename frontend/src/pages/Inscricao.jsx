@@ -127,7 +127,6 @@ const Inscricao = () => {
         setLoading(false);
         
         // Verificar se é lote gratuito
-        const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId);
         const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
         
         if (isFree) {
@@ -413,7 +412,6 @@ const Inscricao = () => {
 
   const calculateTotal = () => {
     if (!event.lots || event.lots.length === 0) return 0;
-    const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId) || event?.lots?.[0];
     const price = Number(selectedLot?.price) || 0;
     const inscriptionsTotal = price * inscricoes.length;
     
@@ -571,7 +569,6 @@ const Inscricao = () => {
 
   // Adicionar esta função para renderizar o resumo
   const renderValueSummary = () => {
-    const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId);
     const inscriptionsTotal = (Number(selectedLot?.price) || 0) * inscricoes.length;
     const productsTotal = cartProducts.reduce((total, product) => {
       return total + (Number(product.price) * product.quantity);
@@ -667,6 +664,9 @@ const Inscricao = () => {
       </Box>
     );
   }
+
+  // Verificação global de selectedLot para evitar erros
+  const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId) || event?.lots?.[0];
 
   const renderInscricaoForm = (index) => (
     <Grid container spacing={2}>
