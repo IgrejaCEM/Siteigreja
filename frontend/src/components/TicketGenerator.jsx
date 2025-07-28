@@ -13,26 +13,26 @@ const TicketGenerator = ({ registrationData, eventData }) => {
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 20;
     
-    // Cores da Igreja CEM
-    const primaryColor = '#6a1b9a'; // Roxo
-    const secondaryColor = '#000000'; // Preto
-    const accentColor = '#ffd700'; // Dourado
+    // Cores do novo design
+    const backgroundColor = '#000000'; // Preto
+    const textColor = '#ffffff'; // Branco
+    const accentColor = '#ffd700'; // Dourado para destaque
+    const secondaryColor = '#cccccc'; // Cinza claro para textos secundários
     
-    // Header do ingresso
-    doc.setFillColor(primaryColor);
-    doc.rect(0, 0, pageWidth, 40, 'F');
+    // Fundo preto completo
+    doc.setFillColor(backgroundColor);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
-    // Logo do evento (se disponível)
+    // Header com logo do evento (se disponível)
     if (eventData?.logo) {
       try {
-        // Tentar carregar a logo do evento
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
-          const logoWidth = 30;
-          const logoHeight = 30;
+          const logoWidth = 40;
+          const logoHeight = 40;
           const logoX = margin;
-          const logoY = 5;
+          const logoY = 10;
           
           doc.addImage(img, 'JPEG', logoX, logoY, logoWidth, logoHeight);
         };
@@ -42,66 +42,67 @@ const TicketGenerator = ({ registrationData, eventData }) => {
       }
     }
     
-    // Logo/Título da Igreja
-    doc.setTextColor(255, 255, 255);
+    // Título da Igreja em branco
+    doc.setTextColor(textColor);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text('IGREJA CEM', pageWidth / 2, 20, { align: 'center' });
+    doc.text('IGREJA CEM', pageWidth / 2, 35, { align: 'center' });
     
-    doc.setFontSize(12);
-    doc.text('CONNECT CONF 2025', pageWidth / 2, 32, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text('CONNECT CONF 2025', pageWidth / 2, 48, { align: 'center' });
     
-    // Linha decorativa
-    doc.setDrawColor(accentColor);
+    // Linha decorativa branca
+    doc.setDrawColor(255, 255, 255);
     doc.setLineWidth(2);
-    doc.line(margin, 45, pageWidth - margin, 45);
+    doc.line(margin, 60, pageWidth - margin, 60);
     
-    // Informações do evento
-    doc.setTextColor(secondaryColor);
+    // Informações do evento em branco
+    doc.setTextColor(textColor);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('INFORMAÇÕES DO EVENTO', margin, 65);
+    doc.text('INFORMAÇÕES DO EVENTO', margin, 80);
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Evento: ${eventData?.title || 'Evento'}`, margin, 80);
-    doc.text(`Data: ${eventData?.date ? new Date(eventData.date).toLocaleDateString('pt-BR') : 'Data'}`, margin, 90);
-    doc.text(`Local: ${eventData?.location || 'Local'}`, margin, 100);
+    doc.text(`Evento: ${eventData?.title || 'Evento'}`, margin, 95);
+    doc.text(`Data: ${eventData?.date ? new Date(eventData.date).toLocaleDateString('pt-BR') : 'Data'}`, margin, 105);
+    doc.text(`Local: ${eventData?.location || 'Local'}`, margin, 115);
     
-    // Informações do participante
+    // Informações do participante em branco
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('INFORMAÇÕES DO PARTICIPANTE', margin, 125);
+    doc.text('INFORMAÇÕES DO PARTICIPANTE', margin, 140);
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Nome: ${registrationData?.name || 'Nome'}`, margin, 140);
-    doc.text(`Email: ${registrationData?.email || 'Email'}`, margin, 150);
-    doc.text(`Telefone: ${registrationData?.phone || 'Telefone'}`, margin, 160);
+    doc.text(`Nome: ${registrationData?.name || 'Nome'}`, margin, 155);
+    doc.text(`Email: ${registrationData?.email || 'Email'}`, margin, 165);
+    doc.text(`Telefone: ${registrationData?.phone || 'Telefone'}`, margin, 175);
     
-    // Código de inscrição
+    // Código de inscrição em destaque
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('CÓDIGO DE INSCRIÇÃO', margin, 185);
+    doc.text('CÓDIGO DE INSCRIÇÃO', margin, 200);
     
     doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
-    doc.text(registrationData?.registration_code || 'CÓDIGO', pageWidth / 2, 200, { align: 'center' });
+    doc.text(registrationData?.registration_code || 'CÓDIGO', pageWidth / 2, 215, { align: 'center' });
     
-    // QR Code (simulado com texto por enquanto)
+    // QR Code (simulado)
     doc.setFontSize(10);
-    doc.text('QR Code para Check-in', pageWidth / 2, 220, { align: 'center' });
+    doc.setTextColor(secondaryColor);
+    doc.text('QR Code para Check-in', pageWidth / 2, 235, { align: 'center' });
     
-    // Linha decorativa final
-    doc.setDrawColor(accentColor);
+    // Linha decorativa branca final
+    doc.setDrawColor(255, 255, 255);
     doc.setLineWidth(1);
-    doc.line(margin, 240, pageWidth - margin, 240);
+    doc.line(margin, 250, pageWidth - margin, 250);
     
-    // Footer
+    // Footer em branco
     doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Apresente este ingresso no evento', pageWidth / 2, 260, { align: 'center' });
-    doc.text('Igreja CEM - Todos os direitos reservados', pageWidth / 2, 270, { align: 'center' });
+    doc.setTextColor(textColor);
+    doc.text('Apresente este ingresso no evento', pageWidth / 2, 270, { align: 'center' });
+    doc.text('Igreja CEM - Todos os direitos reservados', pageWidth / 2, 280, { align: 'center' });
     
     // Salvar o PDF
     const fileName = `ingresso_${registrationData?.registration_code || 'evento'}.pdf`;
@@ -115,9 +116,9 @@ const TicketGenerator = ({ registrationData, eventData }) => {
       startIcon={<DownloadIcon />}
       onClick={generateTicket}
       sx={{
-        backgroundColor: '#6a1b9a',
+        backgroundColor: '#000000',
         '&:hover': {
-          backgroundColor: '#4a148c'
+          backgroundColor: '#333333'
         },
         fontWeight: 'bold',
         borderRadius: 2,
