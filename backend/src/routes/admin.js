@@ -829,9 +829,9 @@ router.get('/stats', authenticateToken, requireAdmin, async (req, res) => {
       .where('status', 'active')
       .count('* as activeEvents');
     
-    // Total de participantes (contando por email único)
+    // Total de participantes (contando todas as inscrições)
     const [{ totalParticipants }] = await db('registrations')
-      .countDistinct('email as totalParticipants');
+      .count('* as totalParticipants');
     
     // Receita total
     const [{ totalRevenue }] = await db('registrations')
