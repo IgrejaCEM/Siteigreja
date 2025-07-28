@@ -1353,11 +1353,73 @@ router.post('/restore-complete-event-emergency', async (req, res) => {
     
     console.log('📋 Backup carregado com timestamp:', backupData.timestamp);
     
-    // 1. Limpar tabelas existentes
+    // 1. Verificar se as tabelas existem, se não, criar
+    const eventsExists = await db.schema.hasTable('events');
+    const lotsExists = await db.schema.hasTable('lots');
+    const registrationsExists = await db.schema.hasTable('registrations');
+    
+    if (!eventsExists) {
+      await db.schema.createTable('events', function(table) {
+        table.increments('id').primary();
+        table.string('title').notNullable();
+        table.text('description').nullable();
+        table.datetime('date').notNullable();
+        table.string('location').notNullable();
+        table.decimal('price', 10, 2);
+        table.string('banner');
+        table.string('banner_home');
+        table.string('banner_evento');
+        table.string('slug').unique();
+        table.string('status').defaultTo('active');
+        table.json('registration_form');
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela events criada');
+    }
+    
+    if (!lotsExists) {
+      await db.schema.createTable('lots', function(table) {
+        table.increments('id').primary();
+        table.integer('event_id').unsigned().references('id').inTable('events').onDelete('CASCADE');
+        table.string('name').notNullable();
+        table.text('description').nullable();
+        table.decimal('price', 10, 2);
+        table.integer('quantity');
+        table.datetime('start_date');
+        table.datetime('end_date');
+        table.string('status').defaultTo('active');
+        table.boolean('is_free').defaultTo(false);
+        table.timestamps(true, true);
+      });
+      console.log('✅ Tabela lots criada');
+    }
+    
+    if (!registrationsExists) {
+      await db.schema.createTable('registrations', function(table) {
+        table.increments('id').primary();
+        table.integer('event_id').unsigned().references('id').inTable('events').onDelete('CASCADE');
+        table.integer('lot_id').unsigned().references('id').inTable('lots').onDelete('SET NULL');
+        table.integer('user_id').unsigned().references('id').inTable('users').onDelete('SET NULL');
+        table.string('name').notNullable();
+        table.string('email').notNullable();
+        table.string('phone').notNullable();
+        table.string('cpf').nullable();
+        table.string('address').nullable();
+        table.string('registration_code').nullable();
+        table.string('status').defaultTo('pending');
+        table.string('payment_status').nullable();
+        table.text('form_data').nullable();
+        table.timestamp('created_at').defaultTo(db.fn.now());
+        table.timestamp('updated_at').defaultTo(db.fn.now());
+      });
+      console.log('✅ Tabela registrations criada');
+    }
+    
+    // 2. Limpar dados existentes
     await db('registrations').del();
     await db('lots').del();
     await db('events').del();
-    console.log('🗑️ Tabelas limpas');
+    console.log('🗑️ Dados existentes limpos');
     
     // 2. Restaurar eventos
     for (const event of backupData.events) {
@@ -1441,6 +1503,61 @@ router.post('/restore-complete-event-emergency', async (req, res) => {
     console.error('❌ Erro ao restaurar evento completo:', error);
     res.status(500).json({
       error: 'Erro ao restaurar evento completo',
+      details: error.message
+    });
+  }
+});
+
+// ROTA DE EMERGÊNCIA PARA VERIFICAR PERSISTÊNCIA (REMOVER APÓS USO)
+router.post('/check-persistence-emergency', async (req, res) => {
+  try {
+    console.log('🔍 VERIFICANDO PERSISTÊNCIA DO BANCO');
+    
+    // Verificar se as tabelas existem
+    const eventsExists = await db.schema.hasTable('events');
+    const lotsExists = await db.schema.hasTable('lots');
+    const registrationsExists = await db.schema.hasTable('registrations');
+    
+    console.log('📋 Tabelas existem:');
+    console.log('   - events:', eventsExists);
+    console.log('   - lots:', lotsExists);
+    console.log('   - registrations:', registrationsExists);
+    
+    // Contar registros
+    const eventCount = eventsExists ? await db('events').count('id as count').first() : { count: 0 };
+    const lotCount = lotsExists ? await db('lots').count('id as count').first() : { count: 0 };
+    const registrationCount = registrationsExists ? await db('registrations').count('id as count').first() : { count: 0 };
+    
+    console.log('📊 Contagem de registros:');
+    console.log('   - events:', eventCount.count);
+    console.log('   - lots:', lotCount.count);
+    console.log('   - registrations:', registrationCount.count);
+    
+    // Listar eventos
+    let events = [];
+    if (eventsExists) {
+      events = await db('events').select('*');
+    }
+    
+    res.json({
+      success: true,
+      tables: {
+        events: eventsExists,
+        lots: lotsExists,
+        registrations: registrationsExists
+      },
+      counts: {
+        events: eventCount.count,
+        lots: lotCount.count,
+        registrations: registrationCount.count
+      },
+      events: events
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao verificar persistência:', error);
+    res.status(500).json({
+      error: 'Erro ao verificar persistência',
       details: error.message
     });
   }
