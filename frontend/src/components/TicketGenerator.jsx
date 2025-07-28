@@ -97,17 +97,22 @@ const TicketGenerator = ({ registrationData, eventData }) => {
     doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor('#000000'); // Texto preto no fundo branco
-    doc.text(registrationData?.registration_code || 'CÓDIGO', pageWidth / 2, 233, { align: 'center' });
+    
+    // Verificar se temos o código real
+    const codeToShow = registrationData?.registration_code || 'CÓDIGO-NÃO-ENCONTRADO';
+    console.log('🎫 Código para mostrar:', codeToShow);
+    doc.text(codeToShow, pageWidth / 2, 233, { align: 'center' });
     
     // QR Code real
     if (registrationData?.registration_code) {
       try {
+        console.log('🎫 Gerando QR Code para:', registrationData.registration_code);
         const qrCodeDataURL = await QRCode.toDataURL(registrationData.registration_code, {
           width: 100,
           margin: 2,
           color: {
-            dark: '#000000',
-            light: '#ffffff'
+            dark: '#ffffff', // Pontos brancos (invertido)
+            light: '#000000'  // Fundo preto (invertido)
           }
         });
         
@@ -115,7 +120,7 @@ const TicketGenerator = ({ registrationData, eventData }) => {
         doc.setFillColor('#ffffff');
         doc.rect(margin, 245, pageWidth - 2 * margin, 120, 'F');
         
-        // Adicionar QR Code
+        // Adicionar QR Code (agora com pontos brancos no fundo preto, mas sobre fundo branco do PDF)
         doc.addImage(qrCodeDataURL, 'PNG', pageWidth / 2 - 50, 250, 100, 100);
         
         // Texto abaixo do QR Code
@@ -124,7 +129,7 @@ const TicketGenerator = ({ registrationData, eventData }) => {
         doc.text('QR Code para Check-in', pageWidth / 2, 375, { align: 'center' });
         
       } catch (error) {
-        console.log('Erro ao gerar QR Code:', error);
+        console.log('❌ Erro ao gerar QR Code:', error);
         
         // Fallback: texto simples
         doc.setFillColor('#ffffff');
@@ -133,6 +138,14 @@ const TicketGenerator = ({ registrationData, eventData }) => {
         doc.setTextColor('#000000');
         doc.text('QR Code para Check-in', pageWidth / 2, 260, { align: 'center' });
       }
+    } else {
+      console.log('❌ Nenhum código de inscrição encontrado para QR Code');
+      // Fallback: texto simples
+      doc.setFillColor('#ffffff');
+      doc.rect(margin, 245, pageWidth - 2 * margin, 30, 'F');
+      doc.setFontSize(10);
+      doc.setTextColor('#000000');
+      doc.text('QR Code não disponível', pageWidth / 2, 260, { align: 'center' });
     }
     
     // Linha decorativa branca final
@@ -140,7 +153,7 @@ const TicketGenerator = ({ registrationData, eventData }) => {
     doc.setLineWidth(1);
     doc.line(margin, 385, pageWidth - margin, 385);
     
-    // CONNECT CONF 2025 na parte de baixo
+    // CONNECT CONF 2025 na parte de baixo (GARANTIR QUE APAREÇA)
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(textColor);
