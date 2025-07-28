@@ -824,6 +824,7 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     // Pagamento
     const totalAmount = (selectedLot.price * participantes.length) + productsTotal;
     let paymentInfo = null;
+    const isBoleto = payment_method === 'boleto' || payment_method === 'ticket';
     
     if (selectedLot.price > 0 || productsTotal > 0) {
       try {
@@ -842,8 +843,6 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         }
         
         // Verificar se é boleto bancário
-        const isBoleto = payment_method === 'boleto' || payment_method === 'ticket';
-        
         if (isBoleto) {
           console.log('🏦 Criando boleto bancário...');
           
