@@ -127,8 +127,8 @@ const Inscricao = () => {
         setLoading(false);
         
         // Verificar se é lote gratuito
-            const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId);
-    const isFree = selectedLot && selectedLot.price === 0 && cartProducts.length === 0;
+        const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId);
+        const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
         
         if (isFree) {
           // Para lotes gratuitos, ir direto para a última etapa
@@ -577,7 +577,7 @@ const Inscricao = () => {
       return total + (Number(product.price) * product.quantity);
     }, 0);
     const total = inscriptionsTotal + productsTotal;
-    const isFree = selectedLot && selectedLot.price === 0 && cartProducts.length === 0;
+    const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
 
     return (
       <Box sx={{ mt: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
@@ -587,7 +587,7 @@ const Inscricao = () => {
         
         <Box sx={{ mb: 2 }}>
           <Typography variant="body1">
-            Inscrições ({inscricoes.length}x): {selectedLot && selectedLot.price === 0 ? 'Gratuito' : `R$ ${inscriptionsTotal.toFixed(2)}`}
+            Inscrições ({inscricoes.length}x): {selectedLot && selectedLot?.price === 0 ? 'Gratuito' : `R$ ${inscriptionsTotal.toFixed(2)}`}
           </Typography>
           {cartProducts.length > 0 && (
             <Typography variant="body1">
@@ -936,7 +936,7 @@ const Inscricao = () => {
             {renderValueSummary()}
 
             <Typography variant="body1" sx={{ mb: 2 }}>
-              {selectedLot && selectedLot.price === 0 && cartProducts.length === 0 
+              {selectedLot && selectedLot?.price === 0 && cartProducts.length === 0 
                 ? 'Clique no botão "Confirmar Inscrição" abaixo para finalizar sua inscrição gratuita.'
                 : 'Clique no botão "Ir para o Checkout" abaixo para ir ao checkout do Mercado Pago, onde você poderá escolher a forma de pagamento (PIX, Cartão de Crédito, Boleto, etc.).'
               }
@@ -1148,7 +1148,7 @@ const Inscricao = () => {
               >
                 {loading ? <CircularProgress size={24} /> : 
                   activeStep === 1 
-                    ? (selectedLot && selectedLot.price === 0 && cartProducts.length === 0 
+                    ? (selectedLot && selectedLot?.price === 0 && cartProducts.length === 0 
                         ? 'Confirmar Inscrição' 
                         : 'Ir para o Checkout'
                       )
