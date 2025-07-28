@@ -3,6 +3,7 @@ import { Button } from '@mui/material';
 import { Download as DownloadIcon } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import QRCode from 'qrcode';
 
 const TicketGenerator = ({ registrationData, eventData }) => {
   const generateTicket = async () => {
@@ -24,7 +25,6 @@ const TicketGenerator = ({ registrationData, eventData }) => {
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
     // Header com logo do evento (se disponível)
-    let logoLoaded = false;
     if (eventData?.logo) {
       try {
         // Carregar logo de forma síncrona
@@ -39,7 +39,6 @@ const TicketGenerator = ({ registrationData, eventData }) => {
               const logoY = 15;
               
               doc.addImage(img, 'JPEG', logoX, logoY, logoWidth, logoHeight);
-              logoLoaded = true;
               resolve();
             };
             img.onerror = () => {
@@ -107,24 +106,52 @@ const TicketGenerator = ({ registrationData, eventData }) => {
     doc.setTextColor('#000000'); // Texto preto no fundo branco
     doc.text(registrationData?.registration_code || 'CÓDIGO', pageWidth / 2, 218, { align: 'center' });
     
-    // QR Code (simulado) com fundo branco
-    doc.setFillColor('#ffffff');
-    doc.rect(margin, 230, pageWidth - 2 * margin, 30, 'F');
-    
-    doc.setFontSize(10);
-    doc.setTextColor('#000000'); // Texto preto no fundo branco
-    doc.text('QR Code para Check-in', pageWidth / 2, 245, { align: 'center' });
+    // QR Code real
+    if (registrationData?.registration_code) {
+      try {
+        const qrCodeDataURL = await QRCode.toDataURL(registrationData.registration_code, {
+          width: 100,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#ffffff'
+          }
+        });
+        
+        // Fundo branco para o QR Code
+        doc.setFillColor('#ffffff');
+        doc.rect(margin, 230, pageWidth - 2 * margin, 120, 'F');
+        
+        // Adicionar QR Code
+        doc.addImage(qrCodeDataURL, 'PNG', pageWidth / 2 - 50, 235, 100, 100);
+        
+        // Texto abaixo do QR Code
+        doc.setFontSize(10);
+        doc.setTextColor('#000000');
+        doc.text('QR Code para Check-in', pageWidth / 2, 360, { align: 'center' });
+        
+      } catch (error) {
+        console.log('Erro ao gerar QR Code:', error);
+        
+        // Fallback: texto simples
+        doc.setFillColor('#ffffff');
+        doc.rect(margin, 230, pageWidth - 2 * margin, 30, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor('#000000');
+        doc.text('QR Code para Check-in', pageWidth / 2, 245, { align: 'center' });
+      }
+    }
     
     // Linha decorativa branca final
     doc.setDrawColor(255, 255, 255);
     doc.setLineWidth(1);
-    doc.line(margin, 270, pageWidth - margin, 270);
+    doc.line(margin, 370, pageWidth - margin, 370);
     
     // Footer em branco
     doc.setFontSize(10);
     doc.setTextColor(textColor);
-    doc.text('Apresente este ingresso no evento', pageWidth / 2, 270, { align: 'center' });
-    doc.text('Igreja CEM - Todos os direitos reservados', pageWidth / 2, 280, { align: 'center' });
+    doc.text('Apresente este ingresso no evento', pageWidth / 2, 370, { align: 'center' });
+    doc.text('Igreja CEM - Todos os direitos reservados', pageWidth / 2, 380, { align: 'center' });
     
     // Salvar o PDF
     const fileName = `ingresso_${registrationData?.registration_code || 'evento'}.pdf`;
