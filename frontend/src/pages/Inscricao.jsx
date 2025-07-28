@@ -127,8 +127,8 @@ const Inscricao = () => {
         setLoading(false);
         
         // Verificar se é lote gratuito
-        const selectedLot = event.lots.find(lot => lot.id === selectedLotId);
-        const isFree = selectedLot && selectedLot.price === 0 && cartProducts.length === 0;
+            const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId);
+    const isFree = selectedLot && selectedLot.price === 0 && cartProducts.length === 0;
         
         if (isFree) {
           // Para lotes gratuitos, ir direto para a última etapa
@@ -413,8 +413,8 @@ const Inscricao = () => {
 
   const calculateTotal = () => {
     if (!event.lots || event.lots.length === 0) return 0;
-    const selectedLot = event.lots.find(lot => lot.id === selectedLotId) || event.lots[0];
-    const price = Number(selectedLot.price) || 0;
+    const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId) || event?.lots?.[0];
+    const price = Number(selectedLot?.price) || 0;
     const inscriptionsTotal = price * inscricoes.length;
     
     // Calcular total dos produtos
@@ -571,7 +571,7 @@ const Inscricao = () => {
 
   // Adicionar esta função para renderizar o resumo
   const renderValueSummary = () => {
-    const selectedLot = event.lots.find(lot => lot.id === selectedLotId);
+    const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId);
     const inscriptionsTotal = (Number(selectedLot?.price) || 0) * inscricoes.length;
     const productsTotal = cartProducts.reduce((total, product) => {
       return total + (Number(product.price) * product.quantity);
@@ -635,6 +635,33 @@ const Inscricao = () => {
         <ModernHeader />
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
           <Typography>Evento não encontrado</Typography>
+        </Box>
+        <Footer />
+      </Box>
+    );
+  }
+
+  // Verificação de segurança para lots
+  if (!event.lots || event.lots.length === 0) {
+    return (
+      <Box>
+        <ModernHeader />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
+          <Alert severity="warning" sx={{ maxWidth: 600 }}>
+            <Typography variant="h6" gutterBottom>
+              Nenhum lote disponível
+            </Typography>
+            <Typography>
+              Este evento não possui lotes disponíveis para inscrição.
+            </Typography>
+            <Button 
+              variant="contained" 
+              onClick={() => navigate('/')}
+              sx={{ mt: 2 }}
+            >
+              Voltar para Home
+            </Button>
+          </Alert>
         </Box>
         <Footer />
       </Box>
