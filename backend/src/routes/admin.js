@@ -1339,4 +1339,66 @@ router.post('/recreate-event-emergency', async (req, res) => {
   }
 });
 
+// ROTA DE EMERGÊNCIA PARA RESTAURAR PARTICIPANTES (REMOVER APÓS USO)
+router.post('/restore-participants-emergency', async (req, res) => {
+  try {
+    console.log('🚨 RESTAURANDO PARTICIPANTES DE EMERGÊNCIA');
+    
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Ler backup
+    const backupPath = path.join(__dirname, '../backups/critical_data_2025-07-27T00-43-31-763Z.json');
+    const backupData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+    
+    console.log('📋 Backup carregado com timestamp:', backupData.timestamp);
+    console.log('👥 Participantes no backup:', backupData.registrations.length);
+    
+    // Filtrar participantes do evento atual (ID 2)
+    const participantsToRestore = backupData.registrations.filter(reg => reg.event_id === 1);
+    console.log('🎯 Participantes para restaurar:', participantsToRestore.length);
+    
+    let restoredCount = 0;
+    
+    for (const participant of participantsToRestore) {
+      try {
+        // Ajustar event_id para 2 (novo evento)
+        const participantData = {
+          ...participant,
+          event_id: 2, // Novo ID do evento
+          lot_id: 1, // Primeiro lote do novo evento
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        // Remover campos que podem causar conflito
+        delete participantData.id;
+        
+        await db('registrations').insert(participantData);
+        restoredCount++;
+        console.log(`✅ Restaurado: ${participant.name} (${participant.email})`);
+        
+      } catch (error) {
+        console.log(`⚠️ Erro ao restaurar ${participant.name}:`, error.message);
+      }
+    }
+    
+    console.log(`🎉 RESTAURAÇÃO CONCLUÍDA: ${restoredCount} participantes restaurados`);
+    
+    res.json({
+      success: true,
+      message: 'Participantes restaurados com sucesso!',
+      restoredCount,
+      totalInBackup: participantsToRestore.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao restaurar participantes:', error);
+    res.status(500).json({
+      error: 'Erro ao restaurar participantes',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router; 
