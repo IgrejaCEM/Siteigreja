@@ -243,11 +243,13 @@ class PaymentGateway {
     if (config.PAYMENT_FAKE_MODE) {
       console.log('🎭 MODO FAKE ATIVADO - Criando pagamento fake');
       
+      const fakeUrl = `https://igrejacemchurch.org/inscricao/checkout-fake?amount=${paymentData.amount}&description=${encodeURIComponent(paymentData.description)}`;
+      
       return {
         payment_id: 'FAKE-' + Date.now(),
-        payment_url: 'https://igrejacemchurch.org/inscricao/sucesso',
-        status: 'paid',
-        status_detail: 'approved',
+        payment_url: fakeUrl,
+        status: 'pending',
+        status_detail: 'pending',
         external_reference: paymentData.customer.registration_code,
         amount: paymentData.amount,
         description: paymentData.description,
