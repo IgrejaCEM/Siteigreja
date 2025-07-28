@@ -1260,6 +1260,7 @@ router.post('/recreate-event-emergency', async (req, res) => {
         table.increments('id').primary();
         table.integer('event_id').unsigned().references('id').inTable('events').onDelete('CASCADE');
         table.string('name').notNullable();
+        table.text('description').nullable();
         table.decimal('price', 10, 2);
         table.integer('quantity');
         table.datetime('start_date');
@@ -1269,6 +1270,18 @@ router.post('/recreate-event-emergency', async (req, res) => {
         table.timestamps(true, true);
       });
       console.log('✅ Tabela lots criada');
+    } else {
+      // Verificar se a coluna description existe
+      const columns = await db('lots').columnInfo();
+      const existingColumns = Object.keys(columns);
+      
+      if (!existingColumns.includes('description')) {
+        console.log('❌ Coluna description não existe! Adicionando...');
+        await db.schema.alterTable('lots', table => {
+          table.text('description').nullable();
+        });
+        console.log('✅ Coluna description adicionada');
+      }
     }
 
     // Deletar evento existente se houver
