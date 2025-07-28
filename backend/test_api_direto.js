@@ -39,7 +39,7 @@ async function testarAPIDireto() {
     
     console.log('📦 Dados enviados:', JSON.stringify(preferenceData, null, 2));
     
-    const response2 = await axios.post('https://api.mercadopago.com/v1/preferences', preferenceData, {
+    const response2 = await axios.post('https://api.mercadopago.com/checkout/preferences', preferenceData, {
       headers: {
         'Authorization': `Bearer ${ACCESS_TOKEN}`,
         'Content-Type': 'application/json'

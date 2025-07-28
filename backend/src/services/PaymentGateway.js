@@ -14,7 +14,7 @@ class MercadoPagoGateway {
     console.log('🔑 Config fallback accessToken:', config.payment.mercadopago.accessToken);
     
     this.api = axios.create({
-      baseURL: 'https://api.mercadopago.com/v1',
+      baseURL: 'https://api.mercadopago.com',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ class MercadoPagoGateway {
 
       // Criar preferência de pagamento (Checkout Pro)
       console.log('🔗 Criando preferência no Mercado Pago...');
-      const response = await this.api.post('/preferences', payload);
+      const response = await this.api.post('/checkout/preferences', payload);
       
       console.log('✅ Checkout Pro criado:', response.data.id);
 
