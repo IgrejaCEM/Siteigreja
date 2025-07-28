@@ -632,6 +632,8 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
   console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
   
   let trx = null;
+  let isBoleto = false; // ✅ DECLARAR NO INÍCIO
+  
   try {
     // Iniciar transação com tratamento de erro
     try {
@@ -644,31 +646,44 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         details: txError.message
       });
     }
+    
     const { id } = req.params;
     const { participantes, payment_method, lot_id, products = [] } = req.body;
+    
+    console.log('🔍 Dados extraídos:', { id, payment_method, lot_id, participantesCount: participantes?.length });
+    
     if (!Array.isArray(participantes) || participantes.length === 0) {
       await trx.rollback();
       return res.status(400).json({ error: 'Nenhum participante informado.' });
     }
+    
     // Verificar se o evento existe
     const event = await trx('events').where('id', id).first();
     if (!event) {
       await trx.rollback();
       return res.status(404).json({ error: 'Evento não encontrado' });
     }
+    
+    console.log('✅ Evento encontrado:', event.title);
+    
     // Buscar o lote selecionado
     const selectedLot = await trx('lots')
       .where('id', lot_id)
       .andWhere('event_id', id)
       .first();
+      
     if (!selectedLot) {
       await trx.rollback();
       return res.status(400).json({ error: 'Lote selecionado inválido' });
     }
+    
+    console.log('✅ Lote encontrado:', selectedLot.name, 'Preço:', selectedLot.price);
+    
     if (selectedLot.quantity < participantes.length) {
       await trx.rollback();
       return res.status(400).json({ error: 'Não há vagas suficientes disponíveis neste lote' });
     }
+    
     // Buscar produtos do evento
     let productsData = [];
     let productsTotal = 0;
@@ -692,26 +707,38 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         productsTotal += Number(eventProduct.price) * p.quantity;
       }
     }
+    
+    console.log('✅ Produtos processados:', productsData.length, 'Total:', productsTotal);
+    
     // Criar inscrições e tickets
     const registrationCode = `REG-${generateId()}`;
     const inscricoesIds = [];
     const tickets = [];
+    
+    console.log('🎫 Iniciando criação de inscrições...');
+    
     for (const participante of participantes) {
       try {
         if (!participante.name || !participante.email || !participante.phone) {
           throw new Error('Campos obrigatórios faltando');
         }
+        
         const nome = participante.name || participante.nome || (participante.form_data && (participante.form_data.name || participante.form_data.nome)) || '-';
         const email = participante.email || (participante.form_data && participante.form_data.email) || '-';
+        
         const existing = await trx('registrations')
           .where({ event_id: id, name: nome, email: email })
           .andWhere('created_at', '>=', new Date(Date.now() - 5 * 60 * 1000))
           .first();
+          
         if (existing) {
           throw new Error('Já existe uma inscrição recente para este participante neste evento. Aguarde alguns minutos e tente novamente.');
         }
+        
         const isFree = selectedLot.price === 0 && productsTotal === 0;
-        const isBoleto = payment_method === 'boleto' || payment_method === 'ticket';
+        isBoleto = payment_method === 'boleto' || payment_method === 'ticket'; // ✅ USAR VARIÁVEL GLOBAL
+        
+        console.log('📊 Status da inscrição:', { isFree, isBoleto, payment_method });
         
         // Definir status baseado no tipo de pagamento
         let status, payment_status;
