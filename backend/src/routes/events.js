@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../database/db');
 const { authenticateToken, requireAdmin } = require('../middleware');
-const QRCode = require('qrcode');
-const { v4: uuidv4 } = require('uuid');
+// const QRCode = require('qrcode'); // Comentado temporariamente
+// const { v4: uuidv4 } = require('uuid'); // Comentado temporariamente
 const dayjs = require('dayjs');
 const EventProduct = require('../models/EventProduct');
 const RegistrationProduct = require('../models/RegistrationProduct');
@@ -729,7 +729,8 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           });
           await trx('event_products').where('id', p.id).decrement('stock', p.quantity);
         }
-        // QR Code
+        // QR Code - Comentado temporariamente para resolver erro 500
+        /*
         const qrCodeData = JSON.stringify({
           inscricaoId: inscricaoId,
           eventId: id,
@@ -744,6 +745,8 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
           console.error('Erro ao gerar QR code:', qrError);
           qrCode = null;
         }
+        */
+        let qrCode = null; // QR Code desabilitado temporariamente
         
         // Ticket - Comentado temporariamente para resolver erro 500
         /*
@@ -758,7 +761,7 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         */
         
         // Adicionar ticket simulado para não quebrar a resposta
-        const ticketCode = `TICKET-${uuidv4()}`;
+        const ticketCode = `TICKET-${Date.now()}-${inscricaoId}`;
         tickets.push({ ticketId: inscricaoId, ticketCode });
       } catch (inscricaoError) {
         console.error('Erro ao processar inscrição:', inscricaoError);
