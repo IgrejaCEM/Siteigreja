@@ -766,35 +766,48 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
       }
     }
     // Atualizar quantidade de vagas com verificação de concorrência
-    const updateResult = await trx('lots')
-      .where('id', selectedLot.id)
-      .where('quantity', '>=', participantes.length)
-      .update({
-        quantity: trx.raw(`quantity - ${participantes.length}`),
-        updated_at: new Date()
-      });
+    try {
+      const updateResult = await trx('lots')
+        .where('id', selectedLot.id)
+        .where('quantity', '>=', participantes.length)
+        .update({
+          quantity: trx.raw(`quantity - ${participantes.length}`),
+          updated_at: new Date()
+        });
 
-    if (updateResult === 0) {
+      if (updateResult === 0) {
+        await trx.rollback();
+        return res.status(400).json({ error: 'Não há vagas suficientes disponíveis neste lote. Tente novamente.' });
+      }
+
+      console.log(`✅ Lote ${selectedLot.id} atualizado: ${selectedLot.quantity} -> ${selectedLot.quantity - participantes.length} vagas`);
+    } catch (updateError) {
+      console.error('❌ Erro ao atualizar quantidade do lote:', updateError);
       await trx.rollback();
-      return res.status(400).json({ error: 'Não há vagas suficientes disponíveis neste lote. Tente novamente.' });
+      return res.status(500).json({ 
+        error: 'Erro ao atualizar quantidade do lote',
+        details: updateError.message 
+      });
     }
-
-    console.log(`✅ Lote ${selectedLot.id} atualizado: ${selectedLot.quantity} -> ${selectedLot.quantity - participantes.length} vagas`);
     // Pagamento
     const totalAmount = (selectedLot.price * participantes.length) + productsTotal;
     let paymentInfo = null;
     
     if (selectedLot.price > 0 || productsTotal > 0) {
       try {
-        // Cria registro de pagamento
-        const [paymentId] = await trx('payments').insert({
-          registration_code: registrationCode,
-          amount: totalAmount,
-          payment_method: payment_method || 'mercadopago',
-          status: 'pending',
-          created_at: new Date(),
-          updated_at: new Date()
-        }).returning('id');
+        // Verificar se a tabela payments existe antes de inserir
+        const paymentsExists = await trx.schema.hasTable('payments');
+        if (paymentsExists) {
+          // Cria registro de pagamento
+          const [paymentId] = await trx('payments').insert({
+            registration_code: registrationCode,
+            amount: totalAmount,
+            payment_method: payment_method || 'mercadopago',
+            status: 'pending',
+            created_at: new Date(),
+            updated_at: new Date()
+          }).returning('id');
+        }
         
         // Integração com gateway (Mercado Pago)
         console.log('🔗 Iniciando criação de pagamento no Mercado Pago...');
@@ -826,6 +839,17 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         paymentInfo = null;
       }
     }
+    // Verificar se o evento ainda existe antes de fazer commit
+    const eventStillExists = await trx('events').where('id', id).first();
+    if (!eventStillExists) {
+      await trx.rollback();
+      console.error('❌ CRÍTICO: Evento foi deletado durante a inscrição!');
+      return res.status(500).json({ 
+        error: 'Erro crítico: Evento não encontrado após inscrição',
+        details: 'O evento foi removido durante o processo de inscrição'
+      });
+    }
+    
     // Estatísticas
     const stats = await updateEventStats(id, trx);
     await trx.commit();
