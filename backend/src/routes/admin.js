@@ -1385,6 +1385,65 @@ router.post('/recreate-event-emergency', async (req, res) => {
   }
 });
 
+// ROTA DE EMERGÊNCIA PARA RESTAURAR EVENTOS REAIS (REMOVER APÓS USO)
+router.post('/restore-real-events-emergency', async (req, res) => {
+  try {
+    console.log('🚨 RESTAURANDO EVENTOS REAIS DE EMERGÊNCIA');
+    
+    // Primeiro, deletar todos os eventos de teste
+    await db('registrations').del();
+    await db('lots').del();
+    await db('events').del();
+    console.log('🗑️ Eventos de teste removidos');
+    
+    // Criar evento real CONNECT CONF 2025
+    const [eventId] = await db('events').insert({
+      title: 'CONNECT CONF 2025 - INPROVÁVEIS',
+      description: 'A Connect Conf 2025 é mais do que uma conferência – é um chamado para aqueles que se acham fora do padrão, esquecidos ou desacreditados.',
+      date: '2025-10-24 19:00:00',
+      location: 'Igreja CEM - CAJATI, localizada na Av. dos trabalhadores, Nº99 - Centro, Cajati/SP.',
+      price: 60,
+      banner: 'https://i.ibb.co/tpzV7gt4/jpg-foto.jpg',
+      banner_home: 'https://i.ibb.co/tpzV7gt4/jpg-foto.jpg',
+      banner_evento: 'https://i.ibb.co/tpzV7gt4/jpg-foto.jpg',
+      slug: 'connect-conf-2025-inprovveis',
+      status: 'active'
+    }).returning('id');
+
+    console.log('✅ Evento CONNECT CONF criado com ID:', eventId);
+
+    // Criar lote real
+    const [lotId] = await db('lots').insert({
+      event_id: eventId,
+      name: 'LOTE 1',
+      description: 'Lote principal do evento',
+      price: 60,
+      quantity: 100,
+      start_date: '2025-01-01 00:00:00',
+      end_date: '2025-07-30 23:59:59',
+      status: 'active',
+      is_free: false
+    }).returning('id');
+
+    console.log('✅ Lote real criado com ID:', lotId);
+
+    res.json({
+      success: true,
+      message: 'Eventos reais restaurados com sucesso!',
+      eventId,
+      lotId,
+      note: 'Seus eventos reais foram restaurados. Os eventos de teste foram removidos.'
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao restaurar eventos reais:', error);
+    res.status(500).json({
+      error: 'Erro ao restaurar eventos reais',
+      details: error.message
+    });
+  }
+});
+
 // ROTA DE EMERGÊNCIA PARA RESTAURAR EVENTO COMPLETO (REMOVER APÓS USO)
 router.post('/restore-complete-event-emergency', async (req, res) => {
   try {
