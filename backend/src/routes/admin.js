@@ -3,6 +3,20 @@ const router = express.Router();
 const { db } = require('../database/db');
 const { authenticateToken, requireAdmin } = require('../middleware');
 
+// Middleware CORS específico para rotas admin
+router.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Content-Length');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Página do painel admin
 router.get('/', async (req, res) => {
   try {
@@ -64,6 +78,27 @@ router.get('/events', authenticateToken, requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Erro ao listar eventos:', error);
     res.status(500).json({ error: 'Erro ao listar eventos' });
+  }
+});
+
+// Rota de teste para criar evento sem autenticação (REMOVER APÓS USO)
+router.post('/events-test', async (req, res) => {
+  try {
+    console.log('🧪 TESTE DE CRIAÇÃO DE EVENTO');
+    console.log('📦 Dados recebidos:', req.body);
+    
+    res.json({
+      success: true,
+      message: 'Teste de criação de evento funcionando',
+      data: req.body
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro no teste:', error);
+    res.status(500).json({
+      error: 'Erro no teste de criação',
+      details: error.message
+    });
   }
 });
 
