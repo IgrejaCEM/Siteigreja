@@ -57,10 +57,27 @@ class MercadoPagoGateway {
         statement_descriptor: 'INSCRICAO',
         // Configurações para forçar web checkout
         binary_mode: true,
+        // Forçar checkout web em vez de app mobile
+        installments: 1,
+        payment_methods: {
+          installments: 1,
+          default_installments: 1,
+          excluded_payment_types: [
+            { id: "ticket" }
+          ],
+          excluded_payment_methods: [
+            { id: "amex" }
+          ]
+        },
+        // Configurações para evitar deep links
+        expires: true,
+        expiration_date_from: new Date().toISOString(),
+        expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         metadata: {
           registration_code: customer.registration_code,
           customer_id: customer.id,
-          event_id: customer.event_id
+          event_id: customer.event_id,
+          force_web_checkout: true
         }
       };
 
