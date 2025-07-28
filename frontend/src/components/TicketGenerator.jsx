@@ -22,6 +22,26 @@ const TicketGenerator = ({ registrationData, eventData }) => {
     doc.setFillColor(primaryColor);
     doc.rect(0, 0, pageWidth, 40, 'F');
     
+    // Logo do evento (se disponível)
+    if (eventData?.logo) {
+      try {
+        // Tentar carregar a logo do evento
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const logoWidth = 30;
+          const logoHeight = 30;
+          const logoX = margin;
+          const logoY = 5;
+          
+          doc.addImage(img, 'JPEG', logoX, logoY, logoWidth, logoHeight);
+        };
+        img.src = eventData.logo;
+      } catch (error) {
+        console.log('Erro ao carregar logo:', error);
+      }
+    }
+    
     // Logo/Título da Igreja
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);

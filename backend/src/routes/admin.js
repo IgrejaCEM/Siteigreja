@@ -117,6 +117,7 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
       banner,
       banner_home,
       banner_evento,
+      logo, // ✅ NOVO: Campo para logo do evento
       status,
       registration_form,
       lots,
@@ -184,6 +185,7 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
       banner: banner || null,
       banner_home: banner_home || null,
       banner_evento: banner_evento || null,
+      logo: logo || null, // ✅ NOVO: Campo para logo do evento
       status: status || 'active',
       slug,
       registration_form: registration_form ? JSON.stringify(registration_form) : null,
@@ -276,6 +278,7 @@ router.put('/events/:id', async (req, res) => {
       banner,
       banner_home,
       banner_evento,
+      logo, // ✅ NOVO: Campo para logo do evento
       status,
       registration_form,
       lots
@@ -300,6 +303,7 @@ router.put('/events/:id', async (req, res) => {
         banner,
         banner_home,
         banner_evento,
+        logo, // ✅ NOVO: Campo para logo do evento
         status,
         slug,
         registration_form: registration_form ? JSON.stringify(registration_form) : null,

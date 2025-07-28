@@ -70,6 +70,7 @@ const CriarEvento = () => {
     banner: '',
     banner_home: '',
     banner_evento: '',
+    logo: '', // ✅ NOVO: Campo para logo do evento
     status: 'active',
     has_payment: false,
     payment_gateway: '',
@@ -496,6 +497,57 @@ const CriarEvento = () => {
                           </Box>
                         )}
                       </Grid>
+                      
+                      {/* Logo do Evento */}
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Logo do Evento
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
+                          Tamanho recomendado: 200x200 pixels (quadrada)
+                        </Typography>
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="logo-upload"
+                          type="file"
+                          onChange={(e) => handleBannerChange(e, 'logo')}
+                        />
+                        <label htmlFor="logo-upload">
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            fullWidth
+                            sx={{ mb: 2 }}
+                          >
+                            Selecionar Logo
+                          </Button>
+                        </label>
+                        <Button
+                          variant="text"
+                          fullWidth
+                          onClick={() => handleImageUrl('logo')}
+                          sx={{ mb: 2 }}
+                        >
+                          Ou inserir URL
+                        </Button>
+                        {form.logo && (
+                          <Box sx={{ mt: 2 }}>
+                            <img
+                              src={form.logo}
+                              alt="Logo Preview"
+                              style={{
+                                width: '100px',
+                                height: '100px',
+                                objectFit: 'cover',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd'
+                              }}
+                            />
+                          </Box>
+                        )}
+                      </Grid>
+                      
                       <Grid item xs={12} sm={4}>
                         <Typography variant="subtitle2" gutterBottom>
                           Banner Home
