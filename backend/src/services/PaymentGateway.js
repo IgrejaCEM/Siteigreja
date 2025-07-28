@@ -4,28 +4,30 @@ const config = require('../config');
 // Classe do Mercado Pago
 class MercadoPagoGateway {
   constructor() {
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN || config.payment.mercadopago.accessToken;
-    console.log('🔑 Token Mercado Pago configurado:', accessToken ? 'SIM' : 'NÃO');
-    console.log('🔑 Token completo:', accessToken || 'NÃO CONFIGURADO');
-    console.log('🔑 Token prefixo:', accessToken ? accessToken.substring(0, 10) + '...' : 'NÃO CONFIGURADO');
-    console.log('🔑 Tipo de credencial:', accessToken?.startsWith('APP_USR') ? 'PRODUÇÃO' : accessToken?.startsWith('TEST') ? 'SANDBOX' : 'DESCONHECIDO');
-    console.log('🌍 Ambiente:', process.env.NODE_ENV || 'development');
-    console.log('🔑 Variável de ambiente MERCADOPAGO_ACCESS_TOKEN:', process.env.MERCADOPAGO_ACCESS_TOKEN ? 'CONFIGURADA' : 'NÃO CONFIGURADA');
-    console.log('🔑 Config fallback accessToken:', config.payment.mercadopago.accessToken);
-    
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
     this.api = axios.create({
       baseURL: 'https://api.mercadopago.com',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'cross-site'
       }
     });
   }
 
-  async createPayment({ amount, description, customer, method = 'CREDITCARD' }) {
+  async createPayment(paymentData) {
     try {
-      // Checkout Pro - Não precisa especificar método, usuário escolhe dentro do checkout
+      const { amount, description, customer } = paymentData;
+      
+      console.log('🔗 Criando preferência no Mercado Pago...');
+      
       const payload = {
         items: [
           {
@@ -36,40 +38,53 @@ class MercadoPagoGateway {
         ],
         payer: {
           name: customer.name || '',
-          email: customer.email || ''
+          email: customer.email || '',
+          phone: {
+            area_code: '11',
+            number: '999999999'
+          },
+          identification: {
+            type: 'CPF',
+            number: '12345678901'
+          }
         },
         back_urls: {
-          success: process.env.NODE_ENV === 'production' 
+          success: process.env.NODE_ENV === 'production'
             ? 'https://igrejacemchurch.org/inscricao/sucesso'
-            : 'http://localhost:5173/inscricao/sucesso',
+            : 'http://localhost:3000/inscricao/sucesso',
           failure: process.env.NODE_ENV === 'production'
             ? 'https://igrejacemchurch.org/inscricao/erro'
-            : 'http://localhost:5173/inscricao/erro',
+            : 'http://localhost:3000/inscricao/erro',
           pending: process.env.NODE_ENV === 'production'
             ? 'https://igrejacemchurch.org/inscricao/pendente'
-            : 'http://localhost:5173/inscricao/pendente'
+            : 'http://localhost:3000/inscricao/pendente'
         },
         auto_return: 'approved',
         external_reference: customer.registration_code || '',
-        notification_url: process.env.NODE_ENV === 'production' 
+        notification_url: process.env.NODE_ENV === 'production'
           ? (process.env.MERCADOPAGO_WEBHOOK_URL || 'https://siteigreja-1.onrender.com/api/payments/webhook')
           : 'http://localhost:3005/api/payments/webhook',
         statement_descriptor: 'INSCRICAO',
-        // Configurações para forçar web checkout
         binary_mode: true,
-        // Forçar checkout web em vez de app mobile
         installments: 1,
         payment_methods: {
           installments: 1,
           default_installments: 1,
           excluded_payment_types: [
-            { id: "ticket" }
+            { id: "ticket" },
+            { id: "atm" }
           ],
           excluded_payment_methods: [
-            { id: "amex" }
+            { id: "amex" },
+            { id: "naranja" },
+            { id: "nativa" },
+            { id: "shopping" },
+            { id: "cencosud" },
+            { id: "argencard" },
+            { id: "cabal" },
+            { id: "diners" }
           ]
         },
-        // Configurações para evitar deep links
         expires: true,
         expiration_date_from: new Date().toISOString(),
         expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
@@ -77,36 +92,28 @@ class MercadoPagoGateway {
           registration_code: customer.registration_code,
           customer_id: customer.id,
           event_id: customer.event_id,
-          force_web_checkout: true
+          force_web_checkout: true,
+          platform: 'web',
+          user_agent: 'desktop'
         }
       };
 
-      console.log('🔗 Criando checkout Pro do Mercado Pago...');
-      console.log('📦 Payload:', JSON.stringify(payload, null, 2));
-
-      // Criar preferência de pagamento (Checkout Pro)
-      console.log('🔗 Criando preferência no Mercado Pago...');
+      console.log('📦 Payload da preferência:', JSON.stringify(payload, null, 2));
+      
       const response = await this.api.post('/checkout/preferences', payload);
       
-      console.log('✅ Checkout Pro criado:', response.data.id);
-
+      console.log('✅ Preferência criada com sucesso!');
+      console.log('🔗 ID da preferência:', response.data.id);
+      console.log('🔗 URL do checkout:', response.data.init_point);
+      
       return {
-        payment_id: response.data.id,
-        payment_url: response.data.init_point, // URL do checkout onde usuário escolhe método
-        status: 'pending',
-        status_detail: 'pending',
-        external_reference: response.data.external_reference,
-        raw: response.data
+        id: response.data.id,
+        payment_url: response.data.init_point,
+        status: 'pending'
       };
+      
     } catch (error) {
-      console.error('❌ Erro ao criar checkout Mercado Pago:');
-      console.error('📊 Status:', error.response?.status);
-      console.error('📊 Status Text:', error.response?.statusText);
-      console.error('📊 URL:', error.config?.url);
-      console.error('📊 Method:', error.config?.method);
-      console.error('📊 Headers:', error.config?.headers);
-      console.error('📊 Data:', error.response?.data);
-      console.error('📊 Message:', error.message);
+      console.error('❌ Erro ao criar preferência no Mercado Pago:', error.response?.data || error.message);
       throw error;
     }
   }
