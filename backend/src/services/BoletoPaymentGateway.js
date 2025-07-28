@@ -20,16 +20,26 @@ class BoletoPaymentGateway {
       
       console.log('🏦 Criando boleto com reserva temporária...');
       
+      // Extrair nome e sobrenome do cliente
+      const fullName = customer.name || '';
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || firstName;
+
       const payload = {
         items: [
           {
+            id: registrationCode || 'BOLETO-001',
             title: description || 'Inscrição no Evento',
+            description: `Inscrição para ${customer.name || 'Participante'} - ${description || 'Evento'}`,
+            category_id: 'events',
             quantity: 1,
             unit_price: Number(amount)
           }
         ],
         payer: {
-          name: customer.name || '',
+          name: firstName,
+          surname: lastName, // ✅ MELHORIA: Sobrenome do comprador
           email: customer.email || '',
           phone: {
             area_code: '11',
@@ -102,16 +112,26 @@ class BoletoPaymentGateway {
       
       console.log('🏦 Criando boleto com confirmação imediata...');
       
+      // Extrair nome e sobrenome do cliente
+      const fullName = customer.name || '';
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || firstName;
+
       const payload = {
         items: [
           {
+            id: registrationCode || 'BOLETO-002',
             title: description || 'Inscrição no Evento',
+            description: `Inscrição para ${customer.name || 'Participante'} - ${description || 'Evento'}`,
+            category_id: 'events',
             quantity: 1,
             unit_price: Number(amount)
           }
         ],
         payer: {
-          name: customer.name || '',
+          name: firstName,
+          surname: lastName, // ✅ MELHORIA: Sobrenome do comprador
           email: customer.email || '',
           phone: {
             area_code: '11',
@@ -184,16 +204,26 @@ class BoletoPaymentGateway {
       
       console.log('🏦 Criando boleto com prazo de 24h...');
       
+      // Extrair nome e sobrenome do cliente
+      const fullName = customer.name || '';
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || firstName;
+
       const payload = {
         items: [
           {
+            id: registrationCode || 'BOLETO-003',
             title: description || 'Inscrição no Evento',
+            description: `Inscrição para ${customer.name || 'Participante'} - ${description || 'Evento'}`,
+            category_id: 'events',
             quantity: 1,
             unit_price: Number(amount)
           }
         ],
         payer: {
-          name: customer.name || '',
+          name: firstName,
+          surname: lastName, // ✅ MELHORIA: Sobrenome do comprador
           email: customer.email || '',
           phone: {
             area_code: '11',
