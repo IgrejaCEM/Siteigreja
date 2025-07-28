@@ -3,7 +3,14 @@ const config = require('../config');
 
 class BoletoPaymentGateway {
   constructor() {
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+    // Credenciais de produção do Checkout PRO
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-7906695833613236-072622-a7c53bcaf7bc8b8289f1961ce3937843-2568627728';
+    const publicKey = process.env.MERCADOPAGO_PUBLIC_KEY || 'APP_USR-c478c542-b18d-4ab1-acba-9539754cb167';
+    
+    console.log('🔑 Configurando Mercado Pago Checkout PRO para Boletos');
+    console.log('   Access Token:', accessToken.substring(0, 20) + '...');
+    console.log('   Public Key:', publicKey.substring(0, 20) + '...');
+    
     this.api = axios.create({
       baseURL: 'https://api.mercadopago.com',
       headers: {

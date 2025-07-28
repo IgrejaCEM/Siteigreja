@@ -19,9 +19,9 @@ const config = {
   },
   payment: {
     mercadopago: {
-      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || '',
-      publicKey: process.env.MERCADOPAGO_PUBLIC_KEY || '',
-      clientId: process.env.MERCADOPAGO_CLIENT_ID || '',
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-7906695833613236-072622-a7c53bcaf7bc8b8289f1961ce3937843-2568627728',
+      publicKey: process.env.MERCADOPAGO_PUBLIC_KEY || 'APP_USR-c478c542-b18d-4ab1-acba-9539754cb167',
+      clientId: process.env.MERCADOPAGO_CLIENT_ID || '2568627728',
       clientSecret: process.env.MERCADOPAGO_CLIENT_SECRET || '',
       sandbox: process.env.NODE_ENV !== 'production'
     }
