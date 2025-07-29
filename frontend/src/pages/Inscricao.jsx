@@ -355,7 +355,7 @@ const Inscricao = () => {
       const response = await api.post(`/events/${event.id}/inscricao-simples`, {
         participantes: participantesToSend,
         payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
-        lot_id: selectedLotId,
+        lote_id: selectedLotId,
         products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
       });
 
