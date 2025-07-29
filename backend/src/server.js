@@ -86,6 +86,35 @@ app.get('/', (req, res) => {
   });
 });
 
+// Rota de webhook direta (temporária para debug)
+app.post('/api/payments/webhook', async (req, res) => {
+  try {
+    console.log('🔔 WEBHOOK RECEBIDO (ROTA DIRETA)');
+    console.log('📦 Dados:', req.body);
+    
+    // Validar assinatura do webhook do Mercado Pago
+    const signature = req.headers['x-signature'] || req.headers['x-signature-id'];
+    const expectedSignature = 'd2fbc1af5dd4eb4e1290657b6107c0c7be62e3e00c3f7ca635c6c23a5bc27f6c';
+    
+    if (signature && signature !== expectedSignature) {
+      console.log('⚠️ Assinatura inválida:', signature);
+      return res.status(401).json({ error: 'Assinatura inválida' });
+    }
+    
+    console.log('✅ Assinatura válida');
+    
+    res.json({ 
+      received: true, 
+      message: 'Webhook processado com sucesso!',
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro no webhook:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 // Rotas
 app.use('/api', routes);
 
