@@ -83,6 +83,25 @@ const EventoCompleto = ({ event }) => {
     return total;
   };
 
+  const handleProceedToRegistration = () => {
+    if (!selectedLot) {
+      alert('Por favor, selecione um ingresso primeiro!');
+      return;
+    }
+
+    // Preparar dados para inscrição
+    const registrationData = {
+      eventId: eventDetails.id,
+      lotId: selectedLot.id,
+      products: cartProducts,
+      total: calculateTotal()
+    };
+
+    // Redirecionar para página de inscrição
+    const eventSlug = eventDetails.slug || eventDetails.id;
+    window.location.href = `/evento/${eventSlug}/inscricao`;
+  };
+
   if (loading) {
     return (
       <Box sx={{ 
@@ -645,6 +664,7 @@ const EventoCompleto = ({ event }) => {
                     variant="contained"
                     size={isMobile ? 'medium' : 'large'}
                     disabled={!selectedLot}
+                    onClick={handleProceedToRegistration}
                     sx={{ 
                       background: '#1976d2',
                       color: 'white',
