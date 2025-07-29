@@ -141,12 +141,16 @@ const CriarEvento = () => {
             payment_gateway: event.payment_gateway,
             currency: event.currency,
             registration_form: event.registration_form,
-            lots: event.lots || [{
+            lots: event.lots ? event.lots.map(lot => ({
+              ...lot,
+              start_date: lot.start_date ? dayjs(lot.start_date).format('YYYY-MM-DD') : '',
+              end_date: lot.end_date ? dayjs(lot.end_date).format('YYYY-MM-DD') : ''
+            })) : [{
               name: '',
               price: '',
               quantity: '',
-              start_date: null,
-              end_date: null
+              start_date: '',
+              end_date: ''
             }],
             payment_methods: event.payment_methods || ['credit_card', 'pix', 'boleto']
           });
