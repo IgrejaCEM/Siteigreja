@@ -2,6 +2,70 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../database/db');
 
+// Listar todos os eventos públicos
+router.get('/', async (req, res) => {
+  try {
+    const events = await db('events')
+      .select('*')
+      .where('status', 'active')
+      .orderBy('date', 'asc');
+
+    res.json(events.map(event => ({
+      ...event,
+      banner: event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento',
+      banner_home: event.banner_home || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento',
+      banner_evento: event.banner_evento || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento'
+    })));
+  } catch (error) {
+    console.error('Erro ao listar eventos:', error);
+    res.status(500).json({ error: 'Erro ao listar eventos' });
+  }
+});
+
+// Buscar evento por ID
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if id is a number
+    const eventId = parseInt(id);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ error: 'ID do evento inválido' });
+    }
+    
+    const event = await db('events').where('id', eventId).first();
+    if (!event) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
+    
+    // Buscar lotes do evento
+    const lots = await db('lots')
+      .where('event_id', eventId)
+      .where('status', 'active')
+      .orderBy('created_at', 'asc');
+    
+    // Buscar produtos do evento
+    const products = await db('event_products')
+      .where('event_id', eventId)
+      .where('is_active', true)
+      .orderBy('created_at', 'desc');
+    
+    const eventWithDetails = {
+      ...event,
+      lots: lots,
+      products: products,
+      banner: event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento',
+      banner_home: event.banner_home || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento',
+      banner_evento: event.banner_evento || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento'
+    };
+    
+    res.json(eventWithDetails);
+  } catch (error) {
+    console.error('Erro ao buscar evento:', error);
+    res.status(500).json({ error: 'Erro ao buscar evento' });
+  }
+});
+
 // Endpoint unificado para inscrição e pagamento
 router.post('/:id/inscricao-unificada', async (req, res) => {
   console.log('🚀 INICIANDO INSCRIÇÃO ULTRA-ROBUSTA');
