@@ -615,8 +615,10 @@ const Inscricao = () => {
 
   // Verificação global de selectedLot para evitar erros
   let selectedLot = null;
-  if (event && event.lots) {
+  if (event && event.lots && selectedLotId) {
     selectedLot = event.lots.find(lot => lot.id === selectedLotId) || event.lots[0];
+  } else if (event && event.lots && event.lots.length > 0) {
+    selectedLot = event.lots[0];
   }
 
   const renderInscricaoForm = (index) => (
