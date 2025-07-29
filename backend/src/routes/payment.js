@@ -274,6 +274,11 @@ router.get('/payments/:registrationCode', async (req, res) => {
   }
 });
 
+// Rota de teste para verificar se o arquivo está sendo carregado
+router.get('/payments/test', (req, res) => {
+  res.json({ message: 'Payment routes loaded successfully!' });
+});
+
 // Webhook para receber notificações do gateway de pagamento
 router.post('/payments/webhook', async (req, res) => {
   try {
