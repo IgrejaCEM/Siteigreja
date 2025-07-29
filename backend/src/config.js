@@ -9,12 +9,14 @@ const config = {
         'https://igrejacemchurch.org',
         'https://siteigreja-mctd5i4q8-igrejacems-projects.vercel.app',
         'https://siteigreja-1.onrender.com',
-        'https://siteigreja.onrender.com'
+        'https://siteigreja.onrender.com',
+        'https://www.igrejacemchurch.org'
       ],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
       credentials: true,
-      optionsSuccessStatus: 200
+      optionsSuccessStatus: 200,
+      preflightContinue: false
     }
   },
 
