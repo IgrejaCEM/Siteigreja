@@ -277,6 +277,20 @@ router.get('/payments/:registrationCode', async (req, res) => {
 // Webhook para receber notificações do gateway de pagamento
 router.post('/payments/webhook', async (req, res) => {
   try {
+    console.log('🔔 WEBHOOK RECEBIDO');
+    console.log('📦 Dados:', req.body);
+    
+    // Validar assinatura do webhook do Mercado Pago
+    const signature = req.headers['x-signature'] || req.headers['x-signature-id'];
+    const expectedSignature = 'd2fbc1af5dd4eb4e1290657b6107c0c7be62e3e00c3f7ca635c6c23a5bc27f6c';
+    
+    if (signature && signature !== expectedSignature) {
+      console.log('⚠️ Assinatura inválida:', signature);
+      return res.status(401).json({ error: 'Assinatura inválida' });
+    }
+    
+    console.log('✅ Assinatura válida');
+    
     const event = req.body;
     const config = require('../config');
     
