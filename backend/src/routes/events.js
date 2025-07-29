@@ -96,8 +96,8 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     
     // Buscar o lote selecionado
     const selectedLot = await db('lots')
-      .where('id', lot_id)
-      .andWhere('event_id', id)
+      .where('id', parseInt(lot_id))
+      .andWhere('event_id', parseInt(id))
       .first();
       
     if (!selectedLot) {
