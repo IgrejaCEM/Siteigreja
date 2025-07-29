@@ -22,31 +22,36 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Buscar evento por ID
+// Buscar evento por ID ou slug
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
     // Check if id is a number
     const eventId = parseInt(id);
+    let event;
+    
     if (isNaN(eventId)) {
-      return res.status(400).json({ error: 'ID do evento inválido' });
+      // Buscar por slug
+      event = await db('events').where('slug', id).first();
+    } else {
+      // Buscar por ID
+      event = await db('events').where('id', eventId).first();
     }
     
-    const event = await db('events').where('id', eventId).first();
     if (!event) {
       return res.status(404).json({ error: 'Evento não encontrado' });
     }
     
     // Buscar lotes do evento
     const lots = await db('lots')
-      .where('event_id', eventId)
+      .where('event_id', event.id)
       .where('status', 'active')
       .orderBy('created_at', 'asc');
     
     // Buscar produtos do evento
     const products = await db('event_products')
-      .where('event_id', eventId)
+      .where('event_id', event.id)
       .where('is_active', true)
       .orderBy('created_at', 'desc');
     
