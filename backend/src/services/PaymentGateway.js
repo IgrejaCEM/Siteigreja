@@ -66,21 +66,13 @@ class MercadoPagoGateway {
           }
         },
         back_urls: {
-          success: process.env.NODE_ENV === 'production'
-            ? 'https://igrejacemchurch.org/inscricao/sucesso'
-            : 'http://localhost:3000/inscricao/sucesso',
-          failure: process.env.NODE_ENV === 'production'
-            ? 'https://igrejacemchurch.org/inscricao/erro'
-            : 'http://localhost:3000/inscricao/erro',
-          pending: process.env.NODE_ENV === 'production'
-            ? 'https://igrejacemchurch.org/inscricao/pendente'
-            : 'http://localhost:3000/inscricao/pendente'
+          success: 'https://igrejacemchurch.org',
+          failure: 'https://igrejacemchurch.org',
+          pending: 'https://igrejacemchurch.org'
         },
         auto_return: 'approved',
         external_reference: customer.registration_code || '',
-        notification_url: process.env.NODE_ENV === 'production'
-          ? (process.env.MERCADOPAGO_WEBHOOK_URL || 'https://siteigreja-1.onrender.com/api/payments/webhook')
-          : 'http://localhost:3005/api/payments/webhook',
+        notification_url: 'https://siteigreja-1.onrender.com/api/payments/webhook',
         statement_descriptor: 'INSCRICAO',
         binary_mode: true,
         installments: 1,
