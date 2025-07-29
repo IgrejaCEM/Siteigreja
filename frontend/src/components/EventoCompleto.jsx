@@ -109,51 +109,85 @@ const EventoCompleto = ({ event }) => {
     <>
       <style>
         {`
-          /* FORÇAR TUDO PRETO - REMOVER QUALQUER ROXO */
+          /* CSS SUPER AGRESSIVO - FORÇAR TUDO PRETO */
           * {
             background: #000000 !important;
             background-color: #000000 !important;
+            background-image: none !important;
+            background-gradient: none !important;
           }
           
-          /* Remover gradientes roxos */
+          /* Override de TODOS os estilos inline */
           *[style*="background"] {
             background: #000000 !important;
             background-color: #000000 !important;
+            background-image: none !important;
           }
           
-          /* Forçar cards pretos */
+          /* Override de Material-UI */
           .MuiCard-root, .MuiCard-root * {
             background: #000000 !important;
             background-color: #000000 !important;
+            background-image: none !important;
           }
           
-          /* Forçar seções pretas */
-          section, div {
+          .MuiCardContent-root, .MuiCardContent-root * {
             background: #000000 !important;
             background-color: #000000 !important;
+            background-image: none !important;
           }
           
-          /* Remover gradientes */
-          *[style*="gradient"] {
+          /* Override de seções */
+          section, div, article, aside, main, header, footer {
             background: #000000 !important;
             background-color: #000000 !important;
+            background-image: none !important;
           }
           
-          /* Forçar fundo preto em tudo */
-          body, html, #root {
+          /* Remover TODOS os gradientes */
+          *[style*="gradient"], *[style*="linear-gradient"], *[style*="radial-gradient"] {
             background: #000000 !important;
             background-color: #000000 !important;
+            background-image: none !important;
+          }
+          
+          /* Forçar fundo preto em TUDO */
+          body, html, #root, #app, .app {
+            background: #000000 !important;
+            background-color: #000000 !important;
+            background-image: none !important;
+          }
+          
+          /* Override de cores roxas/lilás */
+          *[style*="purple"], *[style*="lilac"], *[style*="#6"], *[style*="#7"], *[style*="#8"], *[style*="#9"] {
+            background: #000000 !important;
+            background-color: #000000 !important;
+            background-image: none !important;
+          }
+          
+          /* Forçar todos os elementos para preto */
+          .evento-completo * {
+            background: #000000 !important;
+            background-color: #000000 !important;
+            background-image: none !important;
           }
         `}
       </style>
       
-      <Box sx={{ 
-        width: '100vw', 
-        minHeight: '100vh',
-        background: '#000000 !important',
-        color: 'white',
-        padding: '20px'
-      }}>
+      <Box 
+        className="evento-completo"
+        sx={{ 
+          width: '100vw', 
+          minHeight: '100vh',
+          background: '#000000 !important',
+          color: 'white',
+          padding: '20px',
+          '& *': {
+            background: '#000000 !important',
+            backgroundColor: '#000000 !important'
+          }
+        }}
+      >
         {/* Banner do evento */}
         <Box sx={{ 
           width: '100%', 
@@ -164,7 +198,10 @@ const EventoCompleto = ({ event }) => {
           mb: 4,
           boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
           border: '2px solid #333',
-          background: '#000000 !important'
+          background: '#000000 !important',
+          '& *': {
+            background: '#000000 !important'
+          }
         }}>
           <img
             src={eventDetails.banner || 'https://via.placeholder.com/1200x400?text=Banner+do+Evento'}
@@ -182,7 +219,10 @@ const EventoCompleto = ({ event }) => {
             right: 0,
             background: 'rgba(0,0,0,0.9) !important',
             padding: '40px',
-            color: 'white'
+            color: 'white',
+            '& *': {
+              background: 'transparent !important'
+            }
           }}>
             <Typography variant="h2" sx={{ fontWeight: 'bold', mb: 2 }}>
               {eventDetails.title}
@@ -205,10 +245,29 @@ const EventoCompleto = ({ event }) => {
         </Box>
 
         {/* Conteúdo do evento */}
-        <Box sx={{ maxWidth: '1200px', margin: '0 auto', background: '#000000 !important' }}>
+        <Box sx={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto', 
+          background: '#000000 !important',
+          '& *': {
+            background: '#000000 !important'
+          }
+        }}>
           {/* Descrição */}
-          <Card sx={{ mb: 4, background: '#000000 !important', border: '1px solid #333' }}>
-            <CardContent sx={{ background: '#000000 !important' }}>
+          <Card sx={{ 
+            mb: 4, 
+            background: '#000000 !important', 
+            border: '1px solid #333',
+            '& *': {
+              background: '#000000 !important'
+            }
+          }}>
+            <CardContent sx={{ 
+              background: '#000000 !important',
+              '& *': {
+                background: '#000000 !important'
+              }
+            }}>
               <Typography variant="h5" sx={{ mb: 2, color: 'white' }}>
                 Sobre o Evento
               </Typography>
@@ -220,8 +279,20 @@ const EventoCompleto = ({ event }) => {
 
           {/* Lotes */}
           {eventDetails.lots && eventDetails.lots.length > 0 && (
-            <Card sx={{ mb: 4, background: '#000000 !important', border: '1px solid #333' }}>
-              <CardContent sx={{ background: '#000000 !important' }}>
+            <Card sx={{ 
+              mb: 4, 
+              background: '#000000 !important', 
+              border: '1px solid #333',
+              '& *': {
+                background: '#000000 !important'
+              }
+            }}>
+              <CardContent sx={{ 
+                background: '#000000 !important',
+                '& *': {
+                  background: '#000000 !important'
+                }
+              }}>
                 <Typography variant="h5" sx={{ mb: 3, color: 'white' }}>
                   🎫 Ingressos Disponíveis
                 </Typography>
@@ -238,11 +309,19 @@ const EventoCompleto = ({ event }) => {
                             transform: 'translateY(-5px)',
                             boxShadow: '0 10px 25px rgba(255,255,255,0.1)',
                             border: '1px solid #666'
+                          },
+                          '& *': {
+                            background: selectedLot?.id === lot.id ? '#111 !important' : '#000000 !important'
                           }
                         }}
                         onClick={() => handleLotSelect(lot)}
                       >
-                        <CardContent sx={{ background: selectedLot?.id === lot.id ? '#111 !important' : '#000000 !important' }}>
+                        <CardContent sx={{ 
+                          background: selectedLot?.id === lot.id ? '#111 !important' : '#000000 !important',
+                          '& *': {
+                            background: selectedLot?.id === lot.id ? '#111 !important' : '#000000 !important'
+                          }
+                        }}>
                           <Typography variant="h6" sx={{ color: 'white', mb: 1 }}>
                             {lot.name}
                           </Typography>
@@ -279,8 +358,20 @@ const EventoCompleto = ({ event }) => {
 
           {/* Produtos */}
           {eventDetails.products && eventDetails.products.length > 0 && (
-            <Card sx={{ mb: 4, background: '#000000 !important', border: '1px solid #333' }}>
-              <CardContent sx={{ background: '#000000 !important' }}>
+            <Card sx={{ 
+              mb: 4, 
+              background: '#000000 !important', 
+              border: '1px solid #333',
+              '& *': {
+                background: '#000000 !important'
+              }
+            }}>
+              <CardContent sx={{ 
+                background: '#000000 !important',
+                '& *': {
+                  background: '#000000 !important'
+                }
+              }}>
                 <Typography variant="h5" sx={{ mb: 3, color: 'white' }}>
                   🛍️ Produtos do Evento
                 </Typography>
@@ -289,9 +380,17 @@ const EventoCompleto = ({ event }) => {
                     <Grid item xs={12} md={4} key={product.id}>
                       <Card sx={{ 
                         background: '#000000 !important',
-                        border: '1px solid #333'
+                        border: '1px solid #333',
+                        '& *': {
+                          background: '#000000 !important'
+                        }
                       }}>
-                        <CardContent sx={{ background: '#000000 !important' }}>
+                        <CardContent sx={{ 
+                          background: '#000000 !important',
+                          '& *': {
+                            background: '#000000 !important'
+                          }
+                        }}>
                           <Typography variant="h6" sx={{ color: 'white', mb: 1 }}>
                             {product.name}
                           </Typography>
@@ -328,14 +427,34 @@ const EventoCompleto = ({ event }) => {
 
           {/* Carrinho */}
           {(selectedLot || cartProducts.length > 0) && (
-            <Card sx={{ background: '#000000 !important', border: '1px solid #333' }}>
-              <CardContent sx={{ background: '#000000 !important' }}>
+            <Card sx={{ 
+              background: '#000000 !important', 
+              border: '1px solid #333',
+              '& *': {
+                background: '#000000 !important'
+              }
+            }}>
+              <CardContent sx={{ 
+                background: '#000000 !important',
+                '& *': {
+                  background: '#000000 !important'
+                }
+              }}>
                 <Typography variant="h5" sx={{ mb: 3, color: 'white' }}>
                   🛒 Seu Pedido
                 </Typography>
                 
                 {selectedLot && (
-                  <Box sx={{ mb: 3, p: 2, background: '#111 !important', borderRadius: 2, border: '1px solid #444' }}>
+                  <Box sx={{ 
+                    mb: 3, 
+                    p: 2, 
+                    background: '#111 !important', 
+                    borderRadius: 2, 
+                    border: '1px solid #444',
+                    '& *': {
+                      background: '#111 !important'
+                    }
+                  }}>
                     <Typography variant="h6" sx={{ color: 'white', mb: 1 }}>
                       Ingresso: {selectedLot.name}
                     </Typography>
@@ -359,7 +478,10 @@ const EventoCompleto = ({ event }) => {
                         p: 1,
                         background: '#111 !important',
                         borderRadius: 1,
-                        border: '1px solid #444'
+                        border: '1px solid #444',
+                        '& *': {
+                          background: '#111 !important'
+                        }
                       }}>
                         <Typography sx={{ color: 'white' }}>
                           {product.name} x{product.quantity}
