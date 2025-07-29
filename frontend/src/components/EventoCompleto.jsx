@@ -121,13 +121,13 @@ const EventoCompleto = ({ event }) => {
           }
           
           .evento-completo .MuiCard-root {
-            background: #000000 !important;
-            background-color: #000000 !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
           }
           
           .evento-completo .MuiCardContent-root {
-            background: #000000 !important;
-            background-color: #000000 !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
           }
           
           /* Remover gradientes roxos apenas do evento */
@@ -206,14 +206,14 @@ const EventoCompleto = ({ event }) => {
           padding: isMobile ? '10px' : '20px'
         }}
       >
-        {/* Banner do evento - Otimizado para mobile */}
+        {/* Banner do evento - MAIS ALTO e separado */}
         <Box sx={{ 
           width: '100%', 
-          height: isMobile ? '30vh' : '40vh',
+          height: isMobile ? '50vh' : '60vh', // Aumentado significativamente
           position: 'relative',
           borderRadius: isMobile ? '10px' : '20px',
           overflow: 'hidden',
-          mb: isMobile ? 2 : 4,
+          mb: isMobile ? 4 : 6, // Mais espaço entre banner e conteúdo
           boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
           border: '2px solid #333',
           background: '#000000'
@@ -233,15 +233,15 @@ const EventoCompleto = ({ event }) => {
             left: 0,
             right: 0,
             background: 'rgba(0,0,0,0.9)',
-            padding: isMobile ? '20px' : '40px',
+            padding: isMobile ? '30px' : '50px', // Mais padding
             color: 'white'
           }}>
             <Typography 
               variant="h2" 
               sx={{ 
                 fontWeight: 'bold', 
-                mb: isMobile ? 1 : 2,
-                fontSize: isMobile ? '1.8rem' : '3rem',
+                mb: isMobile ? 2 : 3, // Mais espaço
+                fontSize: isMobile ? '2.2rem' : '3.5rem', // Fonte maior
                 lineHeight: 1.2
               }}
             >
@@ -250,21 +250,24 @@ const EventoCompleto = ({ event }) => {
             <Box sx={{ 
               display: 'flex', 
               flexDirection: isMobile ? 'column' : 'row',
-              gap: isMobile ? 1 : 3, 
+              gap: isMobile ? 2 : 4, // Mais gap
               alignItems: isMobile ? 'flex-start' : 'center' 
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <TimeIcon sx={{ fontSize: isMobile ? '1rem' : '1.5rem' }} />
-                <Typography sx={{ fontSize: isMobile ? '0.9rem' : '1rem' }}>
+                <TimeIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.8rem' }} />
+                <Typography sx={{ 
+                  fontSize: isMobile ? '1.1rem' : '1.3rem',
+                  fontWeight: 'bold'
+                }}>
                   {eventDetails.date ? dayjs(eventDetails.date).format('DD/MM/YYYY') : 'Data a definir'}
                 </Typography>
               </Box>
               {eventDetails.location && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LocationIcon sx={{ fontSize: isMobile ? '1rem' : '1.5rem' }} />
+                  <LocationIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.8rem' }} />
                   <Typography sx={{ 
-                    fontSize: isMobile ? '0.8rem' : '1rem',
-                    display: isMobile ? 'none' : 'block' // Esconde localização em mobile muito pequeno
+                    fontSize: isMobile ? '1rem' : '1.2rem',
+                    display: isMobile ? 'none' : 'block'
                   }}>
                     {eventDetails.location}
                   </Typography>
@@ -274,99 +277,108 @@ const EventoCompleto = ({ event }) => {
           </Box>
         </Box>
 
-        {/* Conteúdo do evento - Otimizado para mobile */}
+        {/* Conteúdo do evento - FUNDO BRANCO */}
         <Box sx={{ 
           maxWidth: '1200px', 
           margin: '0 auto', 
-          background: '#000000',
-          px: isMobile ? 1 : 2
+          background: '#ffffff', // Fundo branco
+          px: isMobile ? 1 : 2,
+          borderRadius: '15px',
+          padding: isMobile ? '20px' : '30px',
+          boxShadow: '0 5px 20px rgba(0,0,0,0.1)'
         }}>
-          {/* Descrição - Simplificada para mobile */}
+          {/* Descrição - FUNDO BRANCO */}
           <Card sx={{ 
-            mb: isMobile ? 2 : 4, 
-            background: '#000000', 
-            border: '1px solid #333'
+            mb: isMobile ? 3 : 4, 
+            background: '#ffffff', 
+            border: '1px solid #e0e0e0',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
           }}>
             <CardContent sx={{ 
-              background: '#000000',
-              padding: isMobile ? '16px' : '24px'
+              background: '#ffffff',
+              padding: isMobile ? '20px' : '30px'
             }}>
               <Typography 
                 variant="h5" 
                 sx={{ 
-                  mb: isMobile ? 1 : 2, 
-                  color: 'white',
-                  fontSize: isMobile ? '1.2rem' : '1.5rem'
+                  mb: isMobile ? 2 : 3, 
+                  color: '#333333', // Texto escuro
+                  fontSize: isMobile ? '1.4rem' : '1.8rem',
+                  fontWeight: 'bold'
                 }}
               >
                 Sobre o Evento
               </Typography>
               <Typography sx={{ 
-                color: '#ccc', 
-                lineHeight: 1.6,
-                fontSize: isMobile ? '0.9rem' : '1rem'
+                color: '#666666', // Texto cinza escuro
+                lineHeight: 1.8,
+                fontSize: isMobile ? '1rem' : '1.1rem'
               }}>
                 {eventDetails.description || 'Descrição do evento será adicionada em breve.'}
               </Typography>
             </CardContent>
           </Card>
 
-          {/* Lotes - Otimizado para mobile */}
+          {/* Lotes - FUNDO BRANCO */}
           {eventDetails.lots && eventDetails.lots.length > 0 && (
             <Card sx={{ 
-              mb: isMobile ? 2 : 4, 
-              background: '#000000', 
-              border: '1px solid #333'
+              mb: isMobile ? 3 : 4, 
+              background: '#ffffff', 
+              border: '1px solid #e0e0e0',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
             }}>
               <CardContent sx={{ 
-                background: '#000000',
-                padding: isMobile ? '16px' : '24px'
+                background: '#ffffff',
+                padding: isMobile ? '20px' : '30px'
               }}>
                 <Typography 
                   variant="h5" 
                   sx={{ 
-                    mb: isMobile ? 2 : 3, 
-                    color: 'white',
-                    fontSize: isMobile ? '1.2rem' : '1.5rem'
+                    mb: isMobile ? 3 : 4, 
+                    color: '#333333', // Texto escuro
+                    fontSize: isMobile ? '1.4rem' : '1.8rem',
+                    fontWeight: 'bold'
                   }}
                 >
                   🎫 Ingressos Disponíveis
                 </Typography>
-                <Grid container spacing={isMobile ? 2 : 3}>
+                <Grid container spacing={isMobile ? 3 : 4}>
                   {eventDetails.lots.map((lot) => (
                     <Grid item xs={12} md={6} key={lot.id}>
                       <Card 
                         sx={{ 
                           cursor: 'pointer',
                           transition: 'all 0.3s ease',
-                          border: selectedLot?.id === lot.id ? '2px solid #fff' : '1px solid #333',
-                          background: selectedLot?.id === lot.id ? '#111' : '#000000',
+                          border: selectedLot?.id === lot.id ? '3px solid #2196f3' : '1px solid #e0e0e0',
+                          background: selectedLot?.id === lot.id ? '#f3f8ff' : '#ffffff',
                           '&:hover': {
                             transform: isMobile ? 'none' : 'translateY(-5px)',
-                            boxShadow: '0 10px 25px rgba(255,255,255,0.1)',
-                            border: '1px solid #666'
+                            boxShadow: '0 8px 25px rgba(33,150,243,0.15)',
+                            border: '2px solid #2196f3'
                           }
                         }}
                         onClick={() => handleLotSelect(lot)}
                       >
                         <CardContent sx={{ 
-                          background: selectedLot?.id === lot.id ? '#111' : '#000000',
-                          padding: isMobile ? '12px' : '16px'
+                          background: selectedLot?.id === lot.id ? '#f3f8ff' : '#ffffff',
+                          padding: isMobile ? '16px' : '20px'
                         }}>
                           <Typography 
                             variant="h6" 
                             sx={{ 
-                              color: 'white', 
-                              mb: 1,
-                              fontSize: isMobile ? '1rem' : '1.25rem'
+                              color: '#333333', // Texto escuro
+                              mb: 2,
+                              fontSize: isMobile ? '1.1rem' : '1.3rem',
+                              fontWeight: 'bold'
                             }}
                           >
                             {lot.name}
                           </Typography>
                           <Typography sx={{ 
-                            color: '#ccc', 
-                            mb: 2,
-                            fontSize: isMobile ? '0.8rem' : '1rem'
+                            color: '#666666', // Texto cinza
+                            mb: 3,
+                            fontSize: isMobile ? '0.9rem' : '1rem',
+                            lineHeight: 1.6
                           }}>
                             {lot.description}
                           </Typography>
@@ -375,34 +387,36 @@ const EventoCompleto = ({ event }) => {
                             justifyContent: 'space-between', 
                             alignItems: 'center',
                             flexDirection: isMobile ? 'column' : 'row',
-                            gap: isMobile ? 1 : 0
+                            gap: isMobile ? 2 : 0
                           }}>
                             <Typography 
                               variant="h5" 
                               sx={{ 
-                                color: 'white', 
+                                color: '#2196f3', // Azul para preço
                                 fontWeight: 'bold',
-                                fontSize: isMobile ? '1.1rem' : '1.5rem'
+                                fontSize: isMobile ? '1.3rem' : '1.6rem'
                               }}
                             >
                               R$ {lot.price.toFixed(2)}
                             </Typography>
                             <Chip 
                               label={`${lot.quantity} vagas`}
-                              color={lot.quantity > 0 ? 'default' : 'error'}
-                              size={isMobile ? 'small' : 'small'}
+                              color={lot.quantity > 0 ? 'primary' : 'error'}
+                              size={isMobile ? 'small' : 'medium'}
                               sx={{ 
-                                background: lot.quantity > 0 ? '#333' : '#d32f2f',
+                                background: lot.quantity > 0 ? '#2196f3' : '#f44336',
                                 color: 'white',
-                                fontSize: isMobile ? '0.7rem' : '0.75rem'
+                                fontSize: isMobile ? '0.8rem' : '0.9rem',
+                                fontWeight: 'bold'
                               }}
                             />
                           </Box>
                           {lot.start_date && lot.end_date && (
                             <Typography sx={{ 
-                              color: '#999', 
-                              fontSize: isMobile ? '0.7rem' : '0.9rem', 
-                              mt: 1 
+                              color: '#999999', // Texto cinza claro
+                              fontSize: isMobile ? '0.8rem' : '0.9rem', 
+                              mt: 2,
+                              fontStyle: 'italic'
                             }}>
                               De {dayjs(lot.start_date).format('DD/MM')} até {dayjs(lot.end_date).format('DD/MM')}
                             </Typography>
@@ -416,52 +430,57 @@ const EventoCompleto = ({ event }) => {
             </Card>
           )}
 
-          {/* Produtos - Otimizado para mobile */}
+          {/* Produtos - FUNDO BRANCO */}
           {eventDetails.products && eventDetails.products.length > 0 && (
             <Card sx={{ 
-              mb: isMobile ? 2 : 4, 
-              background: '#000000', 
-              border: '1px solid #333'
+              mb: isMobile ? 3 : 4, 
+              background: '#ffffff', 
+              border: '1px solid #e0e0e0',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
             }}>
               <CardContent sx={{ 
-                background: '#000000',
-                padding: isMobile ? '16px' : '24px'
+                background: '#ffffff',
+                padding: isMobile ? '20px' : '30px'
               }}>
                 <Typography 
                   variant="h5" 
                   sx={{ 
-                    mb: isMobile ? 2 : 3, 
-                    color: 'white',
-                    fontSize: isMobile ? '1.2rem' : '1.5rem'
+                    mb: isMobile ? 3 : 4, 
+                    color: '#333333', // Texto escuro
+                    fontSize: isMobile ? '1.4rem' : '1.8rem',
+                    fontWeight: 'bold'
                   }}
                 >
                   🛍️ Produtos do Evento
                 </Typography>
-                <Grid container spacing={isMobile ? 2 : 3}>
+                <Grid container spacing={isMobile ? 3 : 4}>
                   {eventDetails.products.map((product) => (
                     <Grid item xs={12} md={4} key={product.id}>
                       <Card sx={{ 
-                        background: '#000000',
-                        border: '1px solid #333'
+                        background: '#ffffff',
+                        border: '1px solid #e0e0e0',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                       }}>
                         <CardContent sx={{ 
-                          background: '#000000',
-                          padding: isMobile ? '12px' : '16px'
+                          background: '#ffffff',
+                          padding: isMobile ? '16px' : '20px'
                         }}>
                           <Typography 
                             variant="h6" 
                             sx={{ 
-                              color: 'white', 
-                              mb: 1,
-                              fontSize: isMobile ? '1rem' : '1.25rem'
+                              color: '#333333', // Texto escuro
+                              mb: 2,
+                              fontSize: isMobile ? '1.1rem' : '1.3rem',
+                              fontWeight: 'bold'
                             }}
                           >
                             {product.name}
                           </Typography>
                           <Typography sx={{ 
-                            color: '#ccc', 
-                            mb: 2,
-                            fontSize: isMobile ? '0.8rem' : '1rem'
+                            color: '#666666', // Texto cinza
+                            mb: 3,
+                            fontSize: isMobile ? '0.9rem' : '1rem',
+                            lineHeight: 1.6
                           }}>
                             {product.description}
                           </Typography>
@@ -470,29 +489,30 @@ const EventoCompleto = ({ event }) => {
                             justifyContent: 'space-between', 
                             alignItems: 'center',
                             flexDirection: isMobile ? 'column' : 'row',
-                            gap: isMobile ? 1 : 0
+                            gap: isMobile ? 2 : 0
                           }}>
                             <Typography 
                               variant="h6" 
                               sx={{ 
-                                color: 'white', 
+                                color: '#ff6b35', // Laranja para produtos
                                 fontWeight: 'bold',
-                                fontSize: isMobile ? '1rem' : '1.25rem'
+                                fontSize: isMobile ? '1.1rem' : '1.3rem'
                               }}
                             >
                               R$ {product.price.toFixed(2)}
                             </Typography>
                             <Button
                               variant="contained"
-                              size={isMobile ? 'small' : 'small'}
+                              size={isMobile ? 'small' : 'medium'}
                               onClick={() => handleAddProduct(product)}
                               sx={{ 
-                                background: '#333',
+                                background: '#ff6b35',
                                 color: 'white',
-                                fontSize: isMobile ? '0.8rem' : '0.875rem',
-                                padding: isMobile ? '6px 12px' : '8px 16px',
+                                fontSize: isMobile ? '0.9rem' : '1rem',
+                                padding: isMobile ? '8px 16px' : '10px 20px',
+                                fontWeight: 'bold',
                                 '&:hover': {
-                                  background: '#555'
+                                  background: '#e55a2b'
                                 }
                               }}
                             >
@@ -508,22 +528,24 @@ const EventoCompleto = ({ event }) => {
             </Card>
           )}
 
-          {/* Carrinho - Otimizado para mobile */}
+          {/* Carrinho - FUNDO BRANCO */}
           {(selectedLot || cartProducts.length > 0) && (
             <Card sx={{ 
-              background: '#000000', 
-              border: '1px solid #333'
+              background: '#ffffff', 
+              border: '1px solid #e0e0e0',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
             }}>
               <CardContent sx={{ 
-                background: '#000000',
-                padding: isMobile ? '16px' : '24px'
+                background: '#ffffff',
+                padding: isMobile ? '20px' : '30px'
               }}>
                 <Typography 
                   variant="h5" 
                   sx={{ 
-                    mb: isMobile ? 2 : 3, 
-                    color: 'white',
-                    fontSize: isMobile ? '1.2rem' : '1.5rem'
+                    mb: isMobile ? 3 : 4, 
+                    color: '#333333', // Texto escuro
+                    fontSize: isMobile ? '1.4rem' : '1.8rem',
+                    fontWeight: 'bold'
                   }}
                 >
                   🛒 Seu Pedido
@@ -531,25 +553,27 @@ const EventoCompleto = ({ event }) => {
                 
                 {selectedLot && (
                   <Box sx={{ 
-                    mb: isMobile ? 2 : 3, 
-                    p: isMobile ? 1 : 2, 
-                    background: '#111', 
-                    borderRadius: 2, 
-                    border: '1px solid #444'
+                    mb: isMobile ? 3 : 4, 
+                    p: isMobile ? 2 : 3, 
+                    background: '#f8f9fa', 
+                    borderRadius: 3, 
+                    border: '2px solid #e9ecef'
                   }}>
                     <Typography 
                       variant="h6" 
                       sx={{ 
-                        color: 'white', 
-                        mb: 1,
-                        fontSize: isMobile ? '1rem' : '1.25rem'
+                        color: '#333333', // Texto escuro
+                        mb: 2,
+                        fontSize: isMobile ? '1.1rem' : '1.3rem',
+                        fontWeight: 'bold'
                       }}
                     >
                       Ingresso: {selectedLot.name}
                     </Typography>
                     <Typography sx={{ 
-                      color: '#ccc',
-                      fontSize: isMobile ? '0.9rem' : '1rem'
+                      color: '#666666', // Texto cinza
+                      fontSize: isMobile ? '1rem' : '1.1rem',
+                      fontWeight: 'bold'
                     }}>
                       R$ {selectedLot.price.toFixed(2)}
                     </Typography>
@@ -557,13 +581,14 @@ const EventoCompleto = ({ event }) => {
                 )}
 
                 {cartProducts.length > 0 && (
-                  <Box sx={{ mb: isMobile ? 2 : 3 }}>
+                  <Box sx={{ mb: isMobile ? 3 : 4 }}>
                     <Typography 
                       variant="h6" 
                       sx={{ 
-                        color: 'white', 
-                        mb: isMobile ? 1 : 2,
-                        fontSize: isMobile ? '1rem' : '1.25rem'
+                        color: '#333333', // Texto escuro
+                        mb: isMobile ? 2 : 3,
+                        fontSize: isMobile ? '1.1rem' : '1.3rem',
+                        fontWeight: 'bold'
                       }}
                     >
                       Produtos:
@@ -573,39 +598,48 @@ const EventoCompleto = ({ event }) => {
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center',
-                        mb: 1,
-                        p: isMobile ? 0.5 : 1,
-                        background: '#111',
-                        borderRadius: 1,
-                        border: '1px solid #444',
+                        mb: 2,
+                        p: isMobile ? 1.5 : 2,
+                        background: '#f8f9fa',
+                        borderRadius: 2,
+                        border: '1px solid #e9ecef',
                         flexDirection: isMobile ? 'column' : 'row',
-                        gap: isMobile ? 0.5 : 0
+                        gap: isMobile ? 1 : 0
                       }}>
                         <Typography sx={{ 
-                          color: 'white',
-                          fontSize: isMobile ? '0.8rem' : '1rem'
+                          color: '#333333', // Texto escuro
+                          fontSize: isMobile ? '0.9rem' : '1rem',
+                          fontWeight: 'bold'
                         }}>
                           {product.name} x{product.quantity}
                         </Typography>
                         <Box sx={{ 
                           display: 'flex', 
                           alignItems: 'center', 
-                          gap: 1,
+                          gap: 2,
                           flexDirection: isMobile ? 'column' : 'row'
                         }}>
                           <Typography sx={{ 
-                            color: 'white',
-                            fontSize: isMobile ? '0.8rem' : '1rem'
+                            color: '#666666', // Texto cinza
+                            fontSize: isMobile ? '0.9rem' : '1rem',
+                            fontWeight: 'bold'
                           }}>
                             R$ {(product.price * product.quantity).toFixed(2)}
                           </Typography>
                           <Button
                             size={isMobile ? 'small' : 'small'}
                             color="error"
+                            variant="outlined"
                             onClick={() => handleRemoveProduct(product.id)}
                             sx={{
-                              fontSize: isMobile ? '0.7rem' : '0.875rem',
-                              padding: isMobile ? '4px 8px' : '6px 12px'
+                              fontSize: isMobile ? '0.8rem' : '0.9rem',
+                              padding: isMobile ? '6px 12px' : '8px 16px',
+                              borderColor: '#dc3545',
+                              color: '#dc3545',
+                              '&:hover': {
+                                borderColor: '#c82333',
+                                backgroundColor: '#f8d7da'
+                              }
                             }}
                           >
                             Remover
@@ -616,36 +650,38 @@ const EventoCompleto = ({ event }) => {
                   </Box>
                 )}
 
-                <Divider sx={{ my: isMobile ? 1 : 2, background: '#333' }} />
+                <Divider sx={{ my: isMobile ? 2 : 3, background: '#e0e0e0' }} />
                 
                 <Box sx={{ 
                   display: 'flex', 
                   justifyContent: 'space-between', 
                   alignItems: 'center',
                   flexDirection: isMobile ? 'column' : 'row',
-                  gap: isMobile ? 1 : 0
+                  gap: isMobile ? 2 : 0
                 }}>
                   <Typography 
                     variant="h5" 
                     sx={{ 
-                      color: 'white', 
+                      color: '#333333', // Texto escuro
                       fontWeight: 'bold',
-                      fontSize: isMobile ? '1.1rem' : '1.5rem'
+                      fontSize: isMobile ? '1.3rem' : '1.6rem'
                     }}
                   >
                     Total: R$ {calculateTotal().toFixed(2)}
                   </Typography>
                   <Button
                     variant="contained"
-                    size={isMobile ? 'medium' : 'large'}
+                    size={isMobile ? 'large' : 'large'}
                     disabled={!selectedLot}
                     sx={{ 
-                      background: '#333',
+                      background: '#28a745', // Verde para botão principal
                       color: 'white',
-                      fontSize: isMobile ? '0.9rem' : '1rem',
-                      padding: isMobile ? '10px 20px' : '12px 24px',
+                      fontSize: isMobile ? '1rem' : '1.1rem',
+                      padding: isMobile ? '12px 24px' : '15px 30px',
+                      fontWeight: 'bold',
+                      borderRadius: '25px',
                       '&:hover': {
-                        background: '#555'
+                        background: '#218838'
                       }
                     }}
                   >
