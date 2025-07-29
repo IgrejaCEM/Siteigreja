@@ -52,14 +52,13 @@ import TicketGenerator from '../components/TicketGenerator';
 
 dayjs.locale('pt-br');
 
-  const steps = ['Inscrições', 'Confirmação', 'Pagamento'];
+const steps = ['Inscrições', 'Confirmação', 'Pagamento'];
 
 const Inscricao = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   
-  // Proteção contra redirecionamento não intencional
   const [preventRedirect, setPreventRedirect] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -77,7 +76,6 @@ const Inscricao = () => {
     custom_fields: {}
   }]);
   const [currentInscricao, setCurrentInscricao] = useState(0);
-  // paymentMethod state removido - método será escolhido no checkout do Mercado Pago
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [registrationCode, setRegistrationCode] = useState('');
   const [selectedLotId, setSelectedLotId] = useState(null);
@@ -89,7 +87,6 @@ const Inscricao = () => {
   const [openingPayment, setOpeningPayment] = useState(false);
 
   useEffect(() => {
-    // Carregar seleções salvas
     const savedSelections = localStorage.getItem('eventSelections');
     if (savedSelections) {
       try {
@@ -103,87 +100,54 @@ const Inscricao = () => {
     }
   }, []);
 
-  // Limpar seleções após inscrição bem-sucedida
   const clearSelections = () => {
     localStorage.removeItem('eventSelections');
+    setSelectedLotId(null);
+    setCartProducts([]);
   };
 
   useEffect(() => {
-    console.log('🎯 Inscricao component mounted/updated, event ID:', id);
     const fetchEvent = async () => {
       try {
-        console.log('📡 Carregando dados do evento:', id);
+        setLoading(true);
         const response = await api.get(`/events/${id}`);
-        console.log('✅ Evento carregado:', response.data.title);
         setEvent(response.data);
-        // Não seleciona lote automaticamente - usuário deve escolher
-        if (response.data.lots && response.data.lots.length > 0) {
-          console.log('📋 Lotes disponíveis:', response.data.lots.map(l => `${l.name} - R$ ${l.price}`));
-        }
+        console.log('✅ Evento carregado:', response.data);
       } catch (error) {
-        console.error('❌ Erro ao carregar evento:', error);
+        console.error('Erro ao carregar evento:', error);
         setError('Erro ao carregar evento');
       } finally {
         setLoading(false);
-        
-        // Verificar se é lote gratuito
-        const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
-        
-        if (isFree) {
-          // Para lotes gratuitos, ir direto para a última etapa
-          setPaymentStatus('completed');
-          setActiveStep(2);
-        }
-        // Para lotes pagos, aguardar confirmação do pagamento
       }
     };
 
-    fetchEvent();
-  }, [id]);
-
-  // Proteção contra redirecionamento durante checkout
-  useEffect(() => {
-    if (preventRedirect) {
-      console.log('🛡️ Proteção contra redirecionamento ativada');
-      
-      // Intercepta tentativas de redirecionamento
-      const handleBeforeUnload = (e) => {
-        if (activeStep >= 1) {
-          console.log('⚠️ Tentativa de sair da página detectada');
-          e.preventDefault();
-          e.returnValue = '';
-          return '';
-        }
-      };
-
-      // Intercepta mudanças de URL
-      const handlePopState = (e) => {
-        if (activeStep >= 1) {
-          console.log('⚠️ Tentativa de navegação detectada');
-          e.preventDefault();
-          window.history.pushState(null, '', window.location.pathname);
-        }
-      };
-
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      window.addEventListener('popstate', handlePopState);
-
-      return () => {
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-        window.removeEventListener('popstate', handlePopState);
-      };
+    if (id) {
+      fetchEvent();
     }
-  }, [preventRedirect, activeStep]);
 
-  // Limpa o flag de checkout quando o componente for desmontado
-  useEffect(() => {
-    return () => {
-      console.log('🧹 Limpando flags de checkout...');
-      sessionStorage.removeItem('checkout_in_progress');
+    const handleBeforeUnload = (e) => {
+      if (preventRedirect) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
     };
-  }, []);
 
-  // Função para verificar status do pagamento
+    const handlePopState = (e) => {
+      if (preventRedirect) {
+        e.preventDefault();
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [id, preventRedirect]);
+
   const checkPaymentStatus = async () => {
     if (registrationCode) {
       try {
@@ -191,10 +155,6 @@ const Inscricao = () => {
         if (response.data.status === 'completed') {
           setPaymentPending(false);
           setPaymentStatus('completed');
-          // Limpa o flag de checkout em andamento
-          sessionStorage.removeItem('checkout_in_progress');
-          setPreventRedirect(false);
-          // Ir para a última etapa quando pagamento for confirmado
           setActiveStep(2);
         }
       } catch (err) {
@@ -203,7 +163,6 @@ const Inscricao = () => {
     }
   };
 
-  // Polling para status do pagamento
   useInterval(async () => {
     if (paymentPending && registrationCode) {
       try {
@@ -211,7 +170,6 @@ const Inscricao = () => {
         if (response.data.status === 'completed') {
           setPaymentPending(false);
           setPaymentStatus('completed');
-          // Ir para a última etapa quando pagamento for confirmado
           setActiveStep(2);
         }
       } catch (err) {
@@ -221,7 +179,6 @@ const Inscricao = () => {
   }, paymentPending ? 5000 : null);
 
   useEffect(() => {
-    // Interceptar deep links automaticamente
     interceptDeepLinks();
   }, []);
 
@@ -327,13 +284,11 @@ const Inscricao = () => {
       setLoading(true);
       setError('');
 
-      // Validar dados antes de enviar
       if (!isAllInscricoesValid()) {
         setError('Por favor, preencha todos os campos obrigatórios.');
         return;
       }
 
-      // Preparar dados para envio
       const participantesToSend = inscricoes.map(inscricao => ({
         name: inscricao.nome,
         email: inscricao.email,
@@ -350,9 +305,9 @@ const Inscricao = () => {
         })
       }));
 
-              const response = await api.post(`/events/${event.id}/teste-ultra-simples`, {
+      const response = await api.post(`/events/${event.id}/teste-ultra-simples`, {
         participantes: participantesToSend,
-        payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
+        payment_method: 'CHECKOUT_PRO',
         lote_id: selectedLotId,
         products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
       });
@@ -360,7 +315,6 @@ const Inscricao = () => {
       setRegistrationCode(response.data.registration_code);
       setRegistrationComplete(true);
       setError('');
-      // Sempre exibe o link de pagamento se houver
       if (response.data.payment_info && response.data.payment_info.payment_url) {
         setPaymentUrl(response.data.payment_info.payment_url);
         setPaymentPending(true);
@@ -368,7 +322,6 @@ const Inscricao = () => {
         setPaymentUrl('');
         setPaymentPending(false);
       }
-      // Atualizar os dados nos painéis administrativos
       try {
         await Promise.all([
           api.get('/admin/stats'),
@@ -379,14 +332,6 @@ const Inscricao = () => {
       } catch (error) {
         console.error('Erro ao atualizar estatísticas:', error);
       }
-      // Redirecionar após 3 segundos
-      // setTimeout(() => {
-      //   navigate('/', {
-      //     state: {
-      //       successMessage: `Inscrição realizada! Código: ${response.data.registration_code}`
-      //     }
-      //   });
-      // }, 3000);
     } catch (error) {
       console.error('Erro ao fazer inscrição:', error);
       setError(
@@ -399,7 +344,6 @@ const Inscricao = () => {
     }
   };
 
-  // Função para copiar o link de pagamento
   const handleCopyPaymentUrl = () => {
     if (paymentUrl) {
       navigator.clipboard.writeText(paymentUrl);
@@ -413,7 +357,6 @@ const Inscricao = () => {
     const price = Number(selectedLot?.price) || 0;
     const inscriptionsTotal = price * inscricoes.length;
     
-    // Calcular total dos produtos
     const productsTotal = cartProducts.reduce((total, product) => {
       return total + (Number(product.price) * product.quantity);
     }, 0);
@@ -423,7 +366,6 @@ const Inscricao = () => {
       selectedLot,
       price,
       inscriptionsTotal,
-      cartProducts,
       productsTotal,
       total
     });
@@ -432,14 +374,10 @@ const Inscricao = () => {
 
   const handleLotChange = (lotId) => {
     setSelectedLotId(lotId);
-    console.log('Lote selecionado:', lotId);
     const lot = event.lots.find(l => l.id === lotId);
-    if (lot) {
-      console.log('Dados do lote selecionado:', lot);
-    }
+    console.log('🎯 Lote selecionado:', lot);
   };
 
-  // NOVA FUNÇÃO: Abre o checkout AbacatePay antes de finalizar inscrição
   const handleCheckoutAndNext = async () => {
     console.log('🚀 Iniciando processo de checkout...');
     setLoading(true);
@@ -478,7 +416,6 @@ const Inscricao = () => {
       setRegistrationCode(response.data.registration_code);
       setRegistrationComplete(true);
       
-      // Para teste, sempre ir para próxima etapa
       setActiveStep(2);
       
     } catch (error) {
@@ -492,106 +429,6 @@ const Inscricao = () => {
     }
   };
 
-  // Adicionar esta função para renderizar o resumo
-  const renderValueSummary = () => {
-    const lotPrice = selectedLot ? Number(selectedLot.price) || 0 : 0;
-    const inscriptionsTotal = lotPrice * inscricoes.length;
-    const productsTotal = cartProducts.reduce((total, product) => {
-      return total + (Number(product.price) * product.quantity);
-    }, 0);
-    const total = inscriptionsTotal + productsTotal;
-    const isFree = lotPrice === 0 && cartProducts.length === 0;
-
-    return (
-      <Box sx={{ mt: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Resumo dos Valores
-        </Typography>
-        
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body1">
-            Inscrições ({inscricoes.length}x): {isFree ? 'Gratuito' : `R$ ${inscriptionsTotal.toFixed(2)}`}
-          </Typography>
-          {cartProducts.length > 0 && (
-            <Typography variant="body1">
-              Produtos: R$ {productsTotal.toFixed(2)}
-            </Typography>
-          )}
-        </Box>
-        
-        <Divider sx={{ my: 2 }} />
-        
-        <Typography variant="h5" color="primary" fontWeight="bold">
-          Total: {isFree ? 'Gratuito' : `R$ ${total.toFixed(2)}`}
-        </Typography>
-      </Box>
-    );
-  };
-
-  if (loading) {
-    return (
-      <Box>
-        <ModernHeader />
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
-          <CircularProgress />
-        </Box>
-        <Footer />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box>
-        <ModernHeader />
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
-          <Alert severity="error">{error}</Alert>
-        </Box>
-        <Footer />
-      </Box>
-    );
-  }
-
-  if (!event) {
-    return (
-      <Box>
-        <ModernHeader />
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
-          <Typography>Evento não encontrado</Typography>
-        </Box>
-        <Footer />
-      </Box>
-    );
-  }
-
-  // Verificação de segurança para lots
-  if (!event.lots || event.lots.length === 0) {
-    return (
-      <Box>
-        <ModernHeader />
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
-          <Alert severity="warning" sx={{ maxWidth: 600 }}>
-            <Typography variant="h6" gutterBottom>
-              Nenhum lote disponível
-            </Typography>
-            <Typography>
-              Este evento não possui lotes disponíveis para inscrição.
-            </Typography>
-            <Button 
-              variant="contained" 
-              onClick={() => navigate('/')}
-              sx={{ mt: 2 }}
-            >
-              Voltar para Home
-            </Button>
-          </Alert>
-        </Box>
-        <Footer />
-      </Box>
-    );
-  }
-
-  // Verificação global de selectedLot para evitar erros
   let selectedLot = null;
   if (event && event.lots && selectedLotId) {
     selectedLot = event.lots.find(lot => lot.id === selectedLotId) || event.lots[0];
@@ -720,9 +557,9 @@ const Inscricao = () => {
                 value={inscricoes[index].custom_fields[field.label] || ''}
                 onChange={(e) => handleCustomFieldChange(index, field.label, e.target.value)}
               >
-                {field.options.map((option, i) => (
+                {field.options?.map((option, optionIndex) => (
                   <FormControlLabel
-                    key={i}
+                    key={optionIndex}
                     value={option}
                     control={<Radio />}
                     label={option}
@@ -737,54 +574,53 @@ const Inscricao = () => {
   );
 
   const renderLotSelection = () => {
-    const now = dayjs();
-    
+    if (!event || !event.lots || event.lots.length === 0) {
+      return (
+        <Alert severity="warning">
+          Nenhum lote disponível para este evento.
+        </Alert>
+      );
+    }
+
     return (
-      <Box sx={{ mb: 3 }}>
+      <Box>
         <Typography variant="h6" gutterBottom>
-          Selecione o Lote
+          Selecione um Lote
         </Typography>
         <Grid container spacing={2}>
-          {event.lots.map((lot) => {
-            const isAvailable = 
-              lot.status === 'active' &&
-              lot.quantity > 0 &&
-              dayjs(lot.start_date).isBefore(now) &&
-              dayjs(lot.end_date).isAfter(now);
-            
-            const isSoldOut = lot.quantity <= 0;
-            const isExpired = dayjs(lot.end_date).isBefore(now);
-            const isFuture = dayjs(lot.start_date).isAfter(now);
-
-            return (
-              <Grid item xs={12} sm={6} md={4} key={lot.id}>
-                <Card
-                  sx={{
-                    cursor: isAvailable ? 'pointer' : 'default',
-                    bgcolor: selectedLotId === lot.id ? 'action.selected' : 'background.paper',
-                    opacity: isAvailable ? 1 : 0.6,
-                    '&:hover': isAvailable ? { bgcolor: 'action.hover' } : {}
-                  }}
-                  onClick={() => isAvailable && handleLotChange(lot.id)}
-                >
-                  <CardContent>
-                    <Typography variant="h6">{lot.name}</Typography>
+          {event.lots.map((lot) => (
+            <Grid item xs={12} sm={6} md={4} key={lot.id}>
+              <Card
+                sx={{
+                  cursor: 'pointer',
+                  border: selectedLotId === lot.id ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                  bgcolor: selectedLotId === lot.id ? '#f3f8ff' : 'transparent',
+                  '&:hover': {
+                    borderColor: '#1976d2',
+                    bgcolor: '#f3f8ff'
+                  }
+                }}
+                onClick={() => handleLotChange(lot.id)}
+              >
+                <CardContent>
+                  <Typography variant="h6" component="div">
+                    {lot.name}
+                  </Typography>
+                  <Typography variant="h5" color="primary" fontWeight="bold">
+                    {lot.price === 0 ? 'Gratuito' : `R$ ${Number(lot.price).toFixed(2)}`}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {lot.quantity} vagas disponíveis
+                  </Typography>
+                  {lot.start_date && lot.end_date && (
                     <Typography variant="body2" color="text.secondary">
-                      Preço: {lot.price === 0 ? 'Gratuito' : `R$ ${lot.price}`}
+                      {dayjs(lot.start_date).format('DD/MM/YYYY')} - {dayjs(lot.end_date).format('DD/MM/YYYY')}
                     </Typography>
-
-                    {!isAvailable && (
-                      <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-                        {isSoldOut ? '🔴 Esgotado' : 
-                         isExpired ? '⏰ Período encerrado' :
-                         isFuture ? '⏳ Em breve' : '❌ Indisponível'}
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
       </Box>
     );
@@ -795,353 +631,232 @@ const Inscricao = () => {
       case 0:
         return (
           <Box>
+            <Typography variant="h5" gutterBottom>
+              Inscrições
+            </Typography>
             {renderLotSelection()}
-            <Box sx={{ 
-              mb: 3, 
-              display: 'flex', 
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between', 
-              alignItems: { xs: 'stretch', sm: 'center' },
-              gap: { xs: 2, sm: 0 }
-            }}>
-              <Typography variant="h6">Inscrições ({inscricoes.length})</Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={addInscricao}
-                fullWidth={false}
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
-              >
-                Adicionar Inscrição
-              </Button>
-            </Box>
-            {inscricoes.map((inscricao, index) => (
-              <Box key={index} sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Inscrição {index + 1}
+            {selectedLotId && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Participantes
                 </Typography>
-                {renderInscricaoForm(index)}
-                {index > 0 && (
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => removeInscricao(index)}
-                    sx={{ mt: 2 }}
-                    fullWidth={false}
-                  >
-                    Remover Inscrição
-                  </Button>
-                )}
+                {inscricoes.map((inscricao, index) => (
+                  <Paper key={index} sx={{ p: 3, mb: 2 }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                      <Typography variant="h6">
+                        Participante {index + 1}
+                      </Typography>
+                      {inscricoes.length > 1 && (
+                        <IconButton
+                          onClick={() => removeInscricao(index)}
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      )}
+                    </Box>
+                    {renderInscricaoForm(index)}
+                  </Paper>
+                ))}
+                <Button
+                  startIcon={<AddIcon />}
+                  onClick={addInscricao}
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                >
+                  Adicionar Participante
+                </Button>
+                {renderValueSummary()}
               </Box>
-            ))}
-          </Box>
-        );
-
-      case 1:
-        // Passo de confirmação e pagamento
-        return (
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Confirme sua inscrição
-            </Typography>
-            
-            <Alert severity="info" sx={{ mb: 3 }}>
-              <Typography variant="body2">
-                <strong>Resumo da Inscrição:</strong>
-              </Typography>
-              <Typography variant="body2">
-                • {inscricoes.length} participante(s)
-              </Typography>
-              {cartProducts.length > 0 && (
-                <Typography variant="body2">
-                  • {cartProducts.length} produto(s) selecionado(s)
-                </Typography>
-              )}
-              <Typography variant="body2">
-                • Total: R$ {calculateTotal().toFixed(2)}
-              </Typography>
-            </Alert>
-
-            {/* Resumo detalhado dos valores */}
-            {renderValueSummary()}
-
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {selectedLot && selectedLot?.price === 0 && cartProducts.length === 0 
-                ? 'Clique no botão "Confirmar Inscrição" abaixo para finalizar sua inscrição gratuita.'
-                : 'Clique no botão "Ir para o Checkout" abaixo para ir ao checkout do Mercado Pago, onde você poderá escolher a forma de pagamento (PIX, Cartão de Crédito, Boleto, etc.).'
-              }
-            </Typography>
-            
-            {error && (
-              <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
             )}
           </Box>
         );
-
+      case 1:
+        return (
+          <Box>
+            <Typography variant="h5" gutterBottom>
+              Confirme sua inscrição
+            </Typography>
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Resumo da Inscrição:
+              </Typography>
+              <List>
+                <ListItem>
+                  <ListItemText primary={`${inscricoes.length} participante(s)`} />
+                </ListItem>
+                <ListItem>
+                  <ListItemText primary={`Total: R$ ${calculateTotal().toFixed(2)}`} />
+                </ListItem>
+              </List>
+            </Paper>
+            {renderValueSummary()}
+          </Box>
+        );
       case 2:
         return (
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h5" gutterBottom>
-              {paymentStatus === 'completed' ? 'Inscrição Confirmada!' : 'Aguardando Confirmação do Pagamento'}
+          <Box>
+            <Typography variant="h4" gutterBottom>
+              Aguardando Confirmação do Pagamento
             </Typography>
-            {paymentPending ? (
-              <>
-                <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
-                  <strong>Pagamento pendente:</strong> O checkout do Mercado Pago foi aberto em uma nova aba.<br/>
-                  <Typography variant="body2" sx={{ mt: 1, mb: 2 }}>
-                    • Complete o pagamento na aba que foi aberta<br/>
-                    • Após o pagamento, feche a aba e volte aqui<br/>
-                    • O status será atualizado automaticamente
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    href={paymentUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{ mt: 2 }}
-                    disabled={openingPayment}
-                    onClick={() => setOpeningPayment(true)}
-                  >
-                    {openingPayment ? <CircularProgress size={20} color="inherit" /> : 'Abrir checkout novamente'}
-                  </Button>
-                  <br/>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    onClick={checkPaymentStatus}
-                    sx={{ mt: 1 }}
-                  >
-                    Verificar status do pagamento
-                  </Button>
-                  <br/>
-                  <span style={{ fontSize: 13, color: '#555', marginTop: 2, display: 'block' }}>
-                    Após o pagamento, você receberá a confirmação por e-mail ou WhatsApp.<br/>
-                    Se não receber em até 30 minutos, entre em contato com o suporte do evento.
-                  </span>
-                </Alert>
-              </>
-            ) : paymentStatus === 'completed' ? (
-              <Alert severity="success" sx={{ mt: 2, mb: 2 }}>
-                Pagamento confirmado! Sua inscrição está garantida.
-              </Alert>
-            ) : (
-              <Alert severity="success" sx={{ mt: 2, mb: 2 }}>
+            {registrationComplete && (
+              <Alert severity="success" sx={{ mb: 2 }}>
                 Sua inscrição foi realizada com sucesso!
               </Alert>
             )}
-            {registrationCode && paymentStatus === 'completed' && (
-              <Box sx={{ my: 3 }}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Código de Inscrição: {registrationCode}
-                </Typography>
-                <QRCode value={registrationCode} size={200} />
-              </Box>
-            )}
-            {paymentStatus === 'completed' && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', mt: 3 }}>
-                {console.log('🎫 Dados para ticket:', {
-                  registrationCode,
-                  inscricoes: inscricoes[0],
-                  event
-                })}
-                <TicketGenerator 
-                  registrationData={{
-                    name: inscricoes[0]?.nome,
-                    email: inscricoes[0]?.email,
-                    phone: inscricoes[0]?.telefone,
-                    registration_code: registrationCode
-                  }}
-                  eventData={event}
-                />
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => navigate('/')}
-                  sx={{ mt: 2 }}
-                >
-                  Voltar para Home
-                </Button>
-              </Box>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/')}
+              sx={{ mr: 2 }}
+            >
+              VOLTAR
+            </Button>
+            {event && event.products && event.products.length === 0 && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Não há produtos disponíveis para este evento.
+              </Alert>
             )}
           </Box>
         );
-
       default:
         return null;
     }
   };
 
-  console.log('🎨 Renderizando página de inscrição, step:', activeStep, 'loading:', loading);
-  
+  const renderValueSummary = () => {
+    const lotPrice = selectedLot ? Number(selectedLot.price) || 0 : 0;
+    const inscriptionsTotal = lotPrice * inscricoes.length;
+    const productsTotal = cartProducts.reduce((total, product) => {
+      return total + (Number(product.price) * product.quantity);
+    }, 0);
+    const total = inscriptionsTotal + productsTotal;
+    const isFree = lotPrice === 0 && cartProducts.length === 0;
+
+    return (
+      <Box sx={{ mt: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Resumo dos Valores
+        </Typography>
+        
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body1">
+            Inscrições ({inscricoes.length}x): {isFree ? 'Gratuito' : `R$ ${inscriptionsTotal.toFixed(2)}`}
+          </Typography>
+          {cartProducts.length > 0 && (
+            <Typography variant="body1">
+              Produtos: R$ {productsTotal.toFixed(2)}
+            </Typography>
+          )}
+        </Box>
+        
+        <Divider sx={{ my: 2 }} />
+        
+        <Typography variant="h5" color="primary" fontWeight="bold">
+          Total: {isFree ? 'Gratuito' : `R$ ${total.toFixed(2)}`}
+        </Typography>
+      </Box>
+    );
+  };
+
+  if (loading) {
+    return (
+      <Box>
+        <ModernHeader />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
+          <CircularProgress />
+        </Box>
+        <Footer />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box>
+        <ModernHeader />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
+          <Alert severity="error">{error}</Alert>
+        </Box>
+        <Footer />
+      </Box>
+    );
+  }
+
+  if (!event) {
+    return (
+      <Box>
+        <ModernHeader />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
+          <Typography>Evento não encontrado</Typography>
+        </Box>
+        <Footer />
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <ModernHeader />
-      
-      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 4, sm: 8 }, px: { xs: 2, sm: 3 } }}>
-        <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-          <Typography variant="h4" gutterBottom align="center" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
-            Inscrição para {event?.title || 'Carregando...'}
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h4" gutterBottom>
+            {event.title}
           </Typography>
-
-          <Box sx={{ mb: 4 }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={8}>
-                <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                  {dayjs(event.date).format('DD [de] MMMM [de] YYYY [às] HH:mm')}
-                </Typography>
-                <Typography variant="body1" color="text.secondary" gutterBottom>
-                  {event.location}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                {event.lots?.find(lot => 
-                  dayjs(lot.end_date).isAfter(dayjs()) && lot.quantity > 0
-                ) && (
-                  <Box sx={{ textAlign: { xs: 'left', md: 'right' }, mt: { xs: 2, md: 0 } }}>
-                    <Typography variant="subtitle1" color="primary">
-                      {event.lots.find(lot => 
-                        dayjs(lot.end_date).isAfter(dayjs()) && lot.quantity > 0
-                      ).name}
-                    </Typography>
-                    <Typography variant="h5" color="primary" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem' } }}>
-                      {event.lots.find(lot => 
-                        dayjs(lot.end_date).isAfter(dayjs()) && lot.quantity > 0
-                      ).price > 0 ? `R$ ${calculateTotal()}` : 'Gratuito'}
-                    </Typography>
-
-                  </Box>
-                )}
-              </Grid>
-            </Grid>
-          </Box>
-
-          <Divider sx={{ my: 4 }} />
-
-          <Stepper activeStep={activeStep} sx={{ mb: 4, display: { xs: 'none', sm: 'flex' } }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          
-          {/* Stepper mobile */}
-          <Box sx={{ display: { xs: 'block', sm: 'none' }, mb: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Passo {activeStep + 1} de {steps.length}: {steps[activeStep]}
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
-              {steps.map((_, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    bgcolor: index <= activeStep ? 'primary.main' : 'grey.300',
-                    transition: 'background-color 0.3s'
-                  }}
-                />
-              ))}
-            </Box>
-          </Box>
-
-          {renderStep(activeStep)}
-
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'space-between', 
-            mt: 4,
-            gap: { xs: 2, sm: 0 }
-          }}>
-            <Button
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              fullWidth={false}
-              sx={{ 
-                order: { xs: 2, sm: 1 },
-                width: { xs: '100%', sm: 'auto' }
-              }}
-            >
-              Voltar
-            </Button>
-            {activeStep < steps.length - 1 && (
-              <Button
-                variant="contained"
-                onClick={
-                  activeStep === 1 ? handleCheckoutAndNext : 
-                  handleNext
-                }
-                disabled={loading}
-                fullWidth={false}
-                sx={{ 
-                  order: { xs: 1, sm: 2 },
-                  width: { xs: '100%', sm: 'auto' }
-                }}
-              >
-                {loading ? <CircularProgress size={24} /> : 
-                  activeStep === 1 
-                    ? (selectedLot && selectedLot?.price === 0 && cartProducts.length === 0 
-                        ? 'Confirmar Inscrição' 
-                        : 'Ir para o Checkout'
-                      )
-                    : 'Próximo'}
-              </Button>
-            )}
-          </Box>
-
-          {event && (
-            <Box sx={{ mt: 4 }}>
-              <EventProducts eventId={event.id} onAddProduct={handleAddProduct} />
-              
-              {cartProducts.length > 0 && (
-                <Box sx={{ mt: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Produtos Selecionados
-                  </Typography>
-                  {cartProducts.map(product => (
-                    <Box key={product.id} sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'space-between',
-                      mb: 2,
-                      p: 2,
-                      bgcolor: 'white',
-                      borderRadius: 1
-                    }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="body1" fontWeight="medium">
-                          {product.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Quantidade: {product.quantity} | R$ {product.price.toFixed(2)} cada
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="body1" fontWeight="bold">
-                          R$ {(product.price * product.quantity).toFixed(2)}
-                        </Typography>
-                        <Button 
-                          color="error" 
-                          size="small"
-                          onClick={() => handleRemoveProduct(product.id)}
-                        >
-                          Remover
-                        </Button>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-              
+          <Typography variant="body1" color="text.secondary" gutterBottom>
+            {event.date && dayjs(event.date).format('DD [de] MMMM [de] YYYY [às] HH:mm')}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            {event.location}
+          </Typography>
+          {selectedLot && (
+            <Box sx={{ mt: 2 }}>
+              <Chip
+                label={`${selectedLot.name} - R$ ${Number(selectedLot.price).toFixed(2)}`}
+                color="primary"
+                variant="outlined"
+              />
             </Box>
           )}
         </Paper>
-      </Container>
 
+        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+          {steps.map((label, index) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+
+        {renderStep(activeStep)}
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+          <Button
+            disabled={activeStep === 0}
+            onClick={handleBack}
+          >
+            Voltar
+          </Button>
+          <Box>
+            {activeStep === steps.length - 1 ? (
+              <Button
+                variant="contained"
+                onClick={() => navigate('/')}
+              >
+                Finalizar
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={activeStep === 1 ? handleCheckoutAndNext : handleNext}
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+              >
+                {activeStep === 1 ? 'Ir para Checkout' : 'Próximo'}
+              </Button>
+            )}
+          </Box>
+        </Box>
+      </Container>
       <Footer />
       <WhatsAppButton />
     </Box>
