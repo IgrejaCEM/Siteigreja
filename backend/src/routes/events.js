@@ -95,10 +95,15 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     console.log('✅ Evento encontrado:', event.title);
     
     // Buscar o lote selecionado
+    console.log('🔍 Buscando lote:', { lot_id, event_id: id });
+    console.log('🔍 Tipos:', { lot_id_type: typeof lot_id, event_id_type: typeof id });
+    
     const selectedLot = await db('lots')
       .where('id', parseInt(lot_id))
       .andWhere('event_id', parseInt(id))
       .first();
+      
+    console.log('🔍 Resultado da busca:', selectedLot);
       
     if (!selectedLot) {
       return res.status(400).json({ error: 'Lote selecionado inválido' });
