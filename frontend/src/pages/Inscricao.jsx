@@ -352,7 +352,7 @@ const Inscricao = () => {
         })
       }));
 
-      const response = await api.post(`/events/${event.id}/teste-sem-banco`, {
+      const response = await api.post(`/events/${event.id}/inscricao-unificada`, {
         participantes: participantesToSend,
         payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
         lot_id: selectedLotId,
@@ -491,7 +491,7 @@ const Inscricao = () => {
 
       console.log('📦 Dados sendo enviados para a API:', JSON.stringify(requestData, null, 2));
 
-      const response = await api.post(`/events/${event.id}/inscricao-ultra-simples`, requestData);
+      const response = await api.post(`/events/${event.id}/inscricao-unificada`, requestData);
 
       console.log('✅ Resposta da API:', response.data);
       setRegistrationCode(response.data.registration_code);
