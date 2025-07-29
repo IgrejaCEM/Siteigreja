@@ -52,7 +52,7 @@ import TicketGenerator from '../components/TicketGenerator';
 
 dayjs.locale('pt-br');
 
-const steps = ['Inscrições', 'Confirmação', 'Pagamento'];
+  const steps = ['Inscrições', 'Confirmação', 'Pagamento'];
 
 const Inscricao = () => {
   const { id } = useParams();
@@ -122,30 +122,30 @@ const Inscricao = () => {
     };
 
     if (id) {
-      fetchEvent();
+    fetchEvent();
     }
 
-    const handleBeforeUnload = (e) => {
+      const handleBeforeUnload = (e) => {
       if (preventRedirect) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
+          e.preventDefault();
+          e.returnValue = '';
+        }
+      };
 
-    const handlePopState = (e) => {
+      const handlePopState = (e) => {
       if (preventRedirect) {
-        e.preventDefault();
+          e.preventDefault();
         window.history.pushState(null, '', window.location.href);
-      }
-    };
+        }
+      };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('popstate', handlePopState);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      window.addEventListener('popstate', handlePopState);
 
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('popstate', handlePopState);
-    };
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        window.removeEventListener('popstate', handlePopState);
+      };
   }, [id, preventRedirect]);
 
   const checkPaymentStatus = async () => {
@@ -423,11 +423,25 @@ const Inscricao = () => {
         // Para lotes gratuitos, ir direto para a última etapa
         setPaymentStatus('completed');
         setActiveStep(2);
-      } else {
+        } else {
         // Para lotes pagos, verificar se há link de pagamento
         if (response.data.payment_info && response.data.payment_info.payment_url) {
           setPaymentUrl(response.data.payment_info.payment_url);
           setPaymentPending(true);
+          
+          // Abrir checkout automaticamente
+          console.log('🔗 Abrindo checkout do Mercado Pago...');
+          console.log('📦 URL do checkout:', response.data.payment_info.payment_url);
+          
+          try {
+            // Abrir em nova aba
+            window.open(response.data.payment_info.payment_url, '_blank');
+            console.log('✅ Checkout aberto com sucesso!');
+          } catch (error) {
+            console.error('❌ Erro ao abrir checkout:', error);
+            // Fallback: redirecionar na mesma aba
+            window.location.href = response.data.payment_info.payment_url;
+          }
         } else {
           setPaymentUrl('');
           setPaymentPending(false);
@@ -597,7 +611,7 @@ const Inscricao = () => {
         </Alert>
       );
     }
-
+    
     return (
       <Box>
         <Typography variant="h6" gutterBottom>
@@ -605,9 +619,9 @@ const Inscricao = () => {
         </Typography>
         <Grid container spacing={2}>
           {event.lots.map((lot) => (
-            <Grid item xs={12} sm={6} md={4} key={lot.id}>
-              <Card
-                sx={{
+              <Grid item xs={12} sm={6} md={4} key={lot.id}>
+                <Card
+                  sx={{
                   cursor: 'pointer',
                   border: selectedLotId === lot.id ? '2px solid #1976d2' : '1px solid #e0e0e0',
                   bgcolor: selectedLotId === lot.id ? '#f3f8ff' : 'transparent',
@@ -615,27 +629,27 @@ const Inscricao = () => {
                     borderColor: '#1976d2',
                     bgcolor: '#f3f8ff'
                   }
-                }}
+                  }}
                 onClick={() => handleLotChange(lot.id)}
-              >
-                <CardContent>
+                >
+                  <CardContent>
                   <Typography variant="h6" component="div">
                     {lot.name}
                   </Typography>
                   <Typography variant="h5" color="primary" fontWeight="bold">
                     {lot.price === 0 ? 'Gratuito' : `R$ ${Number(lot.price).toFixed(2)}`}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary">
                     {lot.quantity} vagas disponíveis
-                  </Typography>
+                    </Typography>
                   {lot.start_date && lot.end_date && (
                     <Typography variant="body2" color="text.secondary">
                       {dayjs(lot.start_date).format('DD/MM/YYYY')} - {dayjs(lot.end_date).format('DD/MM/YYYY')}
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
           ))}
         </Grid>
       </Box>
@@ -656,12 +670,12 @@ const Inscricao = () => {
                 <Typography variant="h6" gutterBottom>
                   Participantes
                 </Typography>
-                {inscricoes.map((inscricao, index) => (
+            {inscricoes.map((inscricao, index) => (
                   <Paper key={index} sx={{ p: 3, mb: 2 }}>
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                       <Typography variant="h6">
                         Participante {index + 1}
-                      </Typography>
+                </Typography>
                       {inscricoes.length > 1 && (
                         <IconButton
                           onClick={() => removeInscricao(index)}
@@ -671,20 +685,20 @@ const Inscricao = () => {
                         </IconButton>
                       )}
                     </Box>
-                    {renderInscricaoForm(index)}
+                {renderInscricaoForm(index)}
                   </Paper>
                 ))}
-                <Button
+                  <Button
                   startIcon={<AddIcon />}
                   onClick={addInscricao}
-                  variant="outlined"
-                  sx={{ mt: 2 }}
-                >
+                    variant="outlined"
+                    sx={{ mt: 2 }}
+                  >
                   Adicionar Participante
-                </Button>
+                  </Button>
                 {renderValueSummary()}
               </Box>
-            )}
+                )}
           </Box>
         );
       case 1:
@@ -775,9 +789,9 @@ const Inscricao = () => {
   };
 
   if (loading) {
-    return (
-      <Box>
-        <ModernHeader />
+  return (
+    <Box>
+      <ModernHeader />
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="calc(100vh - 64px)">
           <CircularProgress />
         </Box>
@@ -817,13 +831,13 @@ const Inscricao = () => {
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h4" gutterBottom>
             {event.title}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
+                </Typography>
+                <Typography variant="body1" color="text.secondary" gutterBottom>
             {event.date && dayjs(event.date).format('DD [de] MMMM [de] YYYY [às] HH:mm')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            {event.location}
-          </Typography>
+                  {event.location}
+                </Typography>
           {selectedLot && (
             <Box sx={{ mt: 2 }}>
               <Chip
@@ -831,46 +845,46 @@ const Inscricao = () => {
                 color="primary"
                 variant="outlined"
               />
-            </Box>
-          )}
+                  </Box>
+                )}
         </Paper>
 
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
           {steps.map((label, index) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
 
-        {renderStep(activeStep)}
+          {renderStep(activeStep)}
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-          <Button
-            disabled={activeStep === 0}
-            onClick={handleBack}
-          >
-            Voltar
-          </Button>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+            >
+              Voltar
+            </Button>
           <Box>
             {activeStep === steps.length - 1 ? (
-              <Button
-                variant="contained"
+            <Button
+              variant="contained"
                 onClick={() => navigate('/')}
-              >
+            >
                 Finalizar
-              </Button>
+            </Button>
             ) : (
-              <Button
+                        <Button 
                 variant="contained"
                 onClick={activeStep === 1 ? handleCheckoutAndNext : handleNext}
                 disabled={loading}
                 startIcon={loading ? <CircularProgress size={20} /> : null}
-              >
+                        >
                 {activeStep === 1 ? 'Ir para Checkout' : 'Próximo'}
-              </Button>
-            )}
-          </Box>
+                        </Button>
+              )}
+            </Box>
         </Box>
       </Container>
       <Footer />
