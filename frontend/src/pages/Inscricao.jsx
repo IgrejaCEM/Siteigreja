@@ -445,7 +445,6 @@ const Inscricao = () => {
   const handleCheckoutAndNext = async () => {
     console.log('🚀 Iniciando processo de checkout...');
     setLoading(true);
-    setError('');
     
     try {
       if (!isAllInscricoesValid()) {
@@ -480,7 +479,6 @@ const Inscricao = () => {
       console.log('✅ Resposta da API:', response.data);
       setRegistrationCode(response.data.registration_code);
       setRegistrationComplete(true);
-      setError('');
       
       // Para teste, sempre ir para próxima etapa
       setActiveStep(2);
@@ -490,11 +488,8 @@ const Inscricao = () => {
       console.error('📊 Status:', error.response?.status);
       console.error('📦 Data do erro:', error.response?.data);
       
-      setError(
-        error.response?.data?.error ||
-        error.response?.data?.details ||
-        'Erro ao fazer inscrição. Tente novamente mais tarde.'
-      );
+      const errorMessage = error.response?.data?.error || error.response?.data?.details || 'Erro ao fazer inscrição. Tente novamente mais tarde.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
