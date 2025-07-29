@@ -87,10 +87,7 @@ class MercadoPagoGateway {
         payment_methods: {
           installments: 1,
           default_installments: 1,
-          excluded_payment_types: [
-            { id: "ticket" },
-            { id: "atm" }
-          ],
+          // ✅ ACEITA TODOS OS MÉTODOS: cartão, PIX e boleto
           excluded_payment_methods: [
             { id: "amex" },
             { id: "naranja" },
