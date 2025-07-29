@@ -433,14 +433,62 @@ const Inscricao = () => {
           console.log('🔗 Abrindo checkout do Mercado Pago...');
           console.log('📦 URL do checkout:', response.data.payment_info.payment_url);
           
-          try {
-            // Abrir em nova aba
-            window.open(response.data.payment_info.payment_url, '_blank');
-            console.log('✅ Checkout aberto com sucesso!');
-          } catch (error) {
-            console.error('❌ Erro ao abrir checkout:', error);
-            // Fallback: redirecionar na mesma aba
-            window.location.href = response.data.payment_info.payment_url;
+          // Detectar se é iPhone/Safari
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+          
+          console.log('📱 Detecção de dispositivo:', { isIOS, isSafari });
+          
+          // Para iPhone/Safari, usar múltiplas estratégias
+          if (isIOS || isSafari) {
+            console.log('📱 iPhone/Safari detectado - usando estratégia múltipla');
+            
+            // Estratégia 1: Tentar window.open primeiro
+            try {
+              const popup = window.open(response.data.payment_info.payment_url, '_blank');
+              if (popup) {
+                console.log('✅ Checkout aberto em popup no iPhone!');
+                return;
+              }
+            } catch (error) {
+              console.log('⚠️ Popup falhou no iPhone:', error);
+            }
+            
+            // Estratégia 2: Criar link e clicar automaticamente
+            try {
+              const link = document.createElement('a');
+              link.href = response.data.payment_info.payment_url;
+              link.target = '_blank';
+              link.rel = 'noopener noreferrer';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              console.log('✅ Checkout aberto via link automático!');
+              return;
+            } catch (error) {
+              console.log('⚠️ Link automático falhou:', error);
+            }
+            
+            // Estratégia 3: Redirecionamento direto
+            console.log('📱 Redirecionando diretamente no iPhone...');
+            setTimeout(() => {
+              window.location.href = response.data.payment_info.payment_url;
+            }, 100);
+            
+          } else {
+            // Para outros dispositivos, tentar popup primeiro
+            try {
+              const popup = window.open(response.data.payment_info.payment_url, '_blank', 'width=800,height=600');
+              if (!popup) {
+                console.log('⚠️ Popup bloqueado, redirecionando na mesma aba');
+                window.location.href = response.data.payment_info.payment_url;
+              } else {
+                console.log('✅ Checkout aberto em popup!');
+              }
+            } catch (error) {
+              console.error('❌ Erro ao abrir checkout:', error);
+              window.location.href = response.data.payment_info.payment_url;
+            }
           }
         } else {
           setPaymentUrl('');
@@ -734,6 +782,31 @@ const Inscricao = () => {
                 Sua inscrição foi realizada com sucesso!
               </Alert>
             )}
+            
+            {/* Botão manual para iPhone */}
+            {paymentPending && paymentUrl && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="body1" gutterBottom>
+                  Se o checkout não abriu automaticamente, clique no botão abaixo:
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  onClick={() => {
+                    console.log('📱 Abrindo checkout manualmente...');
+                    window.open(paymentUrl, '_blank');
+                  }}
+                  sx={{ mt: 1 }}
+                >
+                  🔗 ABRIR CHECKOUT DO PAGAMENTO
+                </Button>
+                <Typography variant="body2" sx={{ mt: 1, fontSize: '0.875rem' }}>
+                  Ou copie o link: <code>{paymentUrl}</code>
+                </Typography>
+              </Alert>
+            )}
+            
             <Button
               variant="contained"
               onClick={() => navigate('/')}
