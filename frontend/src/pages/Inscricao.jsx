@@ -294,15 +294,13 @@ const Inscricao = () => {
   };
 
   const isAllInscricoesValid = () => {
-    return inscricoes.every(inscricao => 
-      inscricao.nome && 
-      inscricao.email && 
-      inscricao.telefone &&
-      (!event.registration_form?.cpf || inscricao.cpf) &&
-      (!event.registration_form?.idade || inscricao.idade) &&
-      (!event.registration_form?.genero || inscricao.genero) &&
-      (!event.registration_form?.endereco || inscricao.endereco)
-    );
+    for (let i = 0; i < inscricoes.length; i++) {
+      const inscricao = inscricoes[i];
+      if (!inscricao.nome || !inscricao.email || !inscricao.telefone) {
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleAddProduct = (product, quantity = 1) => {
@@ -488,8 +486,7 @@ const Inscricao = () => {
       console.error('📊 Status:', error.response?.status);
       console.error('📦 Data do erro:', error.response?.data);
       
-      const errorMessage = error.response?.data?.error || error.response?.data?.details || 'Erro ao fazer inscrição. Tente novamente mais tarde.';
-      setError(errorMessage);
+      setError('Erro ao fazer inscrição. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }
