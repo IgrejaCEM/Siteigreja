@@ -482,23 +482,8 @@ const Inscricao = () => {
       setRegistrationComplete(true);
       setError('');
       
-      // Verificar se é lote gratuito
-      const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
-      
-      if (isFree) {
-        // Para lotes gratuitos, ir direto para a última etapa
-        setPaymentStatus('completed');
-        setActiveStep(2);
-      } else {
-        // Para lotes pagos, verificar se há link de pagamento
-        if (response.data.payment_info && response.data.payment_info.payment_url) {
-          setPaymentUrl(response.data.payment_info.payment_url);
-          setPaymentPending(true);
-        } else {
-          setPaymentUrl('');
-          setPaymentPending(false);
-        }
-      }
+      // Para teste, sempre ir para próxima etapa
+      setActiveStep(2);
       
     } catch (error) {
       console.error('❌ Erro ao fazer inscrição:', error);
@@ -517,12 +502,13 @@ const Inscricao = () => {
 
   // Adicionar esta função para renderizar o resumo
   const renderValueSummary = () => {
-    const inscriptionsTotal = (Number(selectedLot?.price) || 0) * inscricoes.length;
+    const lotPrice = selectedLot ? Number(selectedLot.price) || 0 : 0;
+    const inscriptionsTotal = lotPrice * inscricoes.length;
     const productsTotal = cartProducts.reduce((total, product) => {
       return total + (Number(product.price) * product.quantity);
     }, 0);
     const total = inscriptionsTotal + productsTotal;
-    const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
+    const isFree = lotPrice === 0 && cartProducts.length === 0;
 
     return (
       <Box sx={{ mt: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
@@ -532,7 +518,7 @@ const Inscricao = () => {
         
         <Box sx={{ mb: 2 }}>
           <Typography variant="body1">
-            Inscrições ({inscricoes.length}x): {selectedLot && selectedLot?.price === 0 ? 'Gratuito' : `R$ ${inscriptionsTotal.toFixed(2)}`}
+            Inscrições ({inscricoes.length}x): {isFree ? 'Gratuito' : `R$ ${inscriptionsTotal.toFixed(2)}`}
           </Typography>
           {cartProducts.length > 0 && (
             <Typography variant="body1">
