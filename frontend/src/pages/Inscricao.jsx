@@ -444,89 +444,47 @@ const Inscricao = () => {
   // NOVA FUNÇÃO: Abre o checkout AbacatePay antes de finalizar inscrição
   const handleCheckoutAndNext = async () => {
     console.log('🚀 Iniciando processo de checkout...');
-    setPreventRedirect(true); // Ativa proteção contra redirecionamento
-    sessionStorage.setItem('checkout_in_progress', 'true'); // Marca checkout em andamento
     setLoading(true);
     setError('');
+    
     try {
       if (!isAllInscricoesValid()) {
         setError('Por favor, preencha todos os campos obrigatórios.');
         setLoading(false);
         return;
       }
-      // Removida validação de paymentMethod - método será escolhido no checkout do Mercado Pago
+      
       const participantesToSend = inscricoes.map(inscricao => ({
         name: inscricao.nome,
         email: inscricao.email,
         phone: inscricao.telefone,
-        ...(event.registration_form?.cpf && { cpf: inscricao.cpf }),
-        ...(event.registration_form?.idade && { age: inscricao.idade }),
-        ...(event.registration_form?.genero && { gender: inscricao.genero }),
-        ...(event.registration_form?.endereco && { address: inscricao.endereco }),
-        ...(event.registration_form?.autorizacao_imagem && {
-          image_authorization: inscricao.autorizacao_imagem
-        }),
-        ...(event.registration_form?.custom_fields && {
-          custom_fields: inscricao.custom_fields
-        }),
-        form_data: {
-          nome: inscricao.nome,
-          email: inscricao.email,
-          telefone: inscricao.telefone,
-          cpf: inscricao.cpf,
-          idade: inscricao.idade,
-          genero: inscricao.genero,
-          endereco: inscricao.endereco,
-          autorizacao_imagem: inscricao.autorizacao_imagem,
-          custom_fields: inscricao.custom_fields
-        }
+        cpf: inscricao.cpf || null,
+        age: inscricao.idade || null,
+        gender: inscricao.genero || null,
+        address: inscricao.endereco || null,
+        image_authorization: inscricao.autorizacao_imagem || false,
+        custom_fields: inscricao.custom_fields || {}
       }));
 
       const requestData = {
         participantes: participantesToSend,
-        payment_method: 'CHECKOUT_PRO', // Método genérico para Checkout Pro
+        payment_method: 'CHECKOUT_PRO',
         lote_id: selectedLotId,
         products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
       };
 
       console.log('📦 Dados sendo enviados para a API:', JSON.stringify(requestData, null, 2));
 
-              const response = await api.post(`/events/${event.id}/teste-ultra-simples`, requestData);
+      const response = await api.post(`/events/${event.id}/teste-ultra-simples`, requestData);
 
       console.log('✅ Resposta da API:', response.data);
-      setRegistrationCode(response.data.registration_code);
+      setRegistrationCode(response.data.registration_code || 'TEST-CODE');
       setRegistrationComplete(true);
       setError('');
       
-      // Verificar se é lote gratuito
-      const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
+      // Para teste, sempre ir para próxima etapa
+      setActiveStep(2);
       
-      if (isFree) {
-        // Para lotes gratuitos, ir direto para a última etapa
-        setPaymentStatus('completed');
-        setActiveStep(2);
-      } else {
-        // Para lotes pagos, verificar se há link de pagamento
-        if (response.data.payment_info && response.data.payment_info.payment_url) {
-          setPaymentUrl(response.data.payment_info.payment_url);
-          setPaymentPending(true);
-        } else {
-          setPaymentUrl('');
-          setPaymentPending(false);
-        }
-      }
-      
-      // Atualizar os dados nos painéis administrativos
-      try {
-        await Promise.all([
-          api.get('/admin/stats'),
-          api.get('/admin/registrations/recent'),
-          api.get(`/admin/events/${event.id}/stats`)
-        ]);
-        window.dispatchEvent(new Event('registration-updated'));
-      } catch (error) {
-        console.error('Erro ao atualizar estatísticas:', error);
-      }
     } catch (error) {
       console.error('❌ Erro ao fazer inscrição:', error);
       console.error('📊 Status:', error.response?.status);
