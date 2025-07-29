@@ -21,9 +21,8 @@ router.use('/upload', uploadRoutes);
 router.use('/admin', adminRoutes);
 router.use('/financial', financialRoutes);
 router.use('/settings', settingsRoutes);
-router.use('/payment', paymentRoutes);
-router.use('/registrations', registrationRoutes);
 router.use('/payments', paymentRoutes);
+router.use('/registrations', registrationRoutes);
 router.use('/lots', lotRoutes);
 
 module.exports = router; 
