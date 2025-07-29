@@ -631,100 +631,90 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
   console.log('🚀 INICIANDO INSCRIÇÃO ULTRA-ROBUSTA');
   console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
   
-  let trx = null;
-  let isBoleto = false;
-  
   try {
-    // Iniciar transação com tratamento de erro
-    try {
-      trx = await db.transaction();
-      console.log('✅ Transação iniciada');
-    } catch (txError) {
-      console.error('❌ Erro ao iniciar transação:', txError);
-      return res.status(500).json({
-        error: 'Erro ao iniciar transação',
-        details: txError.message
-      });
-    }
-    
     const { id } = req.params;
     const { participantes, payment_method, lot_id, products = [] } = req.body;
     
     console.log('🔍 Dados extraídos:', { id, payment_method, lot_id, participantesCount: participantes?.length });
     
     if (!Array.isArray(participantes) || participantes.length === 0) {
-      await trx.rollback();
       return res.status(400).json({ error: 'Nenhum participante informado.' });
     }
     
     // Verificar se o evento existe
-    const event = await trx('events').where('id', id).first();
+    const event = await db('events').where('id', id).first();
     if (!event) {
-      await trx.rollback();
       return res.status(404).json({ error: 'Evento não encontrado' });
     }
     
     console.log('✅ Evento encontrado:', event.title);
     
     // Buscar o lote selecionado
-    const selectedLot = await trx('lots')
+    const selectedLot = await db('lots')
       .where('id', lot_id)
       .andWhere('event_id', id)
       .first();
       
     if (!selectedLot) {
-      await trx.rollback();
       return res.status(400).json({ error: 'Lote selecionado inválido' });
     }
     
     console.log('✅ Lote encontrado:', selectedLot.name, 'Preço:', selectedLot.price);
     
-    if (selectedLot.quantity < participantes.length) {
-      await trx.rollback();
-      return res.status(400).json({ error: 'Não há vagas suficientes disponíveis neste lote' });
-    }
-    
-    // Buscar produtos do evento
-    let productsData = [];
-    let productsTotal = 0;
-    if (products && products.length > 0) {
-      for (const p of products) {
-        const eventProduct = await trx('event_products').where('id', p.id).first();
-        if (!eventProduct) {
-          await trx.rollback();
-          return res.status(400).json({ error: `Produto ${p.id} não encontrado` });
-        }
-        if (eventProduct.stock < p.quantity) {
-          await trx.rollback();
-          return res.status(400).json({ error: `Estoque insuficiente para o produto ${eventProduct.name}` });
-        }
-        productsData.push({
-          id: p.id,
-          name: eventProduct.name,
-          unit_price: Number(eventProduct.price),
-          quantity: p.quantity
-        });
-        productsTotal += Number(eventProduct.price) * p.quantity;
-      }
-    }
-    
-    console.log('✅ Produtos processados:', productsData.length, 'Total:', productsTotal);
-    
-    // Criar inscrições e tickets
-    const registrationCode = `REG-${generateId()}`;
+    // Criar inscrição simples
+    const registrationCode = `REG-${Date.now()}`;
     const inscricoesIds = [];
-    const tickets = [];
-    
-    console.log('🎫 Iniciando criação de inscrições...');
     
     for (const participante of participantes) {
-      try {
-        if (!participante.name || !participante.email || !participante.phone) {
-          throw new Error('Campos obrigatórios faltando');
-        }
-        
-        const nome = participante.name || participante.nome || (participante.form_data && (participante.form_data.name || participante.form_data.nome)) || '-';
-        const email = participante.email || (participante.form_data && participante.form_data.email) || '-';
+      const inscricaoData = {
+        event_id: id,
+        lot_id: selectedLot.id,
+        name: participante.name,
+        email: participante.email,
+        phone: participante.phone,
+        cpf: participante.cpf || null,
+        status: 'confirmed',
+        payment_status: 'paid',
+        registration_code: registrationCode,
+        created_at: new Date(),
+        updated_at: new Date(),
+        form_data: JSON.stringify(participante)
+      };
+      
+      const [inscricaoId] = await db('registrations').insert(inscricaoData).returning('id');
+      inscricoesIds.push(inscricaoId);
+      console.log('✅ Inscrição criada:', inscricaoId);
+    }
+    
+    // Atualizar quantidade do lote
+    await db('lots')
+      .where('id', selectedLot.id)
+      .update({
+        quantity: db.raw(`quantity - ${participantes.length}`),
+        updated_at: new Date()
+      });
+    
+    console.log('✅ Quantidade do lote atualizada');
+    
+    const response = {
+      success: true,
+      registration_code: registrationCode,
+      inscricoes: inscricoesIds,
+      message: 'Inscrição realizada com sucesso!'
+    };
+    
+    console.log('📤 Resposta:', response);
+    res.json(response);
+    
+  } catch (error) {
+    console.error('❌ Erro na inscrição:', error);
+    console.error('📋 Stack:', error.stack);
+    res.status(500).json({
+      error: 'Erro na inscrição',
+      details: error.message,
+      stack: error.stack
+    });
+  
         
         const existing = await trx('registrations')
           .where({ event_id: id, name: nome, email: email })
