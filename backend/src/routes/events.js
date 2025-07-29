@@ -1076,6 +1076,44 @@ router.post('/:id/inscricao-test-db', async (req, res) => {
   }
 });
 
+// ROTA DE TESTE ULTRA-SIMPLES (REMOVER APÓS USO)
+router.post('/:id/teste-ultra-simples', async (req, res) => {
+  try {
+    console.log('🎯 TESTE ULTRA-SIMPLES');
+    console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
+    
+    const { id } = req.params;
+    const { participantes, lote_id, payment_method, products = [] } = req.body;
+    
+    console.log('🔍 Parâmetros extraídos:', { id, lote_id, participantesCount: participantes?.length });
+    
+    // Resposta simples sem banco de dados
+    const response = {
+      success: true,
+      message: 'Teste realizado com sucesso!',
+      received_data: {
+        event_id: id,
+        lote_id,
+        participantes_count: participantes?.length,
+        payment_method,
+        products_count: products?.length
+      }
+    };
+    
+    console.log('📤 Resposta:', response);
+    res.json(response);
+    
+  } catch (error) {
+    console.error('❌ Erro no teste ultra-simples:', error);
+    console.error('📋 Stack:', error.stack);
+    res.status(500).json({
+      error: 'Erro no teste',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // ROTA DE INSCRIÇÃO ULTRA-SIMPLIFICADA (REMOVER APÓS USO)
 router.post('/:id/inscricao-simples', async (req, res) => {
   try {
