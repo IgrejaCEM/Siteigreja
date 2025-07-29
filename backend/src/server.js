@@ -77,6 +77,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Rota de teste na raiz
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Servidor funcionando!',
+    timestamp: new Date().toISOString(),
+    status: 'online'
+  });
+});
+
 // Rotas
 app.use('/api', routes);
 
