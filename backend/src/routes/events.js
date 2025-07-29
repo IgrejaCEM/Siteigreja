@@ -1080,14 +1080,17 @@ router.post('/:id/inscricao-test-db', async (req, res) => {
 router.post('/:id/inscricao-simples', async (req, res) => {
   try {
     console.log('🎯 INSCRIÇÃO ULTRA-SIMPLIFICADA');
-    console.log('📦 Dados recebidos:', req.body);
+    console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
     
     const { id } = req.params;
     const { participantes, lote_id, payment_method, products = [] } = req.body;
     
+    console.log('🔍 Parâmetros extraídos:', { id, lote_id, participantesCount: participantes?.length });
+    
     // Verificar se o evento existe
     const event = await db('events').where('id', id).first();
     if (!event) {
+      console.log('❌ Evento não encontrado:', id);
       return res.status(404).json({ error: 'Evento não encontrado' });
     }
     
@@ -1096,14 +1099,16 @@ router.post('/:id/inscricao-simples', async (req, res) => {
     // Verificar se o lote existe
     const lot = await db('lots').where('id', lote_id).where('event_id', id).first();
     if (!lot) {
+      console.log('❌ Lote não encontrado:', lote_id);
       return res.status(404).json({ error: 'Lote não encontrado' });
     }
     
-    console.log('✅ Lote encontrado:', lot.name);
+    console.log('✅ Lote encontrado:', lot.name, 'Preço:', lot.price);
     
     // Verificar se a tabela registrations existe
     const registrationsExists = await db.schema.hasTable('registrations');
     if (!registrationsExists) {
+      console.log('❌ Tabela registrations não existe');
       return res.status(500).json({ error: 'Tabela registrations não existe' });
     }
     
@@ -1114,6 +1119,8 @@ router.post('/:id/inscricao-simples', async (req, res) => {
     const inscricoesIds = [];
     
     for (const participante of participantes) {
+      console.log('📝 Processando participante:', participante.name);
+      
       const inscricaoData = {
         event_id: id,
         lot_id: lot.id,
@@ -1128,6 +1135,8 @@ router.post('/:id/inscricao-simples', async (req, res) => {
         updated_at: new Date(),
         form_data: JSON.stringify(participante)
       };
+      
+      console.log('📦 Dados da inscrição:', inscricaoData);
       
       const [inscricaoId] = await db('registrations').insert(inscricaoData).returning('id');
       inscricoesIds.push(inscricaoId);
@@ -1144,15 +1153,19 @@ router.post('/:id/inscricao-simples', async (req, res) => {
     
     console.log('✅ Quantidade do lote atualizada');
     
-    res.json({
+    const response = {
       success: true,
       registration_code: registrationCode,
       inscricoes: inscricoesIds,
       message: 'Inscrição realizada com sucesso!'
-    });
+    };
+    
+    console.log('📤 Resposta:', response);
+    res.json(response);
     
   } catch (error) {
     console.error('❌ Erro na inscrição simples:', error);
+    console.error('📋 Stack:', error.stack);
     res.status(500).json({
       error: 'Erro na inscrição',
       details: error.message,
