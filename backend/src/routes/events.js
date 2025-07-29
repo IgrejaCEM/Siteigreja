@@ -632,7 +632,7 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
   console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
   
   let trx = null;
-  let isBoleto = false; // ✅ DECLARAR NO INÍCIO
+  let isBoleto = false;
   
   try {
     // Iniciar transação com tratamento de erro
