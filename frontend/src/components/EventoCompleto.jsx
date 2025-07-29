@@ -206,14 +206,14 @@ const EventoCompleto = ({ event }) => {
           padding: isMobile ? '10px' : '20px'
         }}
       >
-        {/* Banner do evento - MAIS ALTO e separado */}
+        {/* Banner do evento - MAIS ALTO */}
         <Box sx={{ 
           width: '100%', 
-          height: isMobile ? '50vh' : '60vh', // Aumentado significativamente
+          height: isMobile ? '50vh' : '60vh', // Aumentado de 30vh/40vh para 50vh/60vh
           position: 'relative',
           borderRadius: isMobile ? '10px' : '20px',
           overflow: 'hidden',
-          mb: isMobile ? 4 : 6, // Mais espaço entre banner e conteúdo
+          mb: isMobile ? 3 : 5, // Aumentado margin bottom
           boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
           border: '2px solid #333',
           background: '#000000'
@@ -233,15 +233,15 @@ const EventoCompleto = ({ event }) => {
             left: 0,
             right: 0,
             background: 'rgba(0,0,0,0.9)',
-            padding: isMobile ? '30px' : '50px', // Mais padding
+            padding: isMobile ? '20px' : '40px',
             color: 'white'
           }}>
             <Typography 
               variant="h2" 
               sx={{ 
                 fontWeight: 'bold', 
-                mb: isMobile ? 2 : 3, // Mais espaço
-                fontSize: isMobile ? '2.2rem' : '3.5rem', // Fonte maior
+                mb: isMobile ? 1 : 2,
+                fontSize: isMobile ? '1.8rem' : '3rem',
                 lineHeight: 1.2
               }}
             >
@@ -250,23 +250,20 @@ const EventoCompleto = ({ event }) => {
             <Box sx={{ 
               display: 'flex', 
               flexDirection: isMobile ? 'column' : 'row',
-              gap: isMobile ? 2 : 4, // Mais gap
+              gap: isMobile ? 1 : 3, 
               alignItems: isMobile ? 'flex-start' : 'center' 
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <TimeIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.8rem' }} />
-                <Typography sx={{ 
-                  fontSize: isMobile ? '1.1rem' : '1.3rem',
-                  fontWeight: 'bold'
-                }}>
+                <TimeIcon sx={{ fontSize: isMobile ? '1rem' : '1.5rem' }} />
+                <Typography sx={{ fontSize: isMobile ? '0.9rem' : '1rem' }}>
                   {eventDetails.date ? dayjs(eventDetails.date).format('DD/MM/YYYY') : 'Data a definir'}
                 </Typography>
               </Box>
               {eventDetails.location && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LocationIcon sx={{ fontSize: isMobile ? '1.2rem' : '1.8rem' }} />
+                  <LocationIcon sx={{ fontSize: isMobile ? '1rem' : '1.5rem' }} />
                   <Typography sx={{ 
-                    fontSize: isMobile ? '1rem' : '1.2rem',
+                    fontSize: isMobile ? '0.8rem' : '1rem',
                     display: isMobile ? 'none' : 'block'
                   }}>
                     {eventDetails.location}
@@ -281,38 +278,36 @@ const EventoCompleto = ({ event }) => {
         <Box sx={{ 
           maxWidth: '1200px', 
           margin: '0 auto', 
-          background: '#ffffff', // Fundo branco
+          background: '#ffffff',
           px: isMobile ? 1 : 2,
-          borderRadius: '15px',
-          padding: isMobile ? '20px' : '30px',
-          boxShadow: '0 5px 20px rgba(0,0,0,0.1)'
+          borderRadius: '10px',
+          padding: isMobile ? '16px' : '24px'
         }}>
           {/* Descrição - FUNDO BRANCO */}
           <Card sx={{ 
-            mb: isMobile ? 3 : 4, 
+            mb: isMobile ? 2 : 4, 
             background: '#ffffff', 
             border: '1px solid #e0e0e0',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
             <CardContent sx={{ 
               background: '#ffffff',
-              padding: isMobile ? '20px' : '30px'
+              padding: isMobile ? '16px' : '24px'
             }}>
               <Typography 
                 variant="h5" 
                 sx={{ 
-                  mb: isMobile ? 2 : 3, 
-                  color: '#333333', // Texto escuro
-                  fontSize: isMobile ? '1.4rem' : '1.8rem',
-                  fontWeight: 'bold'
+                  mb: isMobile ? 1 : 2, 
+                  color: '#000000',
+                  fontSize: isMobile ? '1.2rem' : '1.5rem'
                 }}
               >
                 Sobre o Evento
               </Typography>
               <Typography sx={{ 
-                color: '#666666', // Texto cinza escuro
-                lineHeight: 1.8,
-                fontSize: isMobile ? '1rem' : '1.1rem'
+                color: '#333333', 
+                lineHeight: 1.6,
+                fontSize: isMobile ? '0.9rem' : '1rem'
               }}>
                 {eventDetails.description || 'Descrição do evento será adicionada em breve.'}
               </Typography>
@@ -322,63 +317,60 @@ const EventoCompleto = ({ event }) => {
           {/* Lotes - FUNDO BRANCO */}
           {eventDetails.lots && eventDetails.lots.length > 0 && (
             <Card sx={{ 
-              mb: isMobile ? 3 : 4, 
+              mb: isMobile ? 2 : 4, 
               background: '#ffffff', 
               border: '1px solid #e0e0e0',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
               <CardContent sx={{ 
                 background: '#ffffff',
-                padding: isMobile ? '20px' : '30px'
+                padding: isMobile ? '16px' : '24px'
               }}>
                 <Typography 
                   variant="h5" 
                   sx={{ 
-                    mb: isMobile ? 3 : 4, 
-                    color: '#333333', // Texto escuro
-                    fontSize: isMobile ? '1.4rem' : '1.8rem',
-                    fontWeight: 'bold'
+                    mb: isMobile ? 2 : 3, 
+                    color: '#000000',
+                    fontSize: isMobile ? '1.2rem' : '1.5rem'
                   }}
                 >
                   🎫 Ingressos Disponíveis
                 </Typography>
-                <Grid container spacing={isMobile ? 3 : 4}>
+                <Grid container spacing={isMobile ? 2 : 3}>
                   {eventDetails.lots.map((lot) => (
                     <Grid item xs={12} md={6} key={lot.id}>
                       <Card 
                         sx={{ 
                           cursor: 'pointer',
                           transition: 'all 0.3s ease',
-                          border: selectedLot?.id === lot.id ? '3px solid #2196f3' : '1px solid #e0e0e0',
-                          background: selectedLot?.id === lot.id ? '#f3f8ff' : '#ffffff',
+                          border: selectedLot?.id === lot.id ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                          background: selectedLot?.id === lot.id ? '#f3f3f3' : '#ffffff',
                           '&:hover': {
                             transform: isMobile ? 'none' : 'translateY(-5px)',
-                            boxShadow: '0 8px 25px rgba(33,150,243,0.15)',
-                            border: '2px solid #2196f3'
+                            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                            border: '1px solid #1976d2'
                           }
                         }}
                         onClick={() => handleLotSelect(lot)}
                       >
                         <CardContent sx={{ 
-                          background: selectedLot?.id === lot.id ? '#f3f8ff' : '#ffffff',
-                          padding: isMobile ? '16px' : '20px'
+                          background: selectedLot?.id === lot.id ? '#f3f3f3' : '#ffffff',
+                          padding: isMobile ? '12px' : '16px'
                         }}>
                           <Typography 
                             variant="h6" 
                             sx={{ 
-                              color: '#333333', // Texto escuro
-                              mb: 2,
-                              fontSize: isMobile ? '1.1rem' : '1.3rem',
-                              fontWeight: 'bold'
+                              color: '#000000', 
+                              mb: 1,
+                              fontSize: isMobile ? '1rem' : '1.25rem'
                             }}
                           >
                             {lot.name}
                           </Typography>
                           <Typography sx={{ 
-                            color: '#666666', // Texto cinza
-                            mb: 3,
-                            fontSize: isMobile ? '0.9rem' : '1rem',
-                            lineHeight: 1.6
+                            color: '#666666', 
+                            mb: 2,
+                            fontSize: isMobile ? '0.8rem' : '1rem'
                           }}>
                             {lot.description}
                           </Typography>
@@ -387,14 +379,14 @@ const EventoCompleto = ({ event }) => {
                             justifyContent: 'space-between', 
                             alignItems: 'center',
                             flexDirection: isMobile ? 'column' : 'row',
-                            gap: isMobile ? 2 : 0
+                            gap: isMobile ? 1 : 0
                           }}>
                             <Typography 
                               variant="h5" 
                               sx={{ 
-                                color: '#2196f3', // Azul para preço
+                                color: '#1976d2', 
                                 fontWeight: 'bold',
-                                fontSize: isMobile ? '1.3rem' : '1.6rem'
+                                fontSize: isMobile ? '1.1rem' : '1.5rem'
                               }}
                             >
                               R$ {lot.price.toFixed(2)}
@@ -402,21 +394,19 @@ const EventoCompleto = ({ event }) => {
                             <Chip 
                               label={`${lot.quantity} vagas`}
                               color={lot.quantity > 0 ? 'primary' : 'error'}
-                              size={isMobile ? 'small' : 'medium'}
+                              size={isMobile ? 'small' : 'small'}
                               sx={{ 
-                                background: lot.quantity > 0 ? '#2196f3' : '#f44336',
+                                background: lot.quantity > 0 ? '#1976d2' : '#d32f2f',
                                 color: 'white',
-                                fontSize: isMobile ? '0.8rem' : '0.9rem',
-                                fontWeight: 'bold'
+                                fontSize: isMobile ? '0.7rem' : '0.75rem'
                               }}
                             />
                           </Box>
                           {lot.start_date && lot.end_date && (
                             <Typography sx={{ 
-                              color: '#999999', // Texto cinza claro
-                              fontSize: isMobile ? '0.8rem' : '0.9rem', 
-                              mt: 2,
-                              fontStyle: 'italic'
+                              color: '#999999', 
+                              fontSize: isMobile ? '0.7rem' : '0.9rem', 
+                              mt: 1 
                             }}>
                               De {dayjs(lot.start_date).format('DD/MM')} até {dayjs(lot.end_date).format('DD/MM')}
                             </Typography>
@@ -433,54 +423,50 @@ const EventoCompleto = ({ event }) => {
           {/* Produtos - FUNDO BRANCO */}
           {eventDetails.products && eventDetails.products.length > 0 && (
             <Card sx={{ 
-              mb: isMobile ? 3 : 4, 
+              mb: isMobile ? 2 : 4, 
               background: '#ffffff', 
               border: '1px solid #e0e0e0',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
               <CardContent sx={{ 
                 background: '#ffffff',
-                padding: isMobile ? '20px' : '30px'
+                padding: isMobile ? '16px' : '24px'
               }}>
                 <Typography 
                   variant="h5" 
                   sx={{ 
-                    mb: isMobile ? 3 : 4, 
-                    color: '#333333', // Texto escuro
-                    fontSize: isMobile ? '1.4rem' : '1.8rem',
-                    fontWeight: 'bold'
+                    mb: isMobile ? 2 : 3, 
+                    color: '#000000',
+                    fontSize: isMobile ? '1.2rem' : '1.5rem'
                   }}
                 >
                   🛍️ Produtos do Evento
                 </Typography>
-                <Grid container spacing={isMobile ? 3 : 4}>
+                <Grid container spacing={isMobile ? 2 : 3}>
                   {eventDetails.products.map((product) => (
                     <Grid item xs={12} md={4} key={product.id}>
                       <Card sx={{ 
                         background: '#ffffff',
-                        border: '1px solid #e0e0e0',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                        border: '1px solid #e0e0e0'
                       }}>
                         <CardContent sx={{ 
                           background: '#ffffff',
-                          padding: isMobile ? '16px' : '20px'
+                          padding: isMobile ? '12px' : '16px'
                         }}>
                           <Typography 
                             variant="h6" 
                             sx={{ 
-                              color: '#333333', // Texto escuro
-                              mb: 2,
-                              fontSize: isMobile ? '1.1rem' : '1.3rem',
-                              fontWeight: 'bold'
+                              color: '#000000', 
+                              mb: 1,
+                              fontSize: isMobile ? '1rem' : '1.25rem'
                             }}
                           >
                             {product.name}
                           </Typography>
                           <Typography sx={{ 
-                            color: '#666666', // Texto cinza
-                            mb: 3,
-                            fontSize: isMobile ? '0.9rem' : '1rem',
-                            lineHeight: 1.6
+                            color: '#666666', 
+                            mb: 2,
+                            fontSize: isMobile ? '0.8rem' : '1rem'
                           }}>
                             {product.description}
                           </Typography>
@@ -489,30 +475,29 @@ const EventoCompleto = ({ event }) => {
                             justifyContent: 'space-between', 
                             alignItems: 'center',
                             flexDirection: isMobile ? 'column' : 'row',
-                            gap: isMobile ? 2 : 0
+                            gap: isMobile ? 1 : 0
                           }}>
                             <Typography 
                               variant="h6" 
                               sx={{ 
-                                color: '#ff6b35', // Laranja para produtos
+                                color: '#1976d2', 
                                 fontWeight: 'bold',
-                                fontSize: isMobile ? '1.1rem' : '1.3rem'
+                                fontSize: isMobile ? '1rem' : '1.25rem'
                               }}
                             >
                               R$ {product.price.toFixed(2)}
                             </Typography>
                             <Button
                               variant="contained"
-                              size={isMobile ? 'small' : 'medium'}
+                              size={isMobile ? 'small' : 'small'}
                               onClick={() => handleAddProduct(product)}
                               sx={{ 
-                                background: '#ff6b35',
+                                background: '#1976d2',
                                 color: 'white',
-                                fontSize: isMobile ? '0.9rem' : '1rem',
-                                padding: isMobile ? '8px 16px' : '10px 20px',
-                                fontWeight: 'bold',
+                                fontSize: isMobile ? '0.8rem' : '0.875rem',
+                                padding: isMobile ? '6px 12px' : '8px 16px',
                                 '&:hover': {
-                                  background: '#e55a2b'
+                                  background: '#1565c0'
                                 }
                               }}
                             >
@@ -533,19 +518,18 @@ const EventoCompleto = ({ event }) => {
             <Card sx={{ 
               background: '#ffffff', 
               border: '1px solid #e0e0e0',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
               <CardContent sx={{ 
                 background: '#ffffff',
-                padding: isMobile ? '20px' : '30px'
+                padding: isMobile ? '16px' : '24px'
               }}>
                 <Typography 
                   variant="h5" 
                   sx={{ 
-                    mb: isMobile ? 3 : 4, 
-                    color: '#333333', // Texto escuro
-                    fontSize: isMobile ? '1.4rem' : '1.8rem',
-                    fontWeight: 'bold'
+                    mb: isMobile ? 2 : 3, 
+                    color: '#000000',
+                    fontSize: isMobile ? '1.2rem' : '1.5rem'
                   }}
                 >
                   🛒 Seu Pedido
@@ -553,27 +537,25 @@ const EventoCompleto = ({ event }) => {
                 
                 {selectedLot && (
                   <Box sx={{ 
-                    mb: isMobile ? 3 : 4, 
-                    p: isMobile ? 2 : 3, 
-                    background: '#f8f9fa', 
-                    borderRadius: 3, 
-                    border: '2px solid #e9ecef'
+                    mb: isMobile ? 2 : 3, 
+                    p: isMobile ? 1 : 2, 
+                    background: '#f5f5f5', 
+                    borderRadius: 2, 
+                    border: '1px solid #e0e0e0'
                   }}>
                     <Typography 
                       variant="h6" 
                       sx={{ 
-                        color: '#333333', // Texto escuro
-                        mb: 2,
-                        fontSize: isMobile ? '1.1rem' : '1.3rem',
-                        fontWeight: 'bold'
+                        color: '#000000', 
+                        mb: 1,
+                        fontSize: isMobile ? '1rem' : '1.25rem'
                       }}
                     >
                       Ingresso: {selectedLot.name}
                     </Typography>
                     <Typography sx={{ 
-                      color: '#666666', // Texto cinza
-                      fontSize: isMobile ? '1rem' : '1.1rem',
-                      fontWeight: 'bold'
+                      color: '#666666',
+                      fontSize: isMobile ? '0.9rem' : '1rem'
                     }}>
                       R$ {selectedLot.price.toFixed(2)}
                     </Typography>
@@ -581,14 +563,13 @@ const EventoCompleto = ({ event }) => {
                 )}
 
                 {cartProducts.length > 0 && (
-                  <Box sx={{ mb: isMobile ? 3 : 4 }}>
+                  <Box sx={{ mb: isMobile ? 2 : 3 }}>
                     <Typography 
                       variant="h6" 
                       sx={{ 
-                        color: '#333333', // Texto escuro
-                        mb: isMobile ? 2 : 3,
-                        fontSize: isMobile ? '1.1rem' : '1.3rem',
-                        fontWeight: 'bold'
+                        color: '#000000', 
+                        mb: isMobile ? 1 : 2,
+                        fontSize: isMobile ? '1rem' : '1.25rem'
                       }}
                     >
                       Produtos:
@@ -598,48 +579,39 @@ const EventoCompleto = ({ event }) => {
                         display: 'flex', 
                         justifyContent: 'space-between', 
                         alignItems: 'center',
-                        mb: 2,
-                        p: isMobile ? 1.5 : 2,
-                        background: '#f8f9fa',
-                        borderRadius: 2,
-                        border: '1px solid #e9ecef',
+                        mb: 1,
+                        p: isMobile ? 0.5 : 1,
+                        background: '#f5f5f5',
+                        borderRadius: 1,
+                        border: '1px solid #e0e0e0',
                         flexDirection: isMobile ? 'column' : 'row',
-                        gap: isMobile ? 1 : 0
+                        gap: isMobile ? 0.5 : 0
                       }}>
                         <Typography sx={{ 
-                          color: '#333333', // Texto escuro
-                          fontSize: isMobile ? '0.9rem' : '1rem',
-                          fontWeight: 'bold'
+                          color: '#000000',
+                          fontSize: isMobile ? '0.8rem' : '1rem'
                         }}>
                           {product.name} x{product.quantity}
                         </Typography>
                         <Box sx={{ 
                           display: 'flex', 
                           alignItems: 'center', 
-                          gap: 2,
+                          gap: 1,
                           flexDirection: isMobile ? 'column' : 'row'
                         }}>
                           <Typography sx={{ 
-                            color: '#666666', // Texto cinza
-                            fontSize: isMobile ? '0.9rem' : '1rem',
-                            fontWeight: 'bold'
+                            color: '#1976d2',
+                            fontSize: isMobile ? '0.8rem' : '1rem'
                           }}>
                             R$ {(product.price * product.quantity).toFixed(2)}
                           </Typography>
                           <Button
                             size={isMobile ? 'small' : 'small'}
                             color="error"
-                            variant="outlined"
                             onClick={() => handleRemoveProduct(product.id)}
                             sx={{
-                              fontSize: isMobile ? '0.8rem' : '0.9rem',
-                              padding: isMobile ? '6px 12px' : '8px 16px',
-                              borderColor: '#dc3545',
-                              color: '#dc3545',
-                              '&:hover': {
-                                borderColor: '#c82333',
-                                backgroundColor: '#f8d7da'
-                              }
+                              fontSize: isMobile ? '0.7rem' : '0.875rem',
+                              padding: isMobile ? '4px 8px' : '6px 12px'
                             }}
                           >
                             Remover
@@ -650,38 +622,36 @@ const EventoCompleto = ({ event }) => {
                   </Box>
                 )}
 
-                <Divider sx={{ my: isMobile ? 2 : 3, background: '#e0e0e0' }} />
+                <Divider sx={{ my: isMobile ? 1 : 2, background: '#e0e0e0' }} />
                 
                 <Box sx={{ 
                   display: 'flex', 
                   justifyContent: 'space-between', 
                   alignItems: 'center',
                   flexDirection: isMobile ? 'column' : 'row',
-                  gap: isMobile ? 2 : 0
+                  gap: isMobile ? 1 : 0
                 }}>
                   <Typography 
                     variant="h5" 
                     sx={{ 
-                      color: '#333333', // Texto escuro
+                      color: '#000000', 
                       fontWeight: 'bold',
-                      fontSize: isMobile ? '1.3rem' : '1.6rem'
+                      fontSize: isMobile ? '1.1rem' : '1.5rem'
                     }}
                   >
                     Total: R$ {calculateTotal().toFixed(2)}
                   </Typography>
                   <Button
                     variant="contained"
-                    size={isMobile ? 'large' : 'large'}
+                    size={isMobile ? 'medium' : 'large'}
                     disabled={!selectedLot}
                     sx={{ 
-                      background: '#28a745', // Verde para botão principal
+                      background: '#1976d2',
                       color: 'white',
-                      fontSize: isMobile ? '1rem' : '1.1rem',
-                      padding: isMobile ? '12px 24px' : '15px 30px',
-                      fontWeight: 'bold',
-                      borderRadius: '25px',
+                      fontSize: isMobile ? '0.9rem' : '1rem',
+                      padding: isMobile ? '10px 20px' : '12px 24px',
                       '&:hover': {
-                        background: '#218838'
+                        background: '#1565c0'
                       }
                     }}
                   >
