@@ -106,13 +106,22 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     
     console.log('✅ Lote encontrado:', selectedLot.name, 'Preço:', selectedLot.price);
     
+    // Verificar se há vagas suficientes
+    if (selectedLot.quantity < participantes.length) {
+      return res.status(400).json({ error: 'Não há vagas suficientes disponíveis neste lote' });
+    }
+    
+    console.log('✅ Vagas disponíveis:', selectedLot.quantity, 'Inscrições:', participantes.length);
+    
     // Criar inscrição simples
     const registrationCode = `REG-${Date.now()}`;
     const inscricoesIds = [];
     
     for (const participante of participantes) {
+      console.log('📝 Processando participante:', participante.name);
+      
       const inscricaoData = {
-        event_id: id,
+        event_id: parseInt(id),
         lot_id: selectedLot.id,
         name: participante.name,
         email: participante.email,
@@ -125,6 +134,8 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         updated_at: new Date(),
         form_data: JSON.stringify(participante)
       };
+      
+      console.log('📋 Dados da inscrição:', inscricaoData);
       
       const [inscricaoId] = await db('registrations').insert(inscricaoData).returning('id');
       inscricoesIds.push(inscricaoId);
@@ -159,6 +170,39 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
       details: error.message,
       stack: error.stack
     });
+  }
+});
+
+// Rota para buscar produtos do evento
+router.get('/:id/products', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if id is a number
+    const eventId = parseInt(id);
+    let event;
+    
+    if (isNaN(eventId)) {
+      // Buscar por slug
+      event = await db('events').where('slug', id).first();
+    } else {
+      // Buscar por ID
+      event = await db('events').where('id', eventId).first();
+    }
+    
+    if (!event) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
+    
+    const products = await db('event_products')
+      .where('event_id', event.id)
+      .where('is_active', true)
+      .orderBy('created_at', 'desc');
+    
+    res.json(products);
+  } catch (error) {
+    console.error('Erro ao buscar produtos do evento:', error);
+    res.status(500).json({ error: 'Erro ao buscar produtos do evento' });
   }
 });
 
