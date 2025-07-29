@@ -1529,26 +1529,29 @@ router.post('/configurar-webhook', authenticateToken, requireAdmin, async (req, 
     const { url, events } = req.body;
     
     // Configurar webhook via API do Mercado Pago
-    const mercadopago = require('mercadopago');
-    mercadopago.configure({
-      access_token: process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-7906695833613236-072622-a7c53bcaf7bc8b8289f1961ce3937843-2568627728'
-    });
+    const axios = require('axios');
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-7906695833613236-072622-a7c53bcaf7bc8b8289f1961ce3937843-2568627728';
     
-    // Criar webhook
+    // Criar webhook via API REST
     const webhookData = {
       url: url,
       events: events
     };
     
-    const response = await mercadopago.webhooks.create(webhookData);
+    const response = await axios.post('https://api.mercadopago.com/v1/webhooks', webhookData, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
     
-    console.log('✅ Webhook criado:', response);
+    console.log('✅ Webhook criado:', response.data);
     
     res.json({
       success: true,
-      webhook_id: response.id,
-      url: response.url,
-      events: response.events,
+      webhook_id: response.data.id,
+      url: response.data.url,
+      events: response.data.events,
       message: 'Webhook configurado com sucesso!'
     });
     
