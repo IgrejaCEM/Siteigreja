@@ -361,85 +361,152 @@ const Home = () => {
           padding: 0
         }}>
           {events.length > 0 ? events.map(ev => (
-            <a
+            <div
               key={ev.id}
-              href={`/evento/${ev.slug || ev.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
               style={{ 
                 width: '100vw', 
                 height: '100vh',
-                display: 'block', 
-                margin: 0,
-                padding: 0,
-                position: 'relative',
-                cursor: 'pointer',
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'scale(1.02)'
-                }
-              }}
-            >
-              <img
-                src={ev.banner || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iOTAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2Y1ZjVmNSIvPgogIDx0ZXh0IHg9IjQ1MCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5FdmVudG88L3RleHQ+Cjwvc3ZnPg=='}
-                alt={ev.title}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  margin: 0,
-                  padding: 0
-                }}
-              />
-              
-              {/* Overlay com indicação visual */}
-              <div className="overlay" style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(45deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1))',
                 display: 'flex',
-                flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                color: 'white',
-                textAlign: 'center',
-                padding: '20px',
-                opacity: 0,
-                transition: 'opacity 0.3s ease'
-              }}>
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Container do evento com bordas e sombra */}
+              <a
+                href={`/evento/${ev.slug || ev.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="event-card"
+                style={{ 
+                  width: '90%',
+                  maxWidth: '800px',
+                  height: '80%',
+                  display: 'block',
+                  position: 'relative',
+                  cursor: 'pointer',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                  border: '3px solid rgba(255,255,255,0.3)',
+                  transition: 'all 0.3s ease',
+                  textDecoration: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.boxShadow = '0 30px 60px rgba(0,0,0,0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3)';
+                }}
+              >
+                {/* Banner do evento */}
                 <div style={{
-                  fontSize: '2.5rem',
-                  fontWeight: 'bold',
-                  marginBottom: '10px',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                  width: '100%',
+                  height: '100%',
+                  position: 'relative',
+                  background: 'linear-gradient(45deg, #000, #333)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '40px'
                 }}>
-                  {ev.title}
+                  
+                  {/* Logo/Ícone do evento */}
+                  <div style={{
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginBottom: '30px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                    border: '4px solid rgba(255,255,255,0.2)'
+                  }}>
+                    <span style={{ fontSize: '3rem', color: 'white' }}>🎫</span>
+                  </div>
+                  
+                  {/* Título do evento */}
+                  <h1 style={{
+                    fontSize: '3rem',
+                    fontWeight: 'bold',
+                    color: 'white',
+                    margin: '0 0 20px 0',
+                    textAlign: 'center',
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                    lineHeight: '1.2'
+                  }}>
+                    {ev.title}
+                  </h1>
+                  
+                  {/* Data do evento */}
+                  <div style={{
+                    fontSize: '1.5rem',
+                    color: '#ffd700',
+                    marginBottom: '30px',
+                    textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    📅 {ev.date ? new Date(ev.date).toLocaleDateString('pt-BR') : 'Data a definir'}
+                  </div>
+                  
+                  {/* Local do evento */}
+                  {ev.location && (
+                    <div style={{
+                      fontSize: '1.2rem',
+                      color: '#87ceeb',
+                      marginBottom: '30px',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px'
+                    }}>
+                      📍 {ev.location}
+                    </div>
+                  )}
+                  
+                  {/* Botão de ação */}
+                  <div className="event-button" style={{
+                    background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4)',
+                    color: 'white',
+                    padding: '15px 40px',
+                    borderRadius: '50px',
+                    fontSize: '1.3rem',
+                    fontWeight: 'bold',
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                    border: '2px solid rgba(255,255,255,0.3)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    🎫 CLIQUE PARA VER DETALHES
+                  </div>
+                  
+                  {/* Indicador de clique */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '20px',
+                    right: '20px',
+                    background: 'rgba(255,255,255,0.9)',
+                    color: '#333',
+                    padding: '8px 15px',
+                    borderRadius: '20px',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                  }}>
+                    👆 CLICÁVEL
+                  </div>
                 </div>
-                <div style={{
-                  fontSize: '1.2rem',
-                  marginBottom: '20px',
-                  textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
-                }}>
-                  📅 {ev.date ? new Date(ev.date).toLocaleDateString('pt-BR') : 'Data a definir'}
-                </div>
-                <div style={{
-                  fontSize: '1.5rem',
-                  fontWeight: 'bold',
-                  background: 'rgba(255,255,255,0.9)',
-                  color: '#000',
-                  padding: '10px 20px',
-                  borderRadius: '25px',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                  animation: 'pulse 2s infinite'
-                }}>
-                  🎫 CLIQUE PARA VER DETALHES
-                </div>
-              </div>
-            </a>
+              </a>
+            </div>
           )) : (
             <Typography sx={{ color: '#888', fontSize: { xs: 16, sm: 20 } }}>Nenhum evento cadastrado</Typography>
           )}
@@ -453,12 +520,29 @@ const Home = () => {
           100% { transform: scale(1); }
         }
         
-        a:hover .overlay {
-          opacity: 1 !important;
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+        
+        @keyframes glow {
+          0% { box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+          50% { box-shadow: 0 8px 25px rgba(255,107,107,0.5); }
+          100% { box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        }
+        
+        .event-card {
+          animation: float 3s ease-in-out infinite;
+        }
+        
+        .event-button {
+          animation: glow 2s ease-in-out infinite;
         }
         
         a:hover {
-          transform: scale(1.02) !important;
+          transform: scale(1.05) !important;
+          box-shadow: 0 30px 60px rgba(0,0,0,0.4) !important;
         }
       `}</style>
       {htmlToShow && renderWithEventSection(htmlToShow)}
