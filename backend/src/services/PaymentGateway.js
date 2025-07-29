@@ -100,7 +100,7 @@ class MercadoPagoGateway {
           event_id: customer.event_id,
           force_web_checkout: true,
           platform: 'web',
-          user_agent: 'desktop'
+          user_agent: 'mobile'
         }
       };
 
