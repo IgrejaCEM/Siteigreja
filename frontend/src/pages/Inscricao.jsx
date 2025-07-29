@@ -410,13 +410,29 @@ const Inscricao = () => {
 
       console.log('📦 Dados sendo enviados para a API:', JSON.stringify(requestData, null, 2));
 
-      const response = await api.post(`/events/${event.id}/inscricao-simples`, requestData);
+      const response = await api.post(`/events/${event.id}/inscricao-unificada`, requestData);
 
       console.log('✅ Resposta da API:', response.data);
       setRegistrationCode(response.data.registration_code);
       setRegistrationComplete(true);
       
-      setActiveStep(2);
+      // Verificar se é lote gratuito
+      const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
+      
+      if (isFree) {
+        // Para lotes gratuitos, ir direto para a última etapa
+        setPaymentStatus('completed');
+        setActiveStep(2);
+      } else {
+        // Para lotes pagos, verificar se há link de pagamento
+        if (response.data.payment_info && response.data.payment_info.payment_url) {
+          setPaymentUrl(response.data.payment_info.payment_url);
+          setPaymentPending(true);
+        } else {
+          setPaymentUrl('');
+          setPaymentPending(false);
+        }
+      }
       
     } catch (error) {
       console.error('❌ Erro ao fazer inscrição:', error);
