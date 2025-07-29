@@ -372,7 +372,12 @@ const Home = () => {
                 display: 'block', 
                 margin: 0,
                 padding: 0,
-                position: 'relative'
+                position: 'relative',
+                cursor: 'pointer',
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.02)'
+                }
               }}
             >
               <img
@@ -387,6 +392,53 @@ const Home = () => {
                   padding: 0
                 }}
               />
+              
+              {/* Overlay com indicação visual */}
+              <div className="overlay" style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(45deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1))',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                color: 'white',
+                textAlign: 'center',
+                padding: '20px',
+                opacity: 0,
+                transition: 'opacity 0.3s ease'
+              }}>
+                <div style={{
+                  fontSize: '2.5rem',
+                  fontWeight: 'bold',
+                  marginBottom: '10px',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                }}>
+                  {ev.title}
+                </div>
+                <div style={{
+                  fontSize: '1.2rem',
+                  marginBottom: '20px',
+                  textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
+                }}>
+                  📅 {ev.date ? new Date(ev.date).toLocaleDateString('pt-BR') : 'Data a definir'}
+                </div>
+                <div style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
+                  background: 'rgba(255,255,255,0.9)',
+                  color: '#000',
+                  padding: '10px 20px',
+                  borderRadius: '25px',
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                  animation: 'pulse 2s infinite'
+                }}>
+                  🎫 CLIQUE PARA VER DETALHES
+                </div>
+              </div>
             </a>
           )) : (
             <Typography sx={{ color: '#888', fontSize: { xs: 16, sm: 20 } }}>Nenhum evento cadastrado</Typography>
@@ -394,6 +446,21 @@ const Home = () => {
         </Box>
       </Box>
       <style>{css}</style>
+      <style>{`
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        
+        a:hover .overlay {
+          opacity: 1 !important;
+        }
+        
+        a:hover {
+          transform: scale(1.02) !important;
+        }
+      `}</style>
       {htmlToShow && renderWithEventSection(htmlToShow)}
       <FAQSection />
       <Footer />
