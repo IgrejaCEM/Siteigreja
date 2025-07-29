@@ -783,6 +783,27 @@ const Inscricao = () => {
               </Alert>
             )}
             
+            {/* Ticket Generator - Só mostrar quando inscrição estiver completa */}
+            {registrationComplete && registrationCode && (
+              <Paper sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  🎫 Seu Ingresso
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Código de inscrição: <strong>{registrationCode}</strong>
+                </Typography>
+                <TicketGenerator 
+                  registrationData={{
+                    name: inscricoes[0]?.nome || 'Participante',
+                    email: inscricoes[0]?.email || '',
+                    phone: inscricoes[0]?.telefone || '',
+                    registration_code: registrationCode
+                  }}
+                  eventData={event}
+                />
+              </Paper>
+            )}
+            
             {/* Botão manual para iPhone */}
             {paymentPending && paymentUrl && (
               <Alert severity="info" sx={{ mb: 2 }}>
