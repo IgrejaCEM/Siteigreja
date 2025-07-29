@@ -190,7 +190,7 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
       payment_info: paymentInfo
     };
     
-    console.log('📤 Resposta:', response);
+    console.log('📤 Resposta completa:', JSON.stringify(response, null, 2));
     res.json(response);
     
   } catch (error) {
@@ -234,6 +234,45 @@ router.get('/:id/products', async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar produtos do evento:', error);
     res.status(500).json({ error: 'Erro ao buscar produtos do evento' });
+  }
+});
+
+// Rota para buscar informações de pagamento
+router.get('/payments/:registrationCode', async (req, res) => {
+  try {
+    const { registrationCode } = req.params;
+    
+    console.log('🔍 Buscando pagamento para:', registrationCode);
+    
+    // Buscar inscrição
+    const registration = await db('registrations')
+      .where('registration_code', registrationCode)
+      .first();
+      
+    if (!registration) {
+      return res.status(404).json({ error: 'Inscrição não encontrada' });
+    }
+    
+    // Buscar informações de pagamento
+    const payment = await db('payments')
+      .where('registration_code', registrationCode)
+      .first();
+      
+    const response = {
+      registration: registration,
+      payment: payment || null,
+      status: payment ? payment.status : 'pending'
+    };
+    
+    console.log('📤 Informações de pagamento:', response);
+    res.json(response);
+    
+  } catch (error) {
+    console.error('❌ Erro ao buscar pagamento:', error);
+    res.status(500).json({
+      error: 'Erro ao buscar pagamento',
+      details: error.message
+    });
   }
 });
 
