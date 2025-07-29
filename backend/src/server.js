@@ -102,8 +102,10 @@ Model.knex(knex);
 initializeDatabase()
   .then(() => {
     console.log('Database initialized successfully');
-    app.listen(config.server.port, () => {
-      console.log(`Server running on port ${config.server.port}`);
+    const port = config.server.port || process.env.PORT || 3005;
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+      console.log(`Server URL: https://siteigreja-1.onrender.com`);
     });
   })
   .catch(error => {
