@@ -641,7 +641,10 @@ const Inscricao = () => {
   }
 
   // Verificação global de selectedLot para evitar erros
-  const selectedLot = event?.lots?.find(lot => lot.id === selectedLotId) || event?.lots?.[0];
+  let selectedLot = null;
+  if (event && event.lots) {
+    selectedLot = event.lots.find(lot => lot.id === selectedLotId) || event.lots[0];
+  }
 
   const renderInscricaoForm = (index) => (
     <Grid container spacing={2}>
