@@ -78,7 +78,10 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
   
   try {
     const { id } = req.params;
-    const { participantes, payment_method, lot_id, products = [] } = req.body;
+    const { participantes, payment_method, lot_id, lote_id, products = [] } = req.body;
+    
+    // Suportar tanto lot_id quanto lote_id
+    const finalLotId = lot_id || lote_id;
     
     console.log('🔍 Dados extraídos:', { id, payment_method, lot_id, participantesCount: participantes?.length });
     
@@ -95,11 +98,11 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     console.log('✅ Evento encontrado:', event.title);
     
     // Buscar o lote selecionado
-    console.log('🔍 Buscando lote:', { lot_id, event_id: id });
-    console.log('🔍 Tipos:', { lot_id_type: typeof lot_id, event_id_type: typeof id });
+    console.log('🔍 Buscando lote:', { finalLotId, event_id: id });
+    console.log('🔍 Tipos:', { lot_id_type: typeof finalLotId, event_id_type: typeof id });
     
     const selectedLot = await db('lots')
-      .where('id', parseInt(lot_id))
+      .where('id', parseInt(finalLotId))
       .andWhere('event_id', parseInt(id))
       .first();
       
@@ -157,11 +160,34 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     
     console.log('✅ Quantidade do lote atualizada');
     
+    // Criar pagamento se não for gratuito
+    let paymentInfo = null;
+    if (selectedLot.price > 0) {
+      try {
+        console.log('🔗 Criando pagamento no Mercado Pago...');
+        
+        const PaymentGateway = require('../services/PaymentGateway');
+        
+        paymentInfo = await PaymentGateway.createPayment({
+          amount: selectedLot.price * participantes.length,
+          description: `Inscrição - ${event.title} - ${selectedLot.name}`,
+          customer: participantes[0],
+          method: payment_method || 'CHECKOUT_PRO'
+        });
+        
+        console.log('✅ Pagamento criado:', paymentInfo);
+      } catch (paymentError) {
+        console.error('❌ Erro ao criar pagamento:', paymentError);
+        // Continuar mesmo se o pagamento falhar
+      }
+    }
+    
     const response = {
       success: true,
       registration_code: registrationCode,
       inscricoes: inscricoesIds,
-      message: 'Inscrição realizada com sucesso!'
+      message: 'Inscrição realizada com sucesso!',
+      payment_info: paymentInfo
     };
     
     console.log('📤 Resposta:', response);
