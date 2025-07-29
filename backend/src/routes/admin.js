@@ -1595,4 +1595,48 @@ router.post('/testar-webhook', authenticateToken, requireAdmin, async (req, res)
   }
 });
 
+// Rota de emergência para limpar dados órfãos
+router.post('/clear-orphaned-data', async (req, res) => {
+  try {
+    console.log('🧹 LIMPANDO DADOS ÓRFÃOS...');
+    
+    // Remover inscrições sem evento
+    const inscricoesRemovidas = await db('registrations')
+      .leftJoin('events', 'registrations.event_id', 'events.id')
+      .whereNull('events.id')
+      .del();
+    
+    // Remover lotes sem evento
+    const lotesRemovidos = await db('lots')
+      .leftJoin('events', 'lots.event_id', 'events.id')
+      .whereNull('events.id')
+      .del();
+    
+    // Remover produtos sem evento
+    const produtosRemovidos = await db('event_products')
+      .leftJoin('events', 'event_products.event_id', 'events.id')
+      .whereNull('events.id')
+      .del();
+    
+    console.log('✅ Dados órfãos removidos:', {
+      inscricoes: inscricoesRemovidas,
+      lotes: lotesRemovidos,
+      produtos: produtosRemovidos
+    });
+    
+    res.json({
+      success: true,
+      message: 'Dados órfãos removidos com sucesso',
+      removed: {
+        registrations: inscricoesRemovidas,
+        lots: lotesRemovidos,
+        products: produtosRemovidos
+      }
+    });
+  } catch (error) {
+    console.error('❌ Erro ao limpar dados órfãos:', error);
+    res.status(500).json({ error: 'Erro ao limpar dados órfãos' });
+  }
+});
+
 module.exports = router; 
