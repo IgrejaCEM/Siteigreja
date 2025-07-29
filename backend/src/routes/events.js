@@ -165,6 +165,12 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     if (selectedLot.price > 0) {
       try {
         console.log('🔗 Criando pagamento no Mercado Pago...');
+        console.log('💰 Dados do pagamento:', {
+          amount: selectedLot.price * participantes.length,
+          description: `Inscrição - ${event.title} - ${selectedLot.name}`,
+          customer: participantes[0],
+          method: payment_method || 'CHECKOUT_PRO'
+        });
         
         const PaymentGateway = require('../services/PaymentGateway');
         
@@ -178,8 +184,11 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         console.log('✅ Pagamento criado:', paymentInfo);
       } catch (paymentError) {
         console.error('❌ Erro ao criar pagamento:', paymentError);
+        console.error('📋 Stack do erro:', paymentError.stack);
         // Continuar mesmo se o pagamento falhar
       }
+    } else {
+      console.log('🆓 Lote gratuito - sem pagamento necessário');
     }
     
     const response = {
