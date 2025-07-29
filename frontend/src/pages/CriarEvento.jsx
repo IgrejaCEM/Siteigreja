@@ -68,8 +68,12 @@ const CriarEvento = () => {
     date: '',
     location: '',
     banner: '',
+    banner_desktop: '',
+    banner_mobile: '',
     banner_home: '',
     banner_evento: '',
+    banner_evento_desktop: '',
+    banner_evento_mobile: '',
     logo: '', // ✅ NOVO: Campo para logo do evento
     status: 'active',
     has_payment: false,
@@ -133,8 +137,12 @@ const CriarEvento = () => {
             date: event.date ? dayjs(event.date) : null, // ✅ CORRIGIDO: Converter para objeto dayjs
             location: event.location,
             banner: event.banner,
+            banner_desktop: event.banner_desktop || event.banner,
+            banner_mobile: event.banner_mobile || event.banner,
             banner_home: event.banner_home,
             banner_evento: event.banner_evento,
+            banner_evento_desktop: event.banner_evento_desktop || event.banner_evento,
+            banner_evento_mobile: event.banner_evento_mobile || event.banner_evento,
             logo: event.logo, // ✅ NOVO: Campo para logo do evento
             status: event.status,
             has_payment: event.has_payment,
@@ -469,9 +477,10 @@ const CriarEvento = () => {
                       Banners e Imagens
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={4}>
+                      {/* Banner Principal Desktop */}
+                      <Grid item xs={12} sm={6}>
                         <Typography variant="subtitle2" gutterBottom>
-                          Banner Principal
+                          Banner Principal (Desktop)
                         </Typography>
                         <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
                           Tamanho recomendado: 1920x1080 pixels
@@ -479,33 +488,183 @@ const CriarEvento = () => {
                         <input
                           accept="image/*"
                           style={{ display: 'none' }}
-                          id="banner-upload"
+                          id="banner-desktop-upload"
                           type="file"
-                          onChange={(e) => handleBannerChange(e, 'banner')}
+                          onChange={(e) => handleBannerChange(e, 'banner_desktop')}
                         />
-                        <label htmlFor="banner-upload">
+                        <label htmlFor="banner-desktop-upload">
                           <Button
                             variant="outlined"
                             component="span"
                             fullWidth
                             sx={{ mb: 2 }}
                           >
-                            Selecionar Banner Principal
+                            Selecionar Banner Desktop
                           </Button>
                         </label>
                         <Button
                           variant="text"
                           fullWidth
-                          onClick={() => handleImageUrl('banner')}
+                          onClick={() => handleImageUrl('banner_desktop')}
                           sx={{ mb: 2 }}
                         >
                           Ou inserir URL
                         </Button>
-                        {form.banner && (
+                        {form.banner_desktop && (
                           <Box sx={{ mt: 2 }}>
                             <img
-                              src={form.banner}
-                              alt="Preview"
+                              src={form.banner_desktop}
+                              alt="Preview Desktop"
+                              style={{
+                                width: '100%',
+                                height: '200px',
+                                objectFit: 'cover',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd'
+                              }}
+                            />
+                          </Box>
+                        )}
+                      </Grid>
+
+                      {/* Banner Principal Mobile */}
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Banner Principal (Mobile)
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
+                          Tamanho recomendado: 800x600 pixels
+                        </Typography>
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="banner-mobile-upload"
+                          type="file"
+                          onChange={(e) => handleBannerChange(e, 'banner_mobile')}
+                        />
+                        <label htmlFor="banner-mobile-upload">
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            fullWidth
+                            sx={{ mb: 2 }}
+                          >
+                            Selecionar Banner Mobile
+                          </Button>
+                        </label>
+                        <Button
+                          variant="text"
+                          fullWidth
+                          onClick={() => handleImageUrl('banner_mobile')}
+                          sx={{ mb: 2 }}
+                        >
+                          Ou inserir URL
+                        </Button>
+                        {form.banner_mobile && (
+                          <Box sx={{ mt: 2 }}>
+                            <img
+                              src={form.banner_mobile}
+                              alt="Preview Mobile"
+                              style={{
+                                width: '100%',
+                                height: '200px',
+                                objectFit: 'cover',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd'
+                              }}
+                            />
+                          </Box>
+                        )}
+                      </Grid>
+
+                      {/* Banner Evento Desktop */}
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Banner do Evento (Desktop)
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
+                          Tamanho recomendado: 1200x400 pixels
+                        </Typography>
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="banner-evento-desktop-upload"
+                          type="file"
+                          onChange={(e) => handleBannerChange(e, 'banner_evento_desktop')}
+                        />
+                        <label htmlFor="banner-evento-desktop-upload">
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            fullWidth
+                            sx={{ mb: 2 }}
+                          >
+                            Selecionar Banner Evento Desktop
+                          </Button>
+                        </label>
+                        <Button
+                          variant="text"
+                          fullWidth
+                          onClick={() => handleImageUrl('banner_evento_desktop')}
+                          sx={{ mb: 2 }}
+                        >
+                          Ou inserir URL
+                        </Button>
+                        {form.banner_evento_desktop && (
+                          <Box sx={{ mt: 2 }}>
+                            <img
+                              src={form.banner_evento_desktop}
+                              alt="Preview Evento Desktop"
+                              style={{
+                                width: '100%',
+                                height: '200px',
+                                objectFit: 'cover',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd'
+                              }}
+                            />
+                          </Box>
+                        )}
+                      </Grid>
+
+                      {/* Banner Evento Mobile */}
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Banner do Evento (Mobile)
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 2 }}>
+                          Tamanho recomendado: 600x300 pixels
+                        </Typography>
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="banner-evento-mobile-upload"
+                          type="file"
+                          onChange={(e) => handleBannerChange(e, 'banner_evento_mobile')}
+                        />
+                        <label htmlFor="banner-evento-mobile-upload">
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            fullWidth
+                            sx={{ mb: 2 }}
+                          >
+                            Selecionar Banner Evento Mobile
+                          </Button>
+                        </label>
+                        <Button
+                          variant="text"
+                          fullWidth
+                          onClick={() => handleImageUrl('banner_evento_mobile')}
+                          sx={{ mb: 2 }}
+                        >
+                          Ou inserir URL
+                        </Button>
+                        {form.banner_evento_mobile && (
+                          <Box sx={{ mt: 2 }}>
+                            <img
+                              src={form.banner_evento_mobile}
+                              alt="Preview Evento Mobile"
                               style={{
                                 width: '100%',
                                 height: '200px',
@@ -555,10 +714,10 @@ const CriarEvento = () => {
                           <Box sx={{ mt: 2 }}>
                             <img
                               src={form.logo}
-                              alt="Logo Preview"
+                              alt="Preview"
                               style={{
-                                width: '100px',
-                                height: '100px',
+                                width: '100%',
+                                height: '200px',
                                 objectFit: 'cover',
                                 borderRadius: '4px',
                                 border: '1px solid #ddd'

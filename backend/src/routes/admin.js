@@ -115,8 +115,12 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
       date,
       location,
       banner,
+      banner_desktop,
+      banner_mobile,
       banner_home,
       banner_evento,
+      banner_evento_desktop,
+      banner_evento_mobile,
       logo, // ✅ NOVO: Campo para logo do evento
       status,
       registration_form,
@@ -183,8 +187,12 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
       date: date.includes('T') ? date : date + ' 00:00:00', // Garantir formato correto
       location,
       banner: banner || null,
+      banner_desktop: banner_desktop || banner || null,
+      banner_mobile: banner_mobile || banner || null,
       banner_home: banner_home || null,
       banner_evento: banner_evento || null,
+      banner_evento_desktop: banner_evento_desktop || banner_evento || null,
+      banner_evento_mobile: banner_evento_mobile || banner_evento || null,
       logo: logo || null, // ✅ NOVO: Campo para logo do evento
       status: status || 'active',
       slug,

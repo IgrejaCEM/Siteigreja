@@ -238,7 +238,11 @@ const EventoCompleto = ({ event }) => {
           background: '#000000'
         }}>
           <img
-            src={eventDetails.banner || 'https://via.placeholder.com/1200x400?text=Banner+do+Evento'}
+            src={
+              isMobile 
+                ? (eventDetails.banner_evento_mobile || eventDetails.banner_mobile || eventDetails.banner_evento || eventDetails.banner || 'https://via.placeholder.com/600x300?text=Banner+Mobile')
+                : (eventDetails.banner_evento_desktop || eventDetails.banner_desktop || eventDetails.banner_evento || eventDetails.banner || 'https://via.placeholder.com/1200x400?text=Banner+Desktop')
+            }
             alt={eventDetails.title}
             style={{
               width: '100%',
