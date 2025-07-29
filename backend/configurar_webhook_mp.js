@@ -1,69 +1,60 @@
 const axios = require('axios');
 
-const ACCESS_TOKEN = 'APP_USR-7906695833613236-072622-a7c53bcaf7bc8b8289f1961ce3937843-2568627728';
+const API_BASE_URL = 'https://siteigreja-1.onrender.com/api';
 
-console.log('🔧 CONFIGURANDO WEBHOOK DO MERCADO PAGO');
-console.log('========================================');
-
-async function configurarWebhook() {
+async function configurarWebhookMP() {
+  console.log('🔧 CONFIGURANDO WEBHOOK MERCADO PAGO');
+  console.log('======================================');
+  
   try {
-    console.log('📋 Passo 1: Verificando webhooks existentes...');
-    
-    // Listar webhooks existentes
-    const webhooksResponse = await axios.get('https://api.mercadopago.com/v1/webhooks', {
-      headers: {
-        'Authorization': `Bearer ${ACCESS_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
+    // 1. Fazer login
+    console.log('📡 [1/3] Fazendo login...');
+    const loginResponse = await axios.post(`${API_BASE_URL}/auth/login`, {
+      emailOrUsername: 'admin@admin.com',
+      password: 'admin123'
     });
     
-    console.log('📊 Webhooks existentes:', webhooksResponse.data.length);
-    webhooksResponse.data.forEach(webhook => {
-      console.log(`   - ID: ${webhook.id}, URL: ${webhook.url}, Status: ${webhook.status}`);
-    });
+    if (!loginResponse.data || !loginResponse.data.token) {
+      console.log('❌ Login falhou:', loginResponse.data);
+      return;
+    }
     
-    console.log('\n📋 Passo 2: Criando novo webhook...');
+    const token = loginResponse.data.token;
+    console.log('✅ Login OK, token obtido');
     
+    // 2. Configurar webhook via API
+    console.log('📡 [2/3] Configurando webhook...');
     const webhookData = {
       url: 'https://siteigreja-1.onrender.com/api/payments/webhook',
-      events: [
-        'payment.created',
-        'payment.updated',
-        'payment.pending',
-        'payment.approved',
-        'payment.rejected',
-        'payment.cancelled',
-        'payment.refunded'
-      ]
+      events: ['payment.created', 'payment.updated', 'payment.cancelled']
     };
     
-    const createResponse = await axios.post('https://api.mercadopago.com/v1/webhooks', webhookData, {
-      headers: {
-        'Authorization': `Bearer ${ACCESS_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
+    const webhookResponse = await axios.post(`${API_BASE_URL}/admin/configurar-webhook`, webhookData, {
+      headers: { Authorization: `Bearer ${token}` }
     });
     
-    console.log('✅ Webhook criado com sucesso!');
-    console.log('📊 ID:', createResponse.data.id);
-    console.log('🔗 URL:', createResponse.data.url);
-    console.log('📋 Eventos:', createResponse.data.events);
+    console.log('✅ Webhook configurado:', webhookResponse.data);
     
-    console.log('\n🎯 CONFIGURAÇÃO CONCLUÍDA!');
-    console.log('✅ Webhook configurado');
-    console.log('✅ Notificações serão enviadas');
-    console.log('✅ Sistema financeiro funcionará corretamente');
+    // 3. Testar webhook
+    console.log('📡 [3/3] Testando webhook...');
+    const testResponse = await axios.post(`${API_BASE_URL}/admin/testar-webhook`, {
+      test: true
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    console.log('✅ Teste do webhook:', testResponse.data);
+    
+    console.log('\n🎉 WEBHOOK CONFIGURADO COM SUCESSO!');
+    console.log('🌐 URL: https://siteigreja-1.onrender.com/api/payments/webhook');
     
   } catch (error) {
-    console.error('❌ Erro ao configurar webhook:', error.response?.data || error.message);
-    console.error('📊 Status:', error.response?.status);
-    
-    if (error.response?.status === 400) {
-      console.log('💡 Dica: Verifique se a URL está acessível');
-    } else if (error.response?.status === 401) {
-      console.log('🔑 Token inválido');
+    console.error('❌ Erro ao configurar webhook:', error.message);
+    if (error.response) {
+      console.error('📋 Status:', error.response.status);
+      console.error('📄 Resposta:', error.response.data);
     }
   }
 }
 
-configurarWebhook(); 
+configurarWebhookMP(); 

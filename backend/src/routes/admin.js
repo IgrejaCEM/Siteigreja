@@ -1520,4 +1520,76 @@ router.delete('/events/:id/force', async (req, res) => {
   }
 });
 
+// Configurar webhook do Mercado Pago
+router.post('/configurar-webhook', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    console.log('🔧 CONFIGURANDO WEBHOOK MP');
+    console.log('📦 Dados recebidos:', req.body);
+    
+    const { url, events } = req.body;
+    
+    // Configurar webhook via API do Mercado Pago
+    const mercadopago = require('mercadopago');
+    mercadopago.configure({
+      access_token: process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-7906695833613236-072622-a7c53bcaf7bc8b8289f1961ce3937843-2568627728'
+    });
+    
+    // Criar webhook
+    const webhookData = {
+      url: url,
+      events: events
+    };
+    
+    const response = await mercadopago.webhooks.create(webhookData);
+    
+    console.log('✅ Webhook criado:', response);
+    
+    res.json({
+      success: true,
+      webhook_id: response.id,
+      url: response.url,
+      events: response.events,
+      message: 'Webhook configurado com sucesso!'
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao configurar webhook:', error);
+    res.status(500).json({
+      error: 'Erro ao configurar webhook',
+      details: error.message
+    });
+  }
+});
+
+// Testar webhook
+router.post('/testar-webhook', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    console.log('🧪 TESTANDO WEBHOOK');
+    
+    // Simular notificação de pagamento
+    const testNotification = {
+      type: 'payment',
+      data: {
+        id: 'TEST_PAYMENT_ID'
+      }
+    };
+    
+    // Chamar webhook localmente
+    const webhookResponse = await axios.post('https://siteigreja-1.onrender.com/api/payments/webhook', testNotification);
+    
+    res.json({
+      success: true,
+      message: 'Webhook testado com sucesso!',
+      response: webhookResponse.data
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao testar webhook:', error);
+    res.status(500).json({
+      error: 'Erro ao testar webhook',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router; 
