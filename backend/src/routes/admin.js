@@ -1664,9 +1664,14 @@ router.post('/testar-webhook', authenticateToken, requireAdmin, async (req, res)
 // Listar todos os produtos de eventos
 router.get('/event-products', authenticateToken, requireAdmin, async (req, res) => {
   try {
+    console.log('🔍 DEBUG: Buscando produtos na tabela event_products...');
+    
     const products = await db('event_products')
       .select('*')
       .orderBy('created_at', 'desc');
+    
+    console.log(`📊 DEBUG: Encontrados ${products.length} produtos`);
+    console.log('📋 DEBUG: Produtos:', JSON.stringify(products, null, 2));
     
     res.json(products);
   } catch (error) {
