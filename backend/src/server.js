@@ -129,7 +129,7 @@ app.use((err, req, res, next) => {
 });
 
 // Inicializar banco de dados e iniciar servidor
-const knex = Knex(knexConfig.development || knexConfig);
+const knex = Knex(process.env.NODE_ENV === 'production' ? knexConfig.production : knexConfig.development);
 Model.knex(knex);
 
 initializeDatabase()

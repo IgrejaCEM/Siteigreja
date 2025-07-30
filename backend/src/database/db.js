@@ -2,6 +2,7 @@ const knex = require('knex');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const config = require('../config');
+const { Model } = require('objection');
 
 // Forçar uso do PostgreSQL em produção
 const databaseConfig = {
@@ -16,6 +17,9 @@ const databaseConfig = {
 };
 
 const db = knex(databaseConfig);
+
+// Configurar Objection.js com a instância do Knex
+Model.knex(db);
 
 // Função para inicializar o banco de dados
 const initializeDatabase = async () => {
