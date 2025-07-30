@@ -3,8 +3,13 @@ const EventProduct = require('../models/EventProduct');
 const RegistrationProduct = require('../models/RegistrationProduct');
 const { generateRegistrationCode } = require('../utils/registrationUtils');
 const { db } = require('../database/db');
+const PaymentGateway = require('../services/PaymentGateway');
 
 class RegistrationController {
+  constructor() {
+    this.paymentGateway = new PaymentGateway();
+  }
+
   async create(req, res) {
     try {
       console.log('📦 Dados recebidos no RegistrationController:', JSON.stringify(req.body, null, 2));
@@ -66,6 +71,9 @@ class RegistrationController {
 
       console.log('✅ Inscrição criada:', registration.id);
 
+      // Calcular valor total
+      let totalAmount = 0;
+
       // Processar produtos se houver
       if (items && items.length > 0) {
         console.log('🛍️ Processando produtos:', items);
@@ -100,11 +108,13 @@ class RegistrationController {
               registration_id: registration.id,
               product_id: item.id,
               quantity: item.quantity,
-              unit_price: item.price,
+              unit_price: eventProduct.price,
+              total_price: eventProduct.price * item.quantity,
               created_at: new Date(),
               updated_at: new Date()
             });
 
+            totalAmount += eventProduct.price * item.quantity;
             console.log(`✅ Produto ${eventProduct.name} adicionado`);
           }
         }
@@ -147,23 +157,50 @@ class RegistrationController {
             updated_at: new Date()
           });
 
+          totalAmount += product.unit_price * product.quantity;
           console.log(`✅ Produto da loja ${storeProduct.name} adicionado`);
         }
       }
 
-      // Criar pagamento se necessário
+      // Criar pagamento real se necessário
       let paymentInfo = null;
       
       // Sempre gerar payment_url se houver qualquer item (ingresso ou produtos)
-      if (registration.lot_id || (products && products.length > 0)) {
-        // Gerar URL de pagamento real
-        const paymentId = `PAY-${Date.now()}-${registration.id}`;
-        paymentInfo = {
-          payment_url: `https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=${paymentId}`,
-          payment_id: paymentId
-        };
+      if (registration.lot_id || (products && products.length > 0) || totalAmount > 0) {
+        console.log('💳 Criando pagamento real no MercadoPago...');
         
-        console.log('💳 Payment info gerada:', paymentInfo);
+        try {
+          const paymentData = {
+            amount: totalAmount,
+            description: `Inscrição ${registrationCode}`,
+            customer: {
+              name: finalName,
+              email: finalEmail,
+              phone: finalPhone,
+              registration_code: registrationCode,
+              id: registration.id,
+              event_id: event_id
+            }
+          };
+
+          console.log('📦 Dados do pagamento:', paymentData);
+          
+          const paymentResult = await this.paymentGateway.createPayment(paymentData);
+          
+          paymentInfo = {
+            payment_url: paymentResult.payment_url,
+            payment_id: paymentResult.id
+          };
+          
+          console.log('✅ Payment info criada:', paymentInfo);
+        } catch (paymentError) {
+          console.error('❌ Erro ao criar pagamento:', paymentError);
+          // Continuar mesmo se o pagamento falhar
+          paymentInfo = {
+            payment_url: null,
+            payment_id: null
+          };
+        }
       }
 
       console.log('✅ Inscrição processada com sucesso');
