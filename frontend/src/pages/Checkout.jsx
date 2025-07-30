@@ -509,15 +509,15 @@ const Checkout = () => {
     </Box>
   );
 
-  const renderPaymentStep = () => {
-    // Processar pagamento automaticamente quando chegar no step
-    React.useEffect(() => {
-      if (activeStep === 2 && !paymentUrl && !loading) {
-        console.log('💳 Step 2 - Processando pagamento automaticamente...');
-        handlePayment();
-      }
-    }, [activeStep]);
+  // Processar pagamento automaticamente quando chegar no step
+  React.useEffect(() => {
+    if (activeStep === 2 && !paymentUrl && !loading) {
+      console.log('💳 Step 2 - Processando pagamento automaticamente...');
+      handlePayment();
+    }
+  }, [activeStep, paymentUrl, loading, handlePayment]);
 
+  const renderPaymentStep = () => {
     return (
       <Box>
         <Typography variant="h5" gutterBottom>
