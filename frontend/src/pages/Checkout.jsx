@@ -163,9 +163,10 @@ const Checkout = () => {
       console.log('🎫 Itens de evento:', eventItems);
       console.log('🏪 Itens da loja:', storeItems);
 
-      // Processar pedidos
-      const results = [];
+      let paymentUrl = '';
+      let orderId = '';
 
+      // Processar pedidos
       if (eventItems.length > 0) {
         console.log('📝 Processando pedidos de evento...');
         const eventGroups = groupItemsByEvent(eventItems);
@@ -173,7 +174,13 @@ const Checkout = () => {
           console.log(`🎯 Processando evento ${eventId}:`, eventGroupItems);
           const result = await processEventOrder(eventId, eventGroupItems);
           console.log('✅ Resultado do evento:', result);
-          results.push(result);
+          
+          if (result.success) {
+            paymentUrl = result.paymentUrl;
+            orderId = result.orderId;
+          } else {
+            throw new Error(result.error);
+          }
         }
       }
 
@@ -181,38 +188,33 @@ const Checkout = () => {
         console.log('🏪 Processando pedidos da loja...');
         const result = await processStoreOrder(storeItems);
         console.log('✅ Resultado da loja:', result);
-        results.push(result);
+        
+        if (result.success) {
+          paymentUrl = result.paymentUrl;
+          orderId = result.orderId;
+        } else {
+          throw new Error(result.error);
+        }
       }
 
-      console.log('📊 Todos os resultados:', results);
+      console.log('🎉 Processamento concluído!');
+      console.log('🔗 Payment URL:', paymentUrl);
+      console.log('🆔 Order ID:', orderId);
 
-      // Se todos os pedidos foram processados com sucesso
-      if (results.every(result => result.success)) {
-        const firstResult = results[0];
-        console.log('🎉 Todos os pedidos processados com sucesso!');
-        console.log('🔗 Payment URL:', firstResult?.paymentUrl);
-        
-        setOrderId(firstResult?.orderId || '');
-        setPaymentUrl(firstResult?.paymentUrl || '');
-        
-        if (firstResult?.paymentUrl) {
-          console.log('🌐 Abrindo MercadoPago...');
-          // Pequeno delay para garantir que o estado foi atualizado
-          setTimeout(() => {
-            openCheckout(firstResult.paymentUrl);
-          }, 500);
-        } else {
-          console.error('❌ Payment URL não encontrada');
-          setError('Erro: URL de pagamento não foi gerada. Tente novamente.');
-        }
+      if (paymentUrl) {
+        setOrderId(orderId);
+        setPaymentUrl(paymentUrl);
+        setActiveStep(3); // Ir para finalização
+        console.log('🌐 Abrindo MercadoPago...');
+        setTimeout(() => {
+          openCheckout(paymentUrl);
+        }, 1000);
       } else {
-        const errors = results.filter(r => !r.success).map(r => r.error);
-        console.error('❌ Erros nos pedidos:', errors);
-        setError(`Erro ao processar pagamento: ${errors.join(', ')}`);
+        throw new Error('URL de pagamento não foi gerada');
       }
     } catch (error) {
-      console.error('❌ Erro geral no processamento:', error);
-      setError('Erro ao processar pagamento. Tente novamente.');
+      console.error('❌ Erro no processamento:', error);
+      setError(`Erro ao processar pagamento: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -522,7 +524,7 @@ const Checkout = () => {
                 Aguarde enquanto preparamos seu pagamento
               </Typography>
             </Box>
-          ) : paymentUrl ? (
+          ) : (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <PaymentIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
               <Typography variant="h6" gutterBottom>
@@ -538,8 +540,12 @@ const Checkout = () => {
                 fullWidth
                 onClick={() => {
                   console.log('🌐 Clicou no botão de pagamento');
-                  console.log('🔗 URL:', paymentUrl);
-                  openCheckout(paymentUrl);
+                  if (paymentUrl) {
+                    openCheckout(paymentUrl);
+                  } else {
+                    console.error('❌ Payment URL não disponível');
+                    setError('Erro: URL de pagamento não disponível');
+                  }
                 }}
                 sx={{ 
                   mt: 2,
@@ -555,22 +561,6 @@ const Checkout = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
                 Você será redirecionado para o MercadoPago para finalizar o pagamento
               </Typography>
-            </Box>
-          ) : (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="h6" color="error" gutterBottom>
-                Erro no Processamento
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Não foi possível gerar o link de pagamento. Tente novamente.
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={handlePayment}
-                sx={{ mt: 2 }}
-              >
-                Tentar Novamente
-              </Button>
             </Box>
           )}
         </CardContent>
@@ -639,62 +629,53 @@ const Checkout = () => {
   };
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      background: '#f5f5f5',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
+    <Box sx={{ minHeight: '100vh', background: '#f5f5f5' }}>
       <ModernHeader />
-      <Box sx={{ flex: 1, py: 4, mt: 12 }}>
-        <Container maxWidth="lg">
-          <Card sx={{ p: 4 }}>
-            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-              {steps.map((label) => (
-                <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
-                </Step>
-              ))}
-            </Stepper>
+      <Container maxWidth="lg" sx={{ py: 4, mt: 12 }}>
+        <Card sx={{ p: 4 }}>
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
 
-            {error && (
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {error}
-              </Alert>
-            )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
 
-            {success && (
-              <Alert severity="success" sx={{ mb: 3 }}>
-                {success}
-              </Alert>
-            )}
+          {success && (
+            <Alert severity="success" sx={{ mb: 3 }}>
+              {success}
+            </Alert>
+          )}
 
-            {getStepContent(activeStep)}
+          {getStepContent(activeStep)}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              sx={{ mr: 1 }}
+            >
+              Voltar
+            </Button>
+            <Box>
               <Button
-                disabled={activeStep === 0}
-                onClick={handleBack}
-                sx={{ mr: 1 }}
+                variant="contained"
+                onClick={handleNext}
+                disabled={loading}
               >
-                Voltar
+                {activeStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
               </Button>
-              <Box>
-                <Button
-                  variant="contained"
-                  onClick={handleNext}
-                  disabled={loading}
-                >
-                  {activeStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
-                </Button>
-              </Box>
             </Box>
-          </Card>
-        </Container>
-      </Box>
-      <Box sx={{ mt: 'auto' }}>
-        <Footer />
-      </Box>
+          </Box>
+        </Card>
+      </Container>
+      <Footer />
       <WhatsAppButton />
     </Box>
   );
