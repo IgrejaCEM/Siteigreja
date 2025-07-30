@@ -1,44 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
+  Typography,
   Grid,
   Card,
   CardContent,
   CardMedia,
-  Typography,
   Button,
   IconButton,
   TextField,
-  Snackbar,
-  Alert
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
-import api from '../services/api';
 
 const EventRegistrationStore = ({ eventId, onProductsChange }) => {
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState({});
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    loadProducts();
+    fetchProducts();
   }, [eventId]);
 
-  const loadProducts = async () => {
+  const fetchProducts = async () => {
     try {
-      const response = await api.get(`/event-products/event/${eventId}`);
-      setProducts(response.data);
+      const response = await fetch(`/api/events/${eventId}/products`);
+      const data = await response.json();
+      setProducts(data);
     } catch (error) {
       console.error('Erro ao carregar produtos:', error);
-      setSnackbar({
-        open: true,
-        message: 'Erro ao carregar produtos',
-        severity: 'error'
-      });
     }
   };
 
@@ -47,34 +42,49 @@ const EventRegistrationStore = ({ eventId, onProductsChange }) => {
       const currentQuantity = prev[productId] || 0;
       const newQuantity = Math.max(0, currentQuantity + change);
       
-      const updatedProducts = {
+      if (newQuantity === 0) {
+        const { [productId]: removed, ...rest } = prev;
+        return rest;
+      }
+      
+      return {
         ...prev,
         [productId]: newQuantity
       };
-
-      // Notifica o componente pai sobre as mudanças
-      const selectedProductsList = Object.entries(updatedProducts)
-        .filter(([_, quantity]) => quantity > 0)
-        .map(([id, quantity]) => {
-          const product = products.find(p => p.id === parseInt(id));
-          return {
-            product_id: parseInt(id),
-            quantity,
-            unit_price: product.price
-          };
-        });
-
-      onProductsChange(selectedProductsList);
-
-      return updatedProducts;
     });
+  };
+
+  const handleOpenDialog = (product) => {
+    setSelectedProduct(product);
+    setQuantity(1);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedProduct(null);
+    setQuantity(1);
+  };
+
+  const handleAddToCart = () => {
+    if (selectedProduct) {
+      handleQuantityChange(selectedProduct.id, quantity);
+      handleCloseDialog();
+    }
   };
 
   const calculateTotal = () => {
     return Object.entries(selectedProducts).reduce((total, [productId, quantity]) => {
       const product = products.find(p => p.id === parseInt(productId));
-      return total + (product.price * quantity);
+      const price = parseFloat(product?.price || 0);
+      return total + (price * quantity);
     }, 0);
+  };
+
+  // Função segura para formatar preço
+  const formatPrice = (price) => {
+    const numericPrice = parseFloat(price || 0);
+    return `R$ ${numericPrice.toFixed(2)}`;
   };
 
   return (
@@ -101,7 +111,7 @@ const EventRegistrationStore = ({ eventId, onProductsChange }) => {
                   {product.description}
                 </Typography>
                 <Typography variant="h6" color="primary">
-                  R$ {product.price.toFixed(2)}
+                  {formatPrice(product.price)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   Estoque: {product.stock}
@@ -114,26 +124,13 @@ const EventRegistrationStore = ({ eventId, onProductsChange }) => {
                   >
                     <RemoveIcon />
                   </IconButton>
-                  <TextField
-                    value={selectedProducts[product.id] || 0}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0;
-                      if (value >= 0 && value <= product.stock) {
-                        setSelectedProducts(prev => ({
-                          ...prev,
-                          [product.id]: value
-                        }));
-                      }
-                    }}
-                    type="number"
-                    size="small"
-                    sx={{ width: '60px' }}
-                    inputProps={{ min: 0, max: product.stock }}
-                  />
+                  <Typography variant="body2" sx={{ minWidth: 30, textAlign: 'center' }}>
+                    {selectedProducts[product.id] || 0}
+                  </Typography>
                   <IconButton
                     color="primary"
                     onClick={() => handleQuantityChange(product.id, 1)}
-                    disabled={selectedProducts[product.id] >= product.stock}
+                    disabled={product.stock <= (selectedProducts[product.id] || 0)}
                   >
                     <AddIcon />
                   </IconButton>
@@ -144,27 +141,51 @@ const EventRegistrationStore = ({ eventId, onProductsChange }) => {
         ))}
       </Grid>
 
-      {Object.keys(selectedProducts).length > 0 && (
-        <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
-          <Typography variant="h6">
-            Total dos Produtos: R$ {calculateTotal().toFixed(2)}
-          </Typography>
-        </Box>
-      )}
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-      >
-        <Alert
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>Adicionar ao Carrinho</DialogTitle>
+        <DialogContent>
+          {selectedProduct && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                {selectedProduct.name}
+              </Typography>
+              <Typography variant="body1" color="primary" gutterBottom>
+                {formatPrice(selectedProduct.price)}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                <IconButton 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                >
+                  <RemoveIcon />
+                </IconButton>
+                <TextField
+                  value={quantity}
+                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                  type="number"
+                  inputProps={{ min: 1, max: selectedProduct.stock }}
+                  sx={{ width: '80px', mx: 2 }}
+                />
+                <IconButton 
+                  onClick={() => setQuantity(Math.min(selectedProduct.stock, quantity + 1))}
+                  disabled={quantity >= selectedProduct.stock}
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                Total: {formatPrice(parseFloat(selectedProduct.price || 0) * quantity)}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancelar</Button>
+          <Button onClick={handleAddToCart} variant="contained">
+            Adicionar ao Carrinho
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
