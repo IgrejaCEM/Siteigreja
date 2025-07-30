@@ -1,60 +1,72 @@
-const { db } = require('./src/database/db');
+const knex = require('knex');
 
-async function testConnection() {
+// Configuração PostgreSQL (produção)
+const db = knex({
+  client: 'pg',
+  connection: 'postgresql://postgres:WWiZILOORFMgerRjFMPSJLQrfLGFfviU@shuttle.proxy.rlwy.net:14638/railway'
+});
+
+async function testDatabaseConnection() {
+  console.log('🔍 TESTANDO CONEXÃO COM O BANCO');
+  console.log('=================================');
+  
   try {
-    console.log('🔍 Testando conexão com banco de dados...');
+    // 1. Testar conexão básica
+    console.log('📋 [1/4] Testando conexão básica...');
+    await db.raw('SELECT 1');
+    console.log('✅ Conexão com PostgreSQL estabelecida');
     
-    // Testar conexão básica
-    const result = await db.raw('SELECT 1 as test');
-    console.log('✅ Conexão básica OK:', result.rows);
-    
-    // Testar tabela events
-    const events = await db('events').select('*').limit(1);
-    console.log('✅ Tabela events OK:', events.length, 'eventos encontrados');
-    
-    // Testar estrutura da tabela events
-    const columns = await db.raw(`
-      SELECT column_name, data_type, is_nullable 
-      FROM information_schema.columns 
-      WHERE table_name = 'events'
-      ORDER BY ordinal_position
+    // 2. Verificar tabelas existentes
+    console.log('📋 [2/4] Verificando tabelas existentes...');
+    const tables = await db.raw(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+      ORDER BY table_name
     `);
-    console.log('📊 Estrutura da tabela events:');
-    columns.rows.forEach(col => {
-      console.log(`  - ${col.column_name}: ${col.data_type} (${col.is_nullable === 'YES' ? 'nullable' : 'not null'})`);
+    
+    console.log('📊 Tabelas encontradas:');
+    tables.rows.forEach(table => {
+      console.log(`  - ${table.table_name}`);
     });
     
-    // Testar inserção simples
-    const testEvent = {
-      title: 'Teste Conexão',
-      description: 'Evento de teste para verificar conexão',
-      date: new Date(),
-      location: 'Local de teste',
-      slug: 'teste-conexao-' + Date.now(),
-      status: 'active',
-      has_payment: false
-    };
+    // 3. Verificar eventos
+    console.log('📋 [3/4] Verificando eventos...');
+    const events = await db('events').select('*');
+    console.log(`📊 Total de eventos: ${events.length}`);
     
-    const [inserted] = await db('events').insert(testEvent).returning('*');
-    console.log('✅ Inserção OK:', inserted.id);
+    if (events.length > 0) {
+      events.forEach(event => {
+        console.log(`  - ID: ${event.id} | Título: ${event.title} | Status: ${event.status}`);
+      });
+    }
     
-    // Limpar teste
-    await db('events').where('id', inserted.id).del();
-    console.log('✅ Limpeza OK');
+    // 4. Verificar produtos
+    console.log('📋 [4/4] Verificando produtos...');
+    const products = await db('event_products').select('*');
+    console.log(`📊 Total de produtos: ${products.length}`);
     
-    console.log('🎉 Todos os testes passaram!');
+    if (products.length > 0) {
+      products.forEach(product => {
+        console.log(`  - ID: ${product.id} | Nome: ${product.name} | Event ID: ${product.event_id} | Preço: R$ ${product.price}`);
+      });
+    }
+    
+    console.log('\n✅ Banco de dados está funcionando corretamente!');
     
   } catch (error) {
-    console.error('❌ Erro no teste:', error);
-    console.error('📋 Detalhes:', {
-      message: error.message,
-      code: error.code,
-      detail: error.detail,
-      hint: error.hint
-    });
+    console.error('❌ Erro:', error.message);
+    
+    if (error.code === 'ECONNREFUSED') {
+      console.log('❌ Não foi possível conectar ao banco de dados');
+    } else if (error.code === 'ENOTFOUND') {
+      console.log('❌ Host do banco de dados não encontrado');
+    } else if (error.code === '28P01') {
+      console.log('❌ Erro de autenticação no banco de dados');
+    }
   } finally {
-    process.exit(0);
+    await db.destroy();
   }
 }
 
-testConnection(); 
+testDatabaseConnection(); 

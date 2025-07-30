@@ -1,58 +1,64 @@
-const { db } = require('./src/database/db');
+const knex = require('knex');
 
-console.log('🔍 VERIFICANDO EVENTOS EXISTENTES');
-console.log('==================================');
+// Configuração PostgreSQL (produção)
+const db = knex({
+  client: 'pg',
+  connection: 'postgresql://postgres:WWiZILOORFMgerRjFMPSJLQrfLGFfviU@shuttle.proxy.rlwy.net:14638/railway'
+});
 
-async function verificarEventos() {
+async function verificarEventosExistentes() {
+  console.log('🔍 VERIFICANDO EVENTOS EXISTENTES');
+  console.log('===================================');
+  
   try {
-    console.log('📋 Buscando todos os eventos...');
+    // 1. Verificar conexão
+    console.log('📋 [1/3] Verificando conexão...');
+    await db.raw('SELECT 1');
+    console.log('✅ Conexão com PostgreSQL estabelecida');
     
-    const events = await db('events')
-      .select('id', 'title', 'slug', 'status', 'has_payment', 'payment_gateway')
-      .orderBy('id', 'asc');
+    // 2. Verificar se a tabela events existe
+    console.log('📋 [2/3] Verificando tabela events...');
+    const hasEventsTable = await db.schema.hasTable('events');
+    console.log(`📊 Tabela events existe: ${hasEventsTable}`);
     
-    console.log(`✅ Encontrados ${events.length} eventos:`);
+    if (!hasEventsTable) {
+      console.log('❌ Tabela events não existe!');
+      return;
+    }
     
-    events.forEach(event => {
-      console.log(`📅 ID: ${event.id} | ${event.title}`);
-      console.log(`   Slug: ${event.slug}`);
-      console.log(`   Status: ${event.status}`);
-      console.log(`   Pagamento: ${event.has_payment ? 'Sim' : 'Não'}`);
-      console.log(`   Gateway: ${event.payment_gateway || 'N/A'}`);
-      console.log('---');
-    });
+    // 3. Listar todos os eventos
+    console.log('📋 [3/3] Listando eventos existentes...');
+    const eventos = await db('events').select('*').orderBy('id');
+    console.log(`📊 Total de eventos: ${eventos.length}`);
     
-    // Verificar lotes de cada evento
-    for (const event of events) {
-      console.log(`\n📦 Lotes do evento ${event.id} (${event.title}):`);
-      
-      const lots = await db('lots')
-        .where('event_id', event.id)
-        .select('id', 'name', 'price', 'quantity', 'status', 'is_free')
-        .orderBy('price', 'asc');
-      
-      lots.forEach(lot => {
-        console.log(`   🎫 ID: ${lot.id} | ${lot.name} | R$ ${lot.price} | Qtd: ${lot.quantity} | Status: ${lot.status} | Grátis: ${lot.is_free ? 'Sim' : 'Não'}`);
+    if (eventos.length > 0) {
+      console.log('📋 Eventos encontrados:');
+      eventos.forEach((evento, index) => {
+        console.log(`  ${index + 1}. ID: ${evento.id} | Título: ${evento.title} | Slug: ${evento.slug} | Status: ${evento.status}`);
       });
+    } else {
+      console.log('❌ Nenhum evento encontrado!');
     }
     
-    // Verificar inscrições
-    console.log('\n📊 Inscrições por evento:');
-    for (const event of events) {
-      const registrations = await db('registrations')
-        .where('event_id', event.id)
-        .count('id as count')
-        .first();
-      
-      console.log(`   Evento ${event.id}: ${registrations.count} inscrições`);
-    }
+    // 4. Verificar produtos existentes
+    console.log('\n📋 Verificando produtos existentes...');
+    const produtos = await db('event_products').select('*').orderBy('id');
+    console.log(`📊 Total de produtos: ${produtos.length}`);
     
-    console.log('\n🎯 RECOMENDAÇÃO:');
-    console.log('Use o ID do evento que tem pagamento habilitado para testar');
+    if (produtos.length > 0) {
+      console.log('📋 Produtos encontrados:');
+      produtos.forEach((produto, index) => {
+        console.log(`  ${index + 1}. ID: ${produto.id} | Nome: ${produto.name} | Event ID: ${produto.event_id} | Preço: R$ ${produto.price}`);
+      });
+    } else {
+      console.log('❌ Nenhum produto encontrado!');
+    }
     
   } catch (error) {
-    console.error('❌ Erro ao verificar eventos:', error);
+    console.error('❌ Erro:', error.message);
+  } finally {
+    await db.destroy();
   }
 }
 
-verificarEventos(); 
+verificarEventosExistentes(); 

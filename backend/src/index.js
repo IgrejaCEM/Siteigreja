@@ -10,9 +10,10 @@ const startServer = async () => {
     console.log('Database initialized successfully');
 
     // Iniciar servidor
-    const port = config.server.port;
+    const port = config.server.port || process.env.PORT || 3005;
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
+      console.log(`Server URL: https://igreja-backend.onrender.com`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
