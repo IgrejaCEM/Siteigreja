@@ -182,8 +182,14 @@ class RegistrationController {
       let paymentInfo = null;
       
       // Sempre gerar payment_url se houver itens ou produtos
+      console.log('🔍 Verificando condições para pagamento:');
+      console.log('   - items:', items);
+      console.log('   - products:', products);
+      console.log('   - items.length:', items ? items.length : 0);
+      console.log('   - products.length:', products ? products.length : 0);
+      
       if ((items && items.length > 0) || (products && products.length > 0)) {
-        console.log('💳 Criando pagamento real no MercadoPago...');
+        console.log('✅ Condições atendidas - criando pagamento real no MercadoPago...');
         console.log('💰 Valor total:', totalAmount);
         console.log('🎫 Lot ID:', registration.lot_id);
         console.log('🏪 Produtos:', products);
@@ -225,6 +231,13 @@ class RegistrationController {
             payment_id: null
           };
         }
+      } else {
+        console.log('❌ Condições não atendidas - não criando pagamento');
+        paymentInfo = {
+          payment_url: null,
+          payment_id: null
+        };
+      }
       } else {
         console.log('⚠️ Nenhum item para pagamento encontrado');
       }
