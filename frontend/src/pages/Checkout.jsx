@@ -148,16 +148,22 @@ const Checkout = () => {
 
   const handlePayment = async () => {
     try {
+      console.log('🚀 Iniciando processamento de pagamento...');
       setLoading(true);
       setError('');
-      console.log('🚀 Iniciando processamento de pagamento...');
+
+      const items = getItems();
       console.log('📦 Itens no carrinho:', items);
 
+      if (items.length === 0) {
+        setError('Carrinho vazio');
+        setLoading(false);
+        return;
+      }
+
       // Separar itens por tipo
-      const eventItems = items.filter(item => 
-        item.type === ITEM_TYPES.EVENT_TICKET || item.type === ITEM_TYPES.EVENT_PRODUCT
-      );
-      const storeItems = items.filter(item => item.type === ITEM_TYPES.STORE_PRODUCT);
+      const eventItems = getEventItems();
+      const storeItems = getStoreItems();
 
       console.log('🎫 Itens de evento:', eventItems);
       console.log('🏪 Itens da loja:', storeItems);
@@ -165,12 +171,13 @@ const Checkout = () => {
       let paymentUrl = '';
       let orderId = '';
 
-      // Processar pedidos
+      // Processar apenas eventos por enquanto (pular produtos da loja)
       if (eventItems.length > 0) {
         console.log('📝 Processando pedidos de evento...');
         const eventGroups = groupItemsByEvent(eventItems);
+        
         for (const [eventId, eventGroupItems] of Object.entries(eventGroups)) {
-          console.log(`🎯 Processando evento ${eventId}:`, eventGroupItems);
+          console.log('🎯 Processando evento', eventId, ':', eventGroupItems);
           const result = await processEventOrder(eventId, eventGroupItems);
           console.log('✅ Resultado do evento:', result);
           
@@ -184,18 +191,18 @@ const Checkout = () => {
         }
       }
 
+      // Temporariamente pular produtos da loja até o backend estar funcionando
       if (storeItems.length > 0) {
-        console.log('🏪 Processando pedidos da loja...');
-        const result = await processStoreOrder(storeItems);
-        console.log('✅ Resultado da loja:', result);
-        
-        if (result.success) {
-          paymentUrl = result.paymentUrl;
-          orderId = result.orderId;
-          console.log('🔗 Payment URL definida:', paymentUrl);
-        } else {
-          throw new Error(result.error);
-        }
+        console.log('⚠️ Produtos da loja temporariamente desabilitados - backend em manutenção');
+        // const result = await processStoreOrder(storeItems);
+        // console.log('✅ Resultado da loja:', result);
+        // if (result.success) {
+        //   paymentUrl = result.paymentUrl;
+        //   orderId = result.orderId;
+        //   console.log('🔗 Payment URL definida:', paymentUrl);
+        // } else {
+        //   throw new Error(result.error);
+        // }
       }
 
       console.log('🎉 Processamento concluído!');
