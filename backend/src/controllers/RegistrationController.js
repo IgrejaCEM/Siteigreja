@@ -195,6 +195,12 @@ class RegistrationController {
         console.log('🎫 Lot ID:', registration.lot_id);
         console.log('🏪 Produtos:', products);
         
+        // Forçar totalAmount a ser pelo menos 1 se for 0
+        if (totalAmount === 0) {
+          console.log('⚠️ TotalAmount é 0, forçando para 1');
+          totalAmount = 1;
+        }
+        
         try {
           const paymentData = {
             amount: totalAmount,
@@ -238,9 +244,6 @@ class RegistrationController {
           payment_url: null,
           payment_id: null
         };
-      }
-      } else {
-        console.log('⚠️ Nenhum item para pagamento encontrado');
       }
 
       console.log('✅ Inscrição processada com sucesso');
