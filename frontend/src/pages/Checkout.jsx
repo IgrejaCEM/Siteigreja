@@ -26,7 +26,11 @@ import {
 import {
   Delete as DeleteIcon,
   Add as AddIcon,
-  Remove as RemoveIcon
+  Remove as RemoveIcon,
+  ShoppingCart as CartIcon,
+  Payment as PaymentIcon,
+  CheckCircle as CheckIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useCart, ITEM_TYPES } from '../contexts/CartContext';
@@ -35,7 +39,7 @@ import ModernHeader from '../components/ModernHeader';
 import Footer from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 
-const steps = ['Carrinho', 'Dados Pessoais', 'Pagamento', 'Confirmação'];
+const steps = ['Resumo da Compra', 'Pagamento', 'Finalização'];
 
 const Checkout = () => {
   const { items, total, removeItem, updateQuantity, clearCart } = useCart();
@@ -44,6 +48,8 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [paymentUrl, setPaymentUrl] = useState('');
+  const [orderId, setOrderId] = useState('');
   
   // Dados do formulário
   const [formData, setFormData] = useState({
@@ -77,11 +83,9 @@ const Checkout = () => {
         return;
       }
     } else if (activeStep === 1) {
-      // Validar dados pessoais
-      if (!formData.name || !formData.email || !formData.phone) {
-        setError('Preencha todos os campos obrigatórios');
-        return;
-      }
+      // Processar pagamento
+      handlePayment();
+      return;
     }
     
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -92,13 +96,56 @@ const Checkout = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
+  const handlePayment = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      // Separar itens por tipo
+      const eventItems = items.filter(item => 
+        item.type === ITEM_TYPES.EVENT_TICKET || item.type === ITEM_TYPES.EVENT_PRODUCT
+      );
+      const storeItems = items.filter(item => item.type === ITEM_TYPES.STORE_PRODUCT);
+
+      // Processar pedidos
+      const results = [];
+
+      if (eventItems.length > 0) {
+        const eventGroups = groupItemsByEvent(eventItems);
+        for (const [eventId, eventGroupItems] of Object.entries(eventGroups)) {
+          const result = await processEventOrder(eventId, eventGroupItems);
+          results.push(result);
+        }
+      }
+
+      if (storeItems.length > 0) {
+        const result = await processStoreOrder(storeItems);
+        results.push(result);
+      }
+
+      // Se todos os pedidos foram processados com sucesso
+      if (results.every(result => result.success)) {
+        setOrderId(results[0]?.orderId || '');
+        setPaymentUrl(results[0]?.paymentUrl || '');
+        setActiveStep(2); // Ir para finalização
+      } else {
+        setError('Erro ao processar pagamento. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('Erro ao processar pagamento:', error);
+      setError('Erro ao processar pagamento. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRemoveItem = (item) => {
     removeItem(item);
   };
 
   const handleQuantityChange = (item, change) => {
     const newQuantity = Math.max(1, item.quantity + change);
-    updateQuantity(item, newQuantity);
+    updateQuantity(item.id, newQuantity);
   };
 
   const handleInputChange = (field, value) => {
@@ -119,107 +166,77 @@ const Checkout = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      // Separar itens por tipo
-      const eventItems = items.filter(item => 
-        item.type === ITEM_TYPES.EVENT_TICKET || item.type === ITEM_TYPES.EVENT_PRODUCT
-      );
-      const storeItems = items.filter(item => item.type === ITEM_TYPES.STORE_PRODUCT);
-
-      // Processar pedidos separadamente
-      const orders = [];
-
-      // Processar itens de eventos
-      if (eventItems.length > 0) {
-        const eventGroups = groupItemsByEvent(eventItems);
-        for (const [eventId, eventItems] of Object.entries(eventGroups)) {
-          const order = await processEventOrder(eventId, eventItems);
-          orders.push(order);
-        }
-      }
-
-      // Processar itens da loja
-      if (storeItems.length > 0) {
-        const storeOrder = await processStoreOrder(storeItems);
-        orders.push(storeOrder);
-      }
-
-      setSuccess('Pedido realizado com sucesso! Você receberá um email de confirmação.');
-      clearCart();
-      setActiveStep(3);
-    } catch (error) {
-      console.error('Erro ao processar pedido:', error);
-      setError('Erro ao processar pedido. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const groupItemsByEvent = (items) => {
     const groups = {};
     items.forEach(item => {
-      if (!groups[item.eventId]) {
-        groups[item.eventId] = [];
+      const eventId = item.eventId || 'general';
+      if (!groups[eventId]) {
+        groups[eventId] = [];
       }
-      groups[item.eventId].push(item);
+      groups[eventId].push(item);
     });
     return groups;
   };
 
   const processEventOrder = async (eventId, eventItems) => {
-    const tickets = eventItems.filter(item => item.type === ITEM_TYPES.EVENT_TICKET);
-    const products = eventItems.filter(item => item.type === ITEM_TYPES.EVENT_PRODUCT);
+    try {
+      const orderData = {
+        event_id: eventId,
+        customer: formData,
+        items: eventItems.map(item => ({
+          type: item.type,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          lot_id: item.lotId
+        }))
+      };
 
-    const orderData = {
-      event_id: eventId,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      cpf: formData.cpf,
-      address: formData.address,
-      tickets: tickets.map(ticket => ({
-        lot_id: ticket.lotId,
-        quantity: ticket.quantity
-      })),
-      products: products.map(product => ({
-        product_id: product.id,
-        quantity: product.quantity,
-        unit_price: product.price
-      }))
-    };
+      const response = await api.post('/registrations', orderData, {
+        timeout: 30000 // Aumentar timeout para 30 segundos
+      });
 
-    const response = await api.post('/registrations', orderData);
-    return response.data;
+      return {
+        success: true,
+        orderId: response.data.order_id,
+        paymentUrl: response.data.payment_url
+      };
+    } catch (error) {
+      console.error('Erro ao processar pedido do evento:', error);
+      return { success: false, error: error.message };
+    }
   };
 
   const processStoreOrder = async (storeItems) => {
-    const orderData = {
-      customer: {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        cpf: formData.cpf,
-        address: formData.address
-      },
-      items: storeItems.map(item => ({
-        product_id: item.id,
-        quantity: item.quantity,
-        unit_price: item.price
-      }))
-    };
+    try {
+      const orderData = {
+        customer: formData,
+        items: storeItems.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price
+        }))
+      };
 
-    const response = await api.post('/store-orders', orderData);
-    return response.data;
+      const response = await api.post('/store-orders', orderData, {
+        timeout: 30000 // Aumentar timeout para 30 segundos
+      });
+
+      return {
+        success: true,
+        orderId: response.data.id,
+        paymentUrl: response.data.payment_url
+      };
+    } catch (error) {
+      console.error('Erro ao processar pedido da loja:', error);
+      return { success: false, error: error.message };
+    }
   };
 
   const renderCartStep = () => (
     <Box>
       <Typography variant="h5" gutterBottom>
-        Seu Carrinho
+        Resumo da Compra
       </Typography>
       
       {items.length === 0 ? (
@@ -227,76 +244,57 @@ const Checkout = () => {
           Seu carrinho está vazio. <Link href="/">Continue comprando</Link>
         </Alert>
       ) : (
-        <List>
-          {items.map((item, index) => (
-            <ListItem key={index} sx={{ border: 1, borderColor: 'grey.200', mb: 1, borderRadius: 1 }}>
-              <ListItemText
-                primary={item.name}
-                secondary={
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {item.type === ITEM_TYPES.EVENT_TICKET ? '🎫 Ingresso' : 
-                       item.type === ITEM_TYPES.EVENT_PRODUCT ? '🛍️ Produto do Evento' : 
-                       '🏪 Produto da Loja'}
-                    </Typography>
-                    {item.eventName && (
-                      <Typography variant="body2" color="text.secondary">
-                        Evento: {item.eventName}
+        <Card>
+          <CardContent>
+            <List>
+              {items.map((item, index) => (
+                <ListItem key={index} divider>
+                  <ListItemText
+                    primary={item.name}
+                    secondary={`R$ ${(item.price * item.quantity).toFixed(2)}`}
+                  />
+                  <ListItemSecondaryAction>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleQuantityChange(item, -1)}
+                        disabled={item.quantity <= 1}
+                      >
+                        <RemoveIcon />
+                      </IconButton>
+                      <Typography variant="body2" sx={{ minWidth: 30, textAlign: 'center' }}>
+                        {item.quantity}
                       </Typography>
-                    )}
-                    <Typography variant="body2" color="primary" fontWeight="bold">
-                      R$ {item.price.toFixed(2)} cada
-                    </Typography>
-                  </Box>
-                }
-              />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <IconButton
-                  size="small"
-                  onClick={() => handleQuantityChange(item, -1)}
-                  disabled={item.quantity <= 1}
-                >
-                  <RemoveIcon />
-                </IconButton>
-                <Typography variant="body2" sx={{ minWidth: 30, textAlign: 'center' }}>
-                  {item.quantity}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => handleQuantityChange(item, 1)}
-                >
-                  <AddIcon />
-                </IconButton>
-                <Typography variant="h6" fontWeight="bold" sx={{ minWidth: 80, textAlign: 'right' }}>
-                  R$ {(item.price * item.quantity).toFixed(2)}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => handleRemoveItem(item)}
-                  color="error"
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            </ListItem>
-          ))}
-        </List>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleQuantityChange(item, 1)}
+                      >
+                        <AddIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleRemoveItem(item)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              ))}
+            </List>
+            
+            <Divider sx={{ my: 2 }} />
+            
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Total:</Typography>
+              <Typography variant="h6" color="primary">
+                R$ {total.toFixed(2)}
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
       )}
-
-      <Divider sx={{ my: 2 }} />
-      
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h5" fontWeight="bold">
-          Total: R$ {total.toFixed(2)}
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={handleNext}
-          disabled={items.length === 0}
-        >
-          Continuar
-        </Button>
-      </Box>
     </Box>
   );
 
@@ -306,193 +304,192 @@ const Checkout = () => {
         Dados Pessoais
       </Typography>
       
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Nome completo *"
-            value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            required
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Email *"
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            required
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Telefone *"
-            value={formData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-            required
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="CPF"
-            value={formData.cpf}
-            onChange={(e) => handleInputChange('cpf', e.target.value)}
-          />
-        </Grid>
-        
-        <Grid item xs={12}>
-          <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-            Endereço
-          </Typography>
-        </Grid>
-        
-        <Grid item xs={12} sm={8}>
-          <TextField
-            fullWidth
-            label="Rua"
-            value={formData.address.street}
-            onChange={(e) => handleInputChange('address.street', e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <TextField
-            fullWidth
-            label="Número"
-            value={formData.address.number}
-            onChange={(e) => handleInputChange('address.number', e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Complemento"
-            value={formData.address.complement}
-            onChange={(e) => handleInputChange('address.complement', e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Bairro"
-            value={formData.address.neighborhood}
-            onChange={(e) => handleInputChange('address.neighborhood', e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <TextField
-            fullWidth
-            label="Cidade"
-            value={formData.address.city}
-            onChange={(e) => handleInputChange('address.city', e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <TextField
-            fullWidth
-            label="Estado"
-            value={formData.address.state}
-            onChange={(e) => handleInputChange('address.state', e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <TextField
-            fullWidth
-            label="CEP"
-            value={formData.address.zipCode}
-            onChange={(e) => handleInputChange('address.zipCode', e.target.value)}
-          />
-        </Grid>
-      </Grid>
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-        <Button onClick={handleBack}>
-          Voltar
-        </Button>
-        <Button variant="contained" onClick={handleNext}>
-          Continuar
-        </Button>
-      </Box>
+      <Card>
+        <CardContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Nome Completo *"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email *"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Telefone *"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="CPF"
+                value={formData.cpf}
+                onChange={(e) => handleInputChange('cpf', e.target.value)}
+              />
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                Endereço (Opcional)
+              </Typography>
+            </Grid>
+            
+            <Grid item xs={12} sm={8}>
+              <TextField
+                fullWidth
+                label="Rua"
+                value={formData.address.street}
+                onChange={(e) => handleInputChange('address.street', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Número"
+                value={formData.address.number}
+                onChange={(e) => handleInputChange('address.number', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Complemento"
+                value={formData.address.complement}
+                onChange={(e) => handleInputChange('address.complement', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Bairro"
+                value={formData.address.neighborhood}
+                onChange={(e) => handleInputChange('address.neighborhood', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Cidade"
+                value={formData.address.city}
+                onChange={(e) => handleInputChange('address.city', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="Estado"
+                value={formData.address.state}
+                onChange={(e) => handleInputChange('address.state', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                label="CEP"
+                value={formData.address.zipCode}
+                onChange={(e) => handleInputChange('address.zipCode', e.target.value)}
+              />
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
     </Box>
   );
 
   const renderPaymentStep = () => (
     <Box>
       <Typography variant="h5" gutterBottom>
-        Resumo do Pedido
+        Pagamento
       </Typography>
       
-      <Card sx={{ mb: 3 }}>
+      <Card>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Itens do Pedido
+          <Typography variant="body1" gutterBottom>
+            Clique no botão abaixo para prosseguir com o pagamento via MercadoPago.
           </Typography>
-          {items.map((item, index) => (
-            <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography>
-                {item.name} x {item.quantity}
-              </Typography>
-              <Typography fontWeight="bold">
-                R$ {(item.price * item.quantity).toFixed(2)}
+          
+          {paymentUrl ? (
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              onClick={() => window.open(paymentUrl, '_blank')}
+              sx={{ mt: 2 }}
+            >
+              <PaymentIcon sx={{ mr: 1 }} />
+              Pagar com MercadoPago
+            </Button>
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <CircularProgress />
+              <Typography variant="body2" sx={{ mt: 2 }}>
+                Processando pagamento...
               </Typography>
             </Box>
-          ))}
-          <Divider sx={{ my: 2 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="h6" fontWeight="bold">
-              Total
-            </Typography>
-            <Typography variant="h6" fontWeight="bold" color="primary">
-              R$ {total.toFixed(2)}
-            </Typography>
-          </Box>
+          )}
         </CardContent>
       </Card>
-
-      <Typography variant="h6" gutterBottom>
-        Dados Pessoais
-      </Typography>
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography><strong>Nome:</strong> {formData.name}</Typography>
-          <Typography><strong>Email:</strong> {formData.email}</Typography>
-          <Typography><strong>Telefone:</strong> {formData.phone}</Typography>
-          {formData.cpf && <Typography><strong>CPF:</strong> {formData.cpf}</Typography>}
-        </CardContent>
-      </Card>
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Button onClick={handleBack}>
-          Voltar
-        </Button>
-        <Button 
-          variant="contained" 
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? <CircularProgress size={20} /> : 'Finalizar Pedido'}
-        </Button>
-      </Box>
     </Box>
   );
 
   const renderConfirmationStep = () => (
-    <Box sx={{ textAlign: 'center' }}>
-      <Typography variant="h4" color="primary" gutterBottom>
-        ✅ Pedido Realizado com Sucesso!
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        Finalização
       </Typography>
-      <Typography variant="h6" gutterBottom>
-        Obrigado por sua compra
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Você receberá um email de confirmação com os detalhes do seu pedido.
-      </Typography>
-      <Button variant="contained" onClick={() => navigate('/')}>
-        Voltar para a Home
-      </Button>
+      
+      <Card>
+        <CardContent>
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <CheckIcon sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
+            <Typography variant="h6" gutterBottom>
+              Pagamento Confirmado!
+            </Typography>
+            <Typography variant="body1" color="text.secondary" gutterBottom>
+              Seu pedido foi processado com sucesso.
+            </Typography>
+            
+            <Button
+              variant="contained"
+              startIcon={<DownloadIcon />}
+              sx={{ mt: 2 }}
+              onClick={() => {
+                // Aqui você pode implementar o download do ticket
+                window.open(`/api/tickets/${orderId}/download`, '_blank');
+              }}
+            >
+              Baixar Ticket
+            </Button>
+            
+            <Button
+              variant="outlined"
+              sx={{ mt: 2, ml: 2 }}
+              onClick={() => {
+                clearCart();
+                navigate('/');
+              }}
+            >
+              Voltar ao Início
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
     </Box>
   );
 
@@ -511,68 +508,62 @@ const Checkout = () => {
     }
   };
 
-  if (items.length === 0 && activeStep !== 3) {
-    return (
-      <Box>
-        <ModernHeader />
-        <Container maxWidth="md" sx={{ py: 4 }}>
-          <Alert severity="info">
-            Seu carrinho está vazio. <Link href="/">Continue comprando</Link>
-          </Alert>
-        </Container>
-        <Footer />
-        <WhatsAppButton />
-      </Box>
-    );
-  }
-
   return (
-    <Box>
+    <Box sx={{ minHeight: '100vh', background: '#f5f5f5' }}>
       <ModernHeader />
       
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        {/* Breadcrumbs */}
-        <Breadcrumbs sx={{ mb: 3 }}>
-          <Link
-            color="inherit"
-            href="/"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/');
-            }}
-            sx={{ cursor: 'pointer' }}
-          >
-            Home
-          </Link>
-          <Typography color="text.primary">Checkout</Typography>
-        </Breadcrumbs>
-
-        {/* Stepper */}
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-        {/* Mensagens de erro/sucesso */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            {success}
-          </Alert>
-        )}
-
-        {/* Conteúdo do step */}
-        {getStepContent(activeStep)}
+      <Container maxWidth="lg" sx={{ py: 4, mt: 8 }}> {/* Adicionado mt: 8 para evitar header */}
+        <Card>
+          <CardContent>
+            <Typography variant="h4" gutterBottom align="center">
+              Checkout
+            </Typography>
+            
+            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+            
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+            
+            {success && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {success}
+              </Alert>
+            )}
+            
+            <Box sx={{ mt: 2 }}>
+              {getStepContent(activeStep)}
+            </Box>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+              <Button
+                disabled={activeStep === 0}
+                onClick={handleBack}
+              >
+                Voltar
+              </Button>
+              
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={20} /> : 
+                 activeStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
       </Container>
-
+      
       <Footer />
       <WhatsAppButton />
     </Box>
