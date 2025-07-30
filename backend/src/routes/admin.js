@@ -484,24 +484,22 @@ router.delete('/events/:id', authenticateToken, requireAdmin, async (req, res) =
       return res.status(404).json({ error: 'Evento não encontrado' });
     }
     
-    // Verificar se há inscrições vinculadas
-    const registrations = await trx('registrations').where('event_id', id).first();
-    if (registrations) {
-      await trx.rollback();
-      return res.status(400).json({ 
-        error: 'Não é possível deletar este evento pois existem inscrições vinculadas a ele. Delete as inscrições primeiro.' 
-      });
-    }
+    // Deletar tudo relacionado ao evento em ordem
+    console.log('🗑️ Deletando dados relacionados ao evento:', id);
     
-    // Verificar se há lotes vinculados
-    const lots = await trx('lots').where('event_id', id).first();
-    if (lots) {
-      // Deletar lotes primeiro
-      await trx('lots').where('event_id', id).del();
-      console.log('🗑️ Lotes deletados para evento:', id);
-    }
+    // 1. Deletar inscrições
+    const registrationsDeleted = await trx('registrations').where('event_id', id).del();
+    console.log('🗑️ Inscrições deletadas:', registrationsDeleted);
     
-    // Deletar evento
+    // 2. Deletar lotes
+    const lotsDeleted = await trx('lots').where('event_id', id).del();
+    console.log('🗑️ Lotes deletados:', lotsDeleted);
+    
+    // 3. Deletar produtos do evento
+    const productsDeleted = await trx('event_products').where('event_id', id).del();
+    console.log('🗑️ Produtos deletados:', productsDeleted);
+    
+    // 4. Deletar evento
     const deleted = await trx('events').where('id', id).del();
     
     if (!deleted) {
@@ -510,7 +508,7 @@ router.delete('/events/:id', authenticateToken, requireAdmin, async (req, res) =
     }
     
     await trx.commit();
-    console.log('✅ Evento deletado com sucesso:', id);
+    console.log('✅ Evento e todos os dados relacionados deletados com sucesso:', id);
     
     res.status(204).send();
   } catch (error) {
@@ -1737,7 +1735,7 @@ router.get('/registrations-with-products', authenticateToken, requireAdmin, asyn
       )
       .leftJoin('events', 'registrations.event_id', 'events.id')
       .whereNotNull('registrations.products')
-      .where('registrations.products', '!=', '[]')
+      .whereRaw("registrations.products::text != '[]'")
       .orderBy('registrations.created_at', 'desc');
     
     console.log(`📊 DEBUG: Encontrados ${registrations.length} registrations com produtos`);
