@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const API_BASE_URL = 'https://igreja-backend.onrender.com';
+const API_BASE_URL = 'https://siteigreja-1.onrender.com/api';
 
 async function waitForBackend() {
   console.log('⏳ AGUARDANDO BACKEND FICAR ONLINE...');

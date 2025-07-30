@@ -1,50 +1,44 @@
-const bcrypt = require('bcrypt');
-const { db } = require('./src/database/db');
+const axios = require('axios');
+
+const API_BASE_URL = 'https://siteigreja-1.onrender.com';
 
 async function testLogin() {
+  console.log('🔐 TESTANDO LOGIN');
+  console.log('==================');
+  
   try {
-    console.log('Testando login...');
+    // 1. Testar login com admin
+    console.log('📋 [1/2] Testando login com admin...');
+    const loginResponse = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+      emailOrUsername: 'admin@admin.com',
+      password: 'admin123'
+    });
     
-    // Verificar se há usuários no banco
-    const users = await db('users').select('*');
-    console.log('Usuários no banco:', users.length);
+    console.log('✅ Login realizado com sucesso');
+    console.log('📊 Token:', loginResponse.data.token ? 'Presente' : 'Ausente');
+    console.log('📊 User:', loginResponse.data.user ? 'Presente' : 'Ausente');
     
-    if (users.length > 0) {
-      console.log('Primeiro usuário:', {
-        id: users[0].id,
-        name: users[0].name,
-        email: users[0].email,
-        is_admin: users[0].is_admin
-      });
-      
-      // Testar login com admin@admin.com
-      const user = await db('users')
-        .where('email', 'admin@admin.com')
-        .first();
-      
-      if (user) {
-        console.log('Usuário admin encontrado!');
-        console.log('Testando senha...');
-        
-        const validPassword = await bcrypt.compare('admin', user.password);
-        console.log('Senha válida:', validPassword);
-        
-        if (validPassword) {
-          console.log('Login deve funcionar!');
-        } else {
-          console.log('Senha incorreta!');
-        }
-      } else {
-        console.log('Usuário admin não encontrado!');
+    // 2. Testar outras credenciais
+    console.log('📋 [2/2] Testando outras credenciais...');
+    
+    const testCredentials = [
+      { emailOrUsername: 'admin@admin.com', password: 'admin123' },
+      { emailOrUsername: 'admin', password: 'admin' },
+      { emailOrUsername: 'admin@admin.com', password: 'admin' }
+    ];
+    
+    for (const cred of testCredentials) {
+      try {
+        const response = await axios.post(`${API_BASE_URL}/api/auth/login`, cred);
+        console.log(`✅ Login com ${cred.emailOrUsername} funcionou`);
+        break;
+      } catch (error) {
+        console.log(`❌ Login com ${cred.emailOrUsername} falhou: ${error.response?.status}`);
       }
-    } else {
-      console.log('Nenhum usuário no banco!');
     }
     
   } catch (error) {
-    console.error('Erro:', error);
-  } finally {
-    process.exit(0);
+    console.error('❌ Erro:', error.response?.status, error.response?.data?.error || error.message);
   }
 }
 
