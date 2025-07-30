@@ -74,9 +74,9 @@ class RegistrationController {
       // Calcular valor total
       let totalAmount = 0;
 
-      // Processar produtos se houver
+      // Processar itens se houver
       if (items && items.length > 0) {
-        console.log('🛍️ Processando produtos:', items);
+        console.log('🛍️ Processando itens:', items);
         
         for (const item of items) {
           if (item.type === 'EVENT_PRODUCT') {
@@ -116,6 +116,22 @@ class RegistrationController {
 
             totalAmount += eventProduct.price * item.quantity;
             console.log(`✅ Produto ${eventProduct.name} adicionado`);
+          } else if (item.type === 'EVENT_TICKET') {
+            // Ingresso do evento - calcular valor do lote
+            if (item.lot_id) {
+              const lot = await db('lots')
+                .where('id', item.lot_id)
+                .first();
+              
+              if (lot) {
+                totalAmount += lot.price * item.quantity;
+                console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
+              }
+            } else {
+              // Se não tem lot_id, usar o preço do item
+              totalAmount += item.price * item.quantity;
+              console.log(`✅ Ingresso adicionado - R$ ${item.price}`);
+            }
           }
         }
       }
