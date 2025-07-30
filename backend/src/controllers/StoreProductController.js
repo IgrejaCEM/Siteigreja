@@ -188,11 +188,22 @@ class StoreProductController {
         .findById(order.id)
         .patch({ total_amount: totalAmount });
 
+      // Gerar payment_url
+      const paymentInfo = {
+        payment_url: `https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=STORE-${order.id}`,
+        payment_id: `STORE-PAY-${order.id}`
+      };
+
       const completeOrder = await StoreOrder.query()
         .findById(order.id)
         .withGraphFetched('items.product');
 
-      return res.status(201).json(completeOrder);
+      return res.status(201).json({
+        id: completeOrder.id,
+        payment_url: paymentInfo.payment_url,
+        payment_id: paymentInfo.payment_id,
+        status: 'pending'
+      });
     } catch (error) {
       console.error('Erro ao criar pedido da loja:', error);
       return res.status(500).json({ error: 'Erro interno do servidor' });
