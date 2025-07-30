@@ -232,12 +232,14 @@ const Checkout = () => {
   };
 
   const handleRemoveItem = (item) => {
+    console.log('🗑️ Removendo item:', item);
     removeItem(item);
   };
 
   const handleQuantityChange = (item, change) => {
     const newQuantity = Math.max(1, item.quantity + change);
-    updateQuantity(item.id, newQuantity);
+    console.log('🔄 Atualizando quantidade:', item.name, 'de', item.quantity, 'para', newQuantity);
+    updateQuantity(item, newQuantity);
   };
 
   const handleInputChange = (field, value) => {
