@@ -132,16 +132,22 @@ app.use((err, req, res, next) => {
 const knex = Knex(process.env.NODE_ENV === 'production' ? knexConfig.production : knexConfig.development);
 Model.knex(knex);
 
-initializeDatabase()
-  .then(() => {
-    console.log('Database initialized successfully');
-    const port = config.server.port || process.env.PORT || 3005;
-    app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
-      console.log(`Server URL: https://siteigreja-1.onrender.com`);
+// Exportar o app para ser usado pelo index.js
+module.exports = app;
+
+// Se este arquivo for executado diretamente, inicializar o servidor
+if (require.main === module) {
+  initializeDatabase()
+    .then(() => {
+      console.log('Database initialized successfully');
+      const port = config.server.port || process.env.PORT || 3005;
+      app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+        console.log(`Server URL: https://siteigreja-1.onrender.com`);
+      });
+    })
+    .catch(error => {
+      console.error('Failed to initialize database:', error);
+      process.exit(1);
     });
-  })
-  .catch(error => {
-    console.error('Failed to initialize database:', error);
-    process.exit(1);
-  });
+}
