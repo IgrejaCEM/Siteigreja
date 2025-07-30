@@ -138,6 +138,7 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         status: selectedLot.price > 0 ? 'pending' : 'confirmed',
         payment_status: selectedLot.price > 0 ? 'pending' : 'paid',
         registration_code: registrationCode,
+        products: products.length > 0 ? JSON.stringify(products) : null,
         created_at: new Date(),
         updated_at: new Date(),
         form_data: JSON.stringify(participante)
@@ -164,9 +165,18 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
     let paymentInfo = null;
     if (selectedLot.price > 0) {
       try {
+        // Calcular valor total incluindo produtos
+        const lotTotal = selectedLot.price * participantes.length;
+        const productsTotal = products.reduce((total, product) => {
+          return total + (parseFloat(product.price) * product.quantity);
+        }, 0);
+        const totalAmount = lotTotal + productsTotal;
+        
         console.log('🔗 Criando pagamento no Mercado Pago...');
         console.log('💰 Dados do pagamento:', {
-          amount: selectedLot.price * participantes.length,
+          lotTotal,
+          productsTotal,
+          totalAmount,
           description: `Inscrição - ${event.title} - ${selectedLot.name}`,
           customer: participantes[0],
           method: payment_method || 'CHECKOUT_PRO'
@@ -175,7 +185,7 @@ router.post('/:id/inscricao-unificada', async (req, res) => {
         const PaymentGateway = require('../services/PaymentGateway');
         
         paymentInfo = await PaymentGateway.createPayment({
-          amount: selectedLot.price * participantes.length,
+          amount: totalAmount,
           description: `Inscrição - ${event.title} - ${selectedLot.name}`,
           customer: participantes[0],
           method: payment_method || 'CHECKOUT_PRO'

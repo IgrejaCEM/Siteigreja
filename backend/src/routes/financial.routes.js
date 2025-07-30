@@ -15,36 +15,69 @@ router.get('/transactions', authMiddleware, async (req, res) => {
       paymentMethod
     } = req.query;
 
-    let query = db('transactions as t')
+    let query = db('registrations as r')
       .select(
-        't.*',
+        'r.*',
         'e.title as event_title',
-        'u.name as customer_name'
+        'l.name as lot_name',
+        'l.price as lot_price'
       )
-      .leftJoin('events as e', 't.event_id', 'e.id')
-      .leftJoin('users as u', 't.user_id', 'u.id');
+      .leftJoin('events as e', 'r.event_id', 'e.id')
+      .leftJoin('lots as l', 'r.lot_id', 'l.id');
 
     if (eventId) {
-      query = query.where('t.event_id', eventId);
+      query = query.where('r.event_id', eventId);
     }
 
     if (startDate) {
-      query = query.where('t.created_at', '>=', new Date(startDate));
+      query = query.where('r.created_at', '>=', new Date(startDate));
     }
 
     if (endDate) {
-      query = query.where('t.created_at', '<=', new Date(endDate));
+      query = query.where('r.created_at', '<=', new Date(endDate));
     }
 
     if (paymentStatus) {
-      query = query.where('t.status', paymentStatus);
+      query = query.where('r.payment_status', paymentStatus);
     }
 
-    if (paymentMethod) {
-      query = query.where('t.payment_method', paymentMethod);
-    }
-
-    const transactions = await query.orderBy('t.created_at', 'desc');
+    const registrations = await query.orderBy('r.created_at', 'desc');
+    
+    // Processar dados incluindo produtos
+    const transactions = registrations.map(registration => {
+      let productsTotal = 0;
+      let products = [];
+      
+      try {
+        if (registration.products) {
+          products = JSON.parse(registration.products);
+          productsTotal = products.reduce((total, product) => {
+            return total + (parseFloat(product.price) * product.quantity);
+          }, 0);
+        }
+      } catch (error) {
+        console.error('Erro ao processar produtos:', error);
+      }
+      
+      const lotTotal = parseFloat(registration.lot_price || 0);
+      const totalAmount = lotTotal + productsTotal;
+      
+      return {
+        id: registration.id,
+        registration_code: registration.registration_code,
+        event_title: registration.event_title,
+        lot_name: registration.lot_name,
+        customer_name: registration.name,
+        lot_price: lotTotal,
+        products_total: productsTotal,
+        total_amount: totalAmount,
+        payment_status: registration.payment_status,
+        status: registration.status,
+        created_at: registration.created_at,
+        products: products
+      };
+    });
+    
     res.json(transactions);
   } catch (error) {
     console.error('Erro ao buscar transações:', error);
@@ -63,69 +96,74 @@ router.get('/summary', authMiddleware, async (req, res) => {
       paymentMethod
     } = req.query;
 
-    let baseQuery = db('transactions as t');
+    let baseQuery = db('registrations as r')
+      .leftJoin('events as e', 'r.event_id', 'e.id')
+      .leftJoin('lots as l', 'r.lot_id', 'l.id');
 
     if (eventId) {
-      baseQuery = baseQuery.where('t.event_id', eventId);
+      baseQuery = baseQuery.where('r.event_id', eventId);
     }
 
     if (startDate) {
-      baseQuery = baseQuery.where('t.created_at', '>=', new Date(startDate));
+      baseQuery = baseQuery.where('r.created_at', '>=', new Date(startDate));
     }
 
     if (endDate) {
-      baseQuery = baseQuery.where('t.created_at', '<=', new Date(endDate));
+      baseQuery = baseQuery.where('r.created_at', '<=', new Date(endDate));
     }
 
     if (paymentStatus) {
-      baseQuery = baseQuery.where('t.status', paymentStatus);
+      baseQuery = baseQuery.where('r.payment_status', paymentStatus);
     }
 
-    if (paymentMethod) {
-      baseQuery = baseQuery.where('t.payment_method', paymentMethod);
-    }
-
-    // Total de receita
-    const totalRevenue = await baseQuery.clone().sum('amount as total').first();
-
-    // Total de transações
-    const totalTransactions = await baseQuery.clone().count('* as total').first();
-
-    // Receita por evento
-    const revenueByEvent = await baseQuery.clone()
-      .leftJoin('events as e', 't.event_id', 'e.id')
-      .select('e.title')
-      .sum('t.amount as total')
-      .groupBy('e.title');
-
-    // Receita por método de pagamento
-    const revenueByPaymentMethod = await baseQuery.clone()
-      .select('payment_method')
-      .sum('amount as total')
-      .groupBy('payment_method');
-
-    // Receita por mês
-    const revenueByMonth = await baseQuery.clone()
-      .select(db.raw("strftime('%Y-%m', created_at) as month"))
-      .sum('amount as total')
-      .groupBy('month')
-      .orderBy('month');
-
+    // Buscar todas as registrations para calcular totais incluindo produtos
+    const registrations = await baseQuery.clone().select('*');
+    
+    let totalRevenue = 0;
+    let totalTransactions = registrations.length;
+    let revenueByEvent = {};
+    let revenueByPaymentMethod = {};
+    let revenueByMonth = {};
+    
+    registrations.forEach(registration => {
+      let productsTotal = 0;
+      
+      try {
+        if (registration.products) {
+          const products = JSON.parse(registration.products);
+          productsTotal = products.reduce((total, product) => {
+            return total + (parseFloat(product.price) * product.quantity);
+          }, 0);
+        }
+      } catch (error) {
+        console.error('Erro ao processar produtos:', error);
+      }
+      
+      const lotTotal = parseFloat(registration.lot_price || 0);
+      const totalAmount = lotTotal + productsTotal;
+      
+      totalRevenue += totalAmount;
+      
+      // Receita por evento
+      const eventTitle = registration.event_title || 'Sem evento';
+      revenueByEvent[eventTitle] = (revenueByEvent[eventTitle] || 0) + totalAmount;
+      
+      // Receita por método de pagamento (usando status como proxy)
+      const paymentMethod = registration.payment_status || 'pending';
+      revenueByPaymentMethod[paymentMethod] = (revenueByPaymentMethod[paymentMethod] || 0) + totalAmount;
+      
+      // Receita por mês
+      const month = new Date(registration.created_at).toISOString().substring(0, 7);
+      revenueByMonth[month] = (revenueByMonth[month] || 0) + totalAmount;
+    });
+    
     const summary = {
-      totalRevenue: parseFloat(totalRevenue?.total || 0),
-      totalTransactions: parseInt(totalTransactions?.total || 0),
-      averageTicketValue: totalTransactions?.total > 0 
-        ? parseFloat(totalRevenue?.total || 0) / parseInt(totalTransactions?.total || 0) 
-        : 0,
-      revenueByEvent: Object.fromEntries(
-        revenueByEvent.map(row => [row.title || 'Sem evento', parseFloat(row.total || 0)])
-      ),
-      revenueByPaymentMethod: Object.fromEntries(
-        revenueByPaymentMethod.map(row => [row.payment_method, parseFloat(row.total || 0)])
-      ),
-      revenueByMonth: Object.fromEntries(
-        revenueByMonth.map(row => [row.month, parseFloat(row.total || 0)])
-      )
+      totalRevenue: totalRevenue,
+      totalTransactions: totalTransactions,
+      averageTicketValue: totalTransactions > 0 ? totalRevenue / totalTransactions : 0,
+      revenueByEvent: revenueByEvent,
+      revenueByPaymentMethod: revenueByPaymentMethod,
+      revenueByMonth: revenueByMonth
     };
 
     res.json(summary);
