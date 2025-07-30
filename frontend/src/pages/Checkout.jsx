@@ -52,6 +52,7 @@ const Checkout = () => {
   const [paymentUrl, setPaymentUrl] = useState('');
   const [orderId, setOrderId] = useState('');
   const [eventData, setEventData] = useState(null);
+  const [paymentAttempted, setPaymentAttempted] = useState(false);
   
   // Dados do formulário
   const [formData, setFormData] = useState({
@@ -143,7 +144,14 @@ const Checkout = () => {
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    setActiveStep((prevActiveStep) => {
+      const newStep = prevActiveStep - 1;
+      // Reset payment attempt flag when going back to step 1 or earlier
+      if (newStep <= 1) {
+        setPaymentAttempted(false);
+      }
+      return newStep;
+    });
   };
 
   const handlePayment = async () => {
@@ -521,14 +529,15 @@ const Checkout = () => {
 
   // Processar pagamento automaticamente quando chegar no step
   React.useEffect(() => {
-    if (activeStep === 2 && !paymentUrl && !loading) {
+    if (activeStep === 2 && !paymentUrl && !loading && !paymentAttempted) {
       console.log('💳 Step 2 - Processando pagamento automaticamente...');
+      setPaymentAttempted(true);
       // Usar setTimeout para evitar loop infinito
       setTimeout(() => {
         handlePayment();
       }, 100);
     }
-  }, [activeStep, paymentUrl, loading]); // Remover handlePayment das dependências
+  }, [activeStep, paymentUrl, loading, paymentAttempted]); // Remover handlePayment das dependências
 
   const renderPaymentStep = () => {
     return (
