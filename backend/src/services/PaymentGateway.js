@@ -227,6 +227,8 @@ class PaymentGateway {
     this.abacatePay = new AbacatePayGateway();
     this.activeGateway = 'mercadopago'; // Define Mercado Pago como gateway padrão
     this.config = require('../config');
+    // Forçar modo fake temporariamente para debug
+    this.config.PAYMENT_FAKE_MODE = true;
     console.log('🔧 PaymentGateway inicializado com PAYMENT_FAKE_MODE:', this.config.PAYMENT_FAKE_MODE);
   }
 
