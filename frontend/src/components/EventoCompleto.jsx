@@ -145,9 +145,9 @@ const EventoCompleto = ({ event }) => {
 
       console.log('📦 Dados para inscrição:', registrationData);
 
-      // Redirecionar para página de inscrição
+      // Redirecionar para página de inscrição com lote selecionado
       const eventSlug = eventDetails.slug || eventDetails.id;
-      const inscricaoUrl = `/evento/${eventSlug}/inscricao`;
+      const inscricaoUrl = `/evento/${eventSlug}/inscricao?lotId=${selectedLot.id}`;
       console.log('🔗 Redirecionando para:', inscricaoUrl);
       
       window.location.href = inscricaoUrl;

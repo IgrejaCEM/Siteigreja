@@ -87,15 +87,25 @@ const Inscricao = () => {
   const [openingPayment, setOpeningPayment] = useState(false);
 
   useEffect(() => {
-    const savedSelections = localStorage.getItem('eventSelections');
-    if (savedSelections) {
-      try {
-        const selections = JSON.parse(savedSelections);
-        setSelectedLotId(selections.selectedLotId);
-        setCartProducts(selections.cartProducts || []);
-        console.log('🛒 Seleções carregadas:', selections);
-      } catch (error) {
-        console.error('Erro ao carregar seleções:', error);
+    // Verificar se há parâmetro de lote na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const lotIdFromUrl = urlParams.get('lotId');
+    
+    if (lotIdFromUrl) {
+      console.log('🎯 Lote selecionado via URL:', lotIdFromUrl);
+      setSelectedLotId(parseInt(lotIdFromUrl));
+    } else {
+      // Carregar seleções salvas do localStorage
+      const savedSelections = localStorage.getItem('eventSelections');
+      if (savedSelections) {
+        try {
+          const selections = JSON.parse(savedSelections);
+          setSelectedLotId(selections.selectedLotId);
+          setCartProducts(selections.cartProducts || []);
+          console.log('🛒 Seleções carregadas:', selections);
+        } catch (error) {
+          console.error('Erro ao carregar seleções:', error);
+        }
       }
     }
   }, []);
