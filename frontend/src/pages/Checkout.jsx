@@ -152,7 +152,6 @@ const Checkout = () => {
       setLoading(true);
       setError('');
 
-      const items = getItems();
       console.log('📦 Itens no carrinho:', items);
 
       if (items.length === 0) {
@@ -162,8 +161,10 @@ const Checkout = () => {
       }
 
       // Separar itens por tipo
-      const eventItems = getEventItems();
-      const storeItems = getStoreItems();
+      const eventItems = items.filter(item => 
+        item.type === ITEM_TYPES.EVENT_TICKET || item.type === ITEM_TYPES.EVENT_PRODUCT
+      );
+      const storeItems = items.filter(item => item.type === ITEM_TYPES.STORE_PRODUCT);
 
       console.log('🎫 Itens de evento:', eventItems);
       console.log('🏪 Itens da loja:', storeItems);
