@@ -401,9 +401,20 @@ const Inscricao = () => {
         custom_fields: inscricao.custom_fields || {}
       }));
 
+      // Verificar se é lote gratuito ANTES de enviar
+      const isFree = selectedLot && (selectedLot?.price === 0 || selectedLot?.price === '0' || selectedLot?.price === 0.00 || selectedLot?.price === '0.00' || parseFloat(selectedLot?.price) === 0) && cartProducts.length === 0;
+      
+      console.log('🆓 VERIFICAÇÃO FINAL - Lote gratuito:', {
+        selectedLot,
+        price: selectedLot?.price,
+        priceType: typeof selectedLot?.price,
+        cartProductsLength: cartProducts.length,
+        isFree
+      });
+
       const requestData = {
         participantes: participantesToSend,
-        payment_method: 'CHECKOUT_PRO',
+        payment_method: isFree ? 'FREE' : 'CHECKOUT_PRO',
         lote_id: selectedLotId,
         products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
       };
@@ -434,7 +445,7 @@ const Inscricao = () => {
         setActiveStep(2);
         setLoading(false);
         return; // IMPORTANTE: Sair da função aqui!
-      } else {
+      } else if (response.data.payment_info && response.data.payment_info.payment_url) {
         // Para lotes pagos, verificar se há link de pagamento
         if (response.data.payment_info && response.data.payment_info.payment_url) {
           setPaymentUrl(response.data.payment_info.payment_url);
