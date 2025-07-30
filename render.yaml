@@ -2,6 +2,7 @@ services:
   - type: web
     name: siteigreja-backend
     env: node
+    rootDir: backend
     buildCommand: npm ci && npm rebuild
     startCommand: npm start
     envVars:
@@ -25,6 +26,7 @@ services:
   - type: cron
     name: database-backup
     env: node
+    rootDir: backend
     schedule: "0 2 * * *"
     buildCommand: npm ci && npm rebuild
     startCommand: cd /opt/render/project/src && npm run backup
