@@ -181,8 +181,8 @@ class RegistrationController {
       // Criar pagamento real se necessário
       let paymentInfo = null;
       
-      // Sempre gerar payment_url se houver qualquer item (ingresso ou produtos)
-      if (registration.lot_id || (products && products.length > 0) || totalAmount > 0) {
+      // Sempre gerar payment_url se houver itens ou produtos
+      if ((items && items.length > 0) || (products && products.length > 0)) {
         console.log('💳 Criando pagamento real no MercadoPago...');
         console.log('💰 Valor total:', totalAmount);
         console.log('🎫 Lot ID:', registration.lot_id);
