@@ -331,7 +331,7 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // Atualizar evento
-router.put('/events/:id', async (req, res) => {
+router.put('/events/:id', authenticateToken, requireAdmin, async (req, res) => {
   const trx = await db.transaction();
   
   try {
@@ -469,7 +469,7 @@ router.put('/events/:id', async (req, res) => {
 });
 
 // Deletar evento
-router.delete('/events/:id', async (req, res) => {
+router.delete('/events/:id', authenticateToken, requireAdmin, async (req, res) => {
   const trx = await db.transaction();
   
   try {
@@ -573,7 +573,7 @@ router.get('/events/active', async (req, res) => {
 });
 
 // Buscar evento por ID
-router.get('/events/:id', async (req, res) => {
+router.get('/events/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const event = await db('events')
@@ -1548,7 +1548,7 @@ router.post('/clear-auto-events', async (req, res) => {
 });
 
 // ROTA DE EMERGÊNCIA PARA FORÇAR DELEÇÃO (REMOVER APÓS USO)
-router.delete('/events/:id/force', async (req, res) => {
+router.delete('/events/:id/force', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
