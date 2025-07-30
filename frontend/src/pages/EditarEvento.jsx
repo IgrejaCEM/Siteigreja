@@ -219,8 +219,8 @@ export default function EditarEvento() {
       ...lot,
       price: lot.price.toString(),
       quantity: lot.quantity.toString(),
-      start_date: dayjs(lot.start_date).format('YYYY-MM-DDTHH:mm'),
-      end_date: dayjs(lot.end_date).format('YYYY-MM-DDTHH:mm')
+      start_date: dayjs(lot.start_date).format('YYYY-MM-DD'),
+      end_date: dayjs(lot.end_date).format('YYYY-MM-DD')
     });
     setEditingLotIndex(index);
     setOpenLotDialog(true);

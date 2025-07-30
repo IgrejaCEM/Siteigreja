@@ -99,3 +99,4 @@ export default function App() {
   );
 }
 // Cache busting - $(date) 
+// TEMPORARY: Cache busting for price.toFixed fix - $(new Date().toISOString()) 

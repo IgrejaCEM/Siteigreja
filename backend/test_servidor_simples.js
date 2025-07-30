@@ -2,11 +2,12 @@ const axios = require('axios');
 
 const API_BASE_URL = 'https://siteigreja-1.onrender.com/api';
 
-async function testarServidor() {
+console.log('🧪 TESTANDO SE O SERVIDOR ESTÁ FUNCIONANDO');
+console.log('==========================================');
+
+const testServidor = async () => {
   try {
-    console.log('🧪 TESTANDO SE O SERVIDOR ESTÁ FUNCIONANDO');
-    
-    // Testar uma rota simples
+    console.log('📋 Testando rota de eventos públicos...');
     const response = await axios.get(`${API_BASE_URL}/events`);
     
     console.log('✅ Servidor está funcionando');
@@ -14,13 +15,10 @@ async function testarServidor() {
     console.log('📋 Dados recebidos:', response.data.length, 'eventos');
     
   } catch (error) {
-    console.error('❌ Erro ao conectar com o servidor:', error.response?.data || error.message);
-    console.error('📋 Status:', error.response?.status);
-    
-    if (error.code === 'ECONNREFUSED') {
-      console.log('💡 O servidor pode estar em deploy ainda');
-    }
+    console.log('❌ Erro no servidor:');
+    console.log('📋 Status:', error.response?.status);
+    console.log('📋 Mensagem:', error.response?.data?.message || error.message);
   }
-}
+};
 
-testarServidor(); 
+testServidor(); 
