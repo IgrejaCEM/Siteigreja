@@ -298,31 +298,6 @@ const Home = () => {
           fontFamily: `'Oswald', 'Impact', 'Arial Narrow', Arial, sans-serif`,
             position: 'relative',
             zIndex: 2,
-            textShadow: '2px 2px 0 rgba(0,0,0,0.1)',
-            background: 'linear-gradient(45deg, #000 0%, #333 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            animation: 'titlePulse 2s infinite',
-            '@keyframes titlePulse': {
-              '0%, 100%': {
-                transform: 'scale(1)'
-              },
-              '50%': {
-                transform: 'scale(1.02)'
-              }
-            }
-        }}>
-          JÁ ENTENDEU QUE<br />NÃO PODE FICAR DE FORA NÉ?
-        </Typography>
-        <Typography sx={{
-          mb: 4,
-          textAlign: 'center',
-            color: '#666',
-            fontSize: { xs: '1.5rem', md: '2rem' },
-          fontWeight: 500,
-          fontFamily: 'inherit',
-            position: 'relative',
-            zIndex: 2,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -367,6 +342,131 @@ const Home = () => {
             <Typography sx={{ color: '#888', fontSize: { xs: 16, sm: 20 } }}>Nenhum evento cadastrado</Typography>
           )}
         </Box>
+      </Box>
+
+      {/* Seção da Loja */}
+      <Box sx={{ 
+        width: '100%', 
+        py: 8, 
+        bgcolor: '#f8f9fa',
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center'
+      }}>
+        <Container maxWidth="lg">
+          <Typography variant="h3" component="h2" sx={{ 
+            textAlign: 'center', 
+            mb: 2,
+            fontWeight: 'bold',
+            color: '#333'
+          }}>
+            🏪 Loja da Igreja
+          </Typography>
+          <Typography variant="h6" sx={{ 
+            textAlign: 'center', 
+            mb: 4,
+            color: '#666'
+          }}>
+            Produtos especiais para sua fé e devoção
+          </Typography>
+          
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: 3,
+            flexWrap: 'wrap'
+          }}>
+            <Card sx={{ 
+              maxWidth: 300, 
+              textAlign: 'center',
+              transition: 'transform 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)'
+              }
+            }}>
+              <CardContent>
+                <Typography variant="h5" component="h3" gutterBottom>
+                  📚 Livros
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Bíblias, livros de oração e literatura cristã
+                </Typography>
+                <Button 
+                  variant="contained" 
+                  onClick={() => navigate('/loja')}
+                  sx={{ mt: 2 }}
+                >
+                  Ver Produtos
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ 
+              maxWidth: 300, 
+              textAlign: 'center',
+              transition: 'transform 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)'
+              }
+            }}>
+              <CardContent>
+                <Typography variant="h5" component="h3" gutterBottom>
+                  👕 Vestuário
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Camisetas, bonés e acessórios com mensagens de fé
+                </Typography>
+                <Button 
+                  variant="contained" 
+                  onClick={() => navigate('/loja')}
+                  sx={{ mt: 2 }}
+                >
+                  Ver Produtos
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ 
+              maxWidth: 300, 
+              textAlign: 'center',
+              transition: 'transform 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-8px)'
+              }
+            }}>
+              <CardContent>
+                <Typography variant="h5" component="h3" gutterBottom>
+                  🎁 Presentes
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Canecas, chaveiros e outros itens personalizados
+                </Typography>
+                <Button 
+                  variant="contained" 
+                  onClick={() => navigate('/loja')}
+                  sx={{ mt: 2 }}
+                >
+                  Ver Produtos
+                </Button>
+              </CardContent>
+            </Card>
+          </Box>
+
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
+            <Button 
+              variant="outlined" 
+              size="large"
+              onClick={() => navigate('/loja')}
+              sx={{ 
+                fontSize: '1.1rem',
+                px: 4,
+                py: 1.5
+              }}
+            >
+              🛍️ Visitar Loja Completa
+            </Button>
+          </Box>
+        </Container>
       </Box>
       <style>{css}</style>
       <style>{`

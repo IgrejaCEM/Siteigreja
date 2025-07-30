@@ -2,6 +2,7 @@ import { Box, Typography, Button, IconButton, useMediaQuery, useTheme, Container
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useState } from 'react';
+import CartIcon from './CartIcon';
 
 export default function ModernHeader() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function ModernHeader() {
   const menuItems = [
     { label: 'O QUE É', href: '#oque-e' },
     { label: 'FAQ', href: '#faq' },
+    { label: 'LOJA', href: '/loja' },
     { label: 'GARANTA SEU INGRESSO', href: '#ingressos', isButton: true }
   ];
 
@@ -98,16 +100,18 @@ export default function ModernHeader() {
                     sx={{
                       borderRadius: 4,
                       px: 4,
-                      py: 1,
-                      fontWeight: 700,
+                      py: 1.5,
                       color: '#fff',
-                      background: 'transparent',
-                      letterSpacing: 1,
-                      boxShadow: 'none',
-                      border: 'none',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      textTransform: 'none',
+                      background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
+                      boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
+                      transition: 'all 0.3s ease',
                       '&:hover': {
-                        background: 'rgba(255,255,255,0.10)',
-                        color: '#FF6B6B',
+                        background: 'linear-gradient(135deg, #ff5252 0%, #d63031 100%)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
                       },
                     }}
                     onClick={() => handleItemClick(item.href)}
@@ -117,18 +121,14 @@ export default function ModernHeader() {
                 ) : (
                   <Typography
                     key={item.label}
-                    variant="subtitle1"
+                    variant="body1"
                     sx={{
                       color: '#fff',
+                      fontWeight: 500,
                       cursor: 'pointer',
-                      fontWeight: 600,
-                      letterSpacing: 1,
-                      px: 2,
-                      py: 0.5,
-                      borderRadius: 2,
-                      transition: 'background 0.2s',
+                      transition: 'color 0.3s ease',
                       '&:hover': {
-                        background: 'rgba(255,255,255,0.10)',
+                        color: '#ff6b6b',
                       },
                     }}
                     onClick={() => handleItemClick(item.href)}
@@ -137,65 +137,73 @@ export default function ModernHeader() {
                   </Typography>
                 )
               )}
+              
+              {/* Carrinho */}
+              <CartIcon />
             </Box>
           )}
 
           {/* Menu Mobile */}
           {isMobile && (
-            <>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CartIcon />
               <IconButton
-                edge="end"
                 color="inherit"
-                aria-label="menu"
                 onClick={() => setMobileMenuOpen(true)}
                 sx={{ color: '#fff' }}
               >
                 <MenuIcon />
               </IconButton>
-              
-              <Drawer
-                anchor="right"
-                open={mobileMenuOpen}
-                onClose={() => setMobileMenuOpen(false)}
-                PaperProps={{
-                  sx: {
-                    width: '80%',
-                    maxWidth: 300,
-                    bgcolor: 'rgba(26,26,26,0.95)',
-                    backdropFilter: 'blur(8px)',
-                  }
-                }}
-              >
-                <List sx={{ pt: 4 }}>
-                  {menuItems.map((item) => (
-                    <ListItem 
-                      key={item.label}
-                      onClick={() => handleMenuClick(item.href)}
-                      sx={{
-                        py: 2,
-                        '&:hover': {
-                          bgcolor: 'rgba(255,255,255,0.1)',
-                        }
-                      }}
-                    >
-                      <ListItemText 
-                        primary={item.label} 
-                        sx={{ 
-                          color: '#fff',
-                          '& .MuiTypography-root': {
-                            fontWeight: item.isButton ? 700 : 600,
-                            letterSpacing: 1,
-                          }
-                        }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Drawer>
-            </>
+            </Box>
           )}
         </Box>
       </Container>
+
+      {/* Drawer Mobile */}
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 280,
+            background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+            color: '#fff',
+          },
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+            Menu
+          </Typography>
+          <List>
+            {menuItems.map((item) => (
+              <ListItem
+                key={item.label}
+                button
+                onClick={() => handleMenuClick(item.href)}
+                sx={{
+                  borderRadius: 2,
+                  mb: 1,
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+              >
+                <ListItemText
+                  primary={item.label}
+                  sx={{
+                    '& .MuiListItemText-primary': {
+                      fontWeight: item.isButton ? 600 : 400,
+                      color: item.isButton ? '#ff6b6b' : '#fff',
+                    },
+                  }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
     </Box>
   );
 } 

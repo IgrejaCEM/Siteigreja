@@ -2,13 +2,17 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function(knex) {
-  return knex.schema.table('events', function(table) {
-    table.string('banner_desktop').nullable().after('banner');
-    table.string('banner_mobile').nullable().after('banner_desktop');
-    table.string('banner_evento_desktop').nullable().after('banner_evento');
-    table.string('banner_evento_mobile').nullable().after('banner_evento_desktop');
-  });
+exports.up = async function(knex) {
+  const columns = ['banner_desktop', 'banner_mobile', 'banner_evento_desktop', 'banner_evento_mobile'];
+  
+  for (const column of columns) {
+    const exists = await knex.schema.hasColumn('events', column);
+    if (!exists) {
+      await knex.schema.table('events', function(table) {
+        table.string(column, 255).nullable();
+      });
+    }
+  }
 };
 
 /**

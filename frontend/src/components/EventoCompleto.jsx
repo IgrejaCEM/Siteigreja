@@ -23,6 +23,7 @@ import {
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import api from '../services/api';
+import { useCart, ITEM_TYPES } from '../contexts/CartContext';
 
 dayjs.locale('pt-br');
 
@@ -31,11 +32,15 @@ const EventoCompleto = ({ event }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLot, setSelectedLot] = useState(null);
-  const [cartProducts, setCartProducts] = useState([]);
+  
+  const { addItem, getEventItems, removeItem, updateQuantity } = useCart();
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Obter produtos do carrinho para este evento
+  const cartProducts = getEventItems(event?.id);
 
   useEffect(() => {
     const loadEventDetails = async () => {
@@ -75,17 +80,22 @@ const EventoCompleto = ({ event }) => {
 
   const handleAddProduct = (product, quantity = 1) => {
     try {
-      console.log('🛒 Adicionando produto:', product, 'quantidade:', quantity);
-      const existingProduct = cartProducts.find(p => p.id === product.id);
-      if (existingProduct) {
-        setCartProducts(cartProducts.map(p => 
-          p.id === product.id 
-            ? { ...p, quantity: p.quantity + quantity }
-            : p
-        ));
-      } else {
-        setCartProducts([...cartProducts, { ...product, quantity }]);
-      }
+      console.log('🛒 Adicionando produto ao carrinho:', product, 'quantidade:', quantity);
+      
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        price: parseFloat(product.price),
+        quantity: quantity,
+        type: ITEM_TYPES.EVENT_PRODUCT,
+        eventId: event.id,
+        eventName: event.name,
+        image: product.image_url,
+        description: product.description,
+        stock: product.stock
+      };
+
+      addItem(cartItem);
     } catch (error) {
       console.error('❌ Erro ao adicionar produto:', error);
     }
@@ -94,9 +104,21 @@ const EventoCompleto = ({ event }) => {
   const handleRemoveProduct = (productId) => {
     try {
       console.log('🗑️ Removendo produto:', productId);
-      setCartProducts(cartProducts.filter(p => p.id !== productId));
+      const productToRemove = cartProducts.find(p => p.id === productId);
+      if (productToRemove) {
+        removeItem(productToRemove);
+      }
     } catch (error) {
       console.error('❌ Erro ao remover produto:', error);
+    }
+  };
+
+  const handleQuantityChange = (product, change) => {
+    try {
+      const newQuantity = Math.max(1, product.quantity + change);
+      updateQuantity(product, newQuantity);
+    } catch (error) {
+      console.error('❌ Erro ao alterar quantidade:', error);
     }
   };
 
@@ -123,37 +145,29 @@ const EventoCompleto = ({ event }) => {
 
   const handleProceedToRegistration = () => {
     try {
-      console.log('🚀 Iniciando processo de inscrição...');
+      console.log('🚀 Prosseguindo para inscrição...');
       
-      if (!selectedLot) {
-        alert('Por favor, selecione um ingresso primeiro!');
-        return;
+      // Adicionar ingresso ao carrinho se selecionado
+      if (selectedLot) {
+        const ticketItem = {
+          id: selectedLot.id,
+          name: `Ingresso - ${selectedLot.name}`,
+          price: parseFloat(selectedLot.price),
+          quantity: 1,
+          type: ITEM_TYPES.EVENT_TICKET,
+          eventId: event.id,
+          eventName: event.name,
+          lotId: selectedLot.id,
+          lotName: selectedLot.name
+        };
+        
+        addItem(ticketItem);
       }
-
-      if (!eventDetails) {
-        alert('Erro: Detalhes do evento não carregados');
-        return;
-      }
-
-      // Preparar dados para inscrição
-      const registrationData = {
-        eventId: eventDetails.id,
-        lotId: selectedLot.id,
-        products: cartProducts,
-        total: calculateTotal()
-      };
-
-      console.log('📦 Dados para inscrição:', registrationData);
-
-      // Redirecionar para página de inscrição com lote selecionado
-      const eventSlug = eventDetails.slug || eventDetails.id;
-      const inscricaoUrl = `/evento/${eventSlug}/inscricao?lotId=${selectedLot.id}`;
-      console.log('🔗 Redirecionando para:', inscricaoUrl);
       
-      window.location.href = inscricaoUrl;
+      // Redirecionar para checkout
+      window.location.href = '/checkout';
     } catch (error) {
-      console.error('❌ Erro ao redirecionar para inscrição:', error);
-      setError('Erro ao processar inscrição. Tente novamente.');
+      console.error('❌ Erro ao prosseguir para inscrição:', error);
     }
   };
 

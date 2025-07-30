@@ -86,26 +86,9 @@ export default function EditarEvento() {
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     
-    // Tentar diferentes formatos de data
-    let date;
-    
-    // Se já está no formato correto (YYYY-MM-DDTHH:mm)
-    if (dateString.includes('T')) {
-      return dateString;
-    }
-    
-    // Se tem formato com timezone (2025-10-24 00:00:00 00:00:00)
-    if (dateString.includes(' 00:00:00 00:00:00')) {
-      dateString = dateString.replace(' 00:00:00 00:00:00', '');
-    }
-    
-    // Se tem formato com timezone (2025-10-24 00:00:00)
-    if (dateString.includes(' 00:00:00')) {
-      dateString = dateString.replace(' 00:00:00', '');
-    }
-    
     try {
-      date = new Date(dateString);
+      // Criar data e ajustar para timezone local
+      const date = new Date(dateString);
       
       // Verificar se a data é válida
       if (isNaN(date.getTime())) {
@@ -113,8 +96,15 @@ export default function EditarEvento() {
         return '';
       }
       
+      // Converter para timezone local e formatar
       const pad = n => n.toString().padStart(2, '0');
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      const year = date.getFullYear();
+      const month = pad(date.getMonth() + 1);
+      const day = pad(date.getDate());
+      const hours = pad(date.getHours());
+      const minutes = pad(date.getMinutes());
+      
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
     } catch (error) {
       console.error('Erro ao formatar data:', error);
       return '';

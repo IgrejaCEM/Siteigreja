@@ -10,12 +10,14 @@ const registrationRoutes = require('./registrations');
 const eventProductRoutes = require('./eventProducts');
 const lotRoutes = require('./lots');
 const uploadRoutes = require('./upload');
+const storeRoutes = require('./store');
 
 // Rotas públicas
 router.use('/events', eventRoutes);
 router.use('/auth', authRoutes);
 router.use('/event-products', eventProductRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/', storeRoutes); // Rotas da loja
 
 // Rotas protegidas
 router.use('/admin', adminRoutes);
