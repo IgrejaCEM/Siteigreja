@@ -33,69 +33,100 @@ export default function ScrollSection() {
   }, []);
 
   const handleScroll = () => {
-    if (!sectionRef.current || !textRef.current) return;
-
-    const windowHeight = window.innerHeight;
-    const sectionRect = sectionRef.current.getBoundingClientRect();
-    const sectionHeight = sectionRef.current.offsetHeight;
-
-    // Progresso da seção preta na tela (0 = início, 1 = final)
-    const progress = Math.max(0, Math.min(1, (windowHeight - sectionRect.top) / (sectionHeight + windowHeight)));
-
-    // Efeito de entrada: frase sobe de baixo para o centro
-    let translateY = 0;
-    let containerOpacity = 1;
-    const entryStart = 0.28; // Agora começa após 25% do progresso
-    const entryTranslate = 1300; // valor inicial de 750px para subir bem de baixo
-    if (progress < entryStart) {
-      // Nos primeiros 25%, a frase sube de baixo e faz fade in
-      translateY = (1 - progress / entryStart) * entryTranslate;
-      containerOpacity = progress / entryStart;
-    } else if (progress > 0.75) {
-      // No final, a frase sobe para cima (efeito de saída)
-      translateY = -((progress - 0.85) / 0.15) * 10;
-    } else {
-      // Centralizada
-      translateY = 0;
-    }
-    textRef.current.style.position = 'fixed';
-    textRef.current.style.top = '50%';
-    textRef.current.style.left = '50%';
-    textRef.current.style.transform = `translate(-50%, -50%) translateY(${translateY}px)`;
-    textRef.current.style.opacity = (progress > 0 && progress < 0.9) ? containerOpacity : 0;
-
-    // Desaparecimento linha por linha no final
-    const fadeStart = 0.75;
-    const fadeProgress = progress > fadeStart ? (progress - fadeStart) / 0.15 : 0;
-    wordsRefs.current.forEach((word, idx) => {
-      if (!word) return;
-      // 3 linhas: 0-4, 5-8, 9 (finalPhrase)
-      let line = 0;
-      if (idx > 4 && idx < 9) line = 1;
-      if (idx >= 9) line = 2;
-      // Inverter a ordem do fade: de baixo para cima
-      let fadeOrder = 2 - line;
-      let lineFade = 1;
-      if (progress < entryStart) {
-        // Fade-in de baixo para cima
-        const fadeInProgress = progress / entryStart;
-        const lineDelay = fadeOrder * 0.2;
-        lineFade = Math.max(0, Math.min(1, (fadeInProgress - lineDelay) * 3));
-      } else if (progress > fadeStart) {
-        // Fade-out de baixo para cima
-        const lineDelay = fadeOrder * 0.2;
-        lineFade = Math.max(0, 1 - Math.max(0, fadeProgress - lineDelay) * 3);
+    try {
+      // Verificar se os elementos existem antes de usar
+      if (!sectionRef.current || !textRef.current) {
+        console.log('⚠️ Elementos do ScrollSection não encontrados');
+        return;
       }
-      word.style.opacity = (progress > 0 && progress < 0.9) ? lineFade : 0;
-    });
+
+      const windowHeight = window.innerHeight;
+      const sectionRect = sectionRef.current.getBoundingClientRect();
+      const sectionHeight = sectionRef.current.offsetHeight;
+
+      // Progresso da seção preta na tela (0 = início, 1 = final)
+      const progress = Math.max(0, Math.min(1, (windowHeight - sectionRect.top) / (sectionHeight + windowHeight)));
+
+      // Efeito de entrada: frase sobe de baixo para o centro
+      let translateY = 0;
+      let containerOpacity = 1;
+      const entryStart = 0.28; // Agora começa após 25% do progresso
+      const entryTranslate = 1300; // valor inicial de 750px para subir bem de baixo
+      if (progress < entryStart) {
+        // Nos primeiros 25%, a frase sube de baixo e faz fade in
+        translateY = (1 - progress / entryStart) * entryTranslate;
+        containerOpacity = progress / entryStart;
+      } else if (progress > 0.75) {
+        // No final, a frase sobe para cima (efeito de saída)
+        translateY = -((progress - 0.85) / 0.15) * 10;
+      } else {
+        // Centralizada
+        translateY = 0;
+      }
+      
+      // Aplicar transformações com verificação de segurança
+      if (textRef.current) {
+        textRef.current.style.position = 'fixed';
+        textRef.current.style.top = '50%';
+        textRef.current.style.left = '50%';
+        textRef.current.style.transform = `translate(-50%, -50%) translateY(${translateY}px)`;
+        textRef.current.style.opacity = (progress > 0 && progress < 0.9) ? containerOpacity : 0;
+      }
+
+      // Desaparecimento linha por linha no final
+      const fadeStart = 0.75;
+      const fadeProgress = progress > fadeStart ? (progress - fadeStart) / 0.15 : 0;
+      
+      wordsRefs.current.forEach((word, idx) => {
+        if (!word) return;
+        
+        try {
+          // 3 linhas: 0-4, 5-8, 9 (finalPhrase)
+          let line = 0;
+          if (idx > 4 && idx < 9) line = 1;
+          if (idx >= 9) line = 2;
+          // Inverter a ordem do fade: de baixo para cima
+          let fadeOrder = 2 - line;
+          let lineFade = 1;
+          if (progress < entryStart) {
+            // Fade-in de baixo para cima
+            const fadeInProgress = progress / entryStart;
+            const lineDelay = fadeOrder * 0.2;
+            lineFade = Math.max(0, Math.min(1, (fadeInProgress - lineDelay) * 3));
+          } else if (progress > fadeStart) {
+            // Fade-out de baixo para cima
+            const lineDelay = fadeOrder * 0.2;
+            lineFade = Math.max(0, 1 - Math.max(0, fadeProgress - lineDelay) * 3);
+          }
+          word.style.opacity = (progress > 0 && progress < 0.9) ? lineFade : 0;
+        } catch (error) {
+          console.log('⚠️ Erro ao processar palavra:', idx, error);
+        }
+      });
+    } catch (error) {
+      console.error('❌ Erro no handleScroll:', error);
+    }
   };
 
-  // Adiciona o listener de scroll
+  // Adiciona o listener de scroll com tratamento de erro
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Chama uma vez para posicionar inicialmente
-    
-    return () => window.removeEventListener('scroll', handleScroll);
+    try {
+      window.addEventListener('scroll', handleScroll);
+      // Chama uma vez para posicionar inicialmente, mas com delay
+      setTimeout(() => {
+        handleScroll();
+      }, 100);
+      
+      return () => {
+        try {
+          window.removeEventListener('scroll', handleScroll);
+        } catch (error) {
+          console.error('❌ Erro ao remover listener de scroll:', error);
+        }
+      };
+    } catch (error) {
+      console.error('❌ Erro ao adicionar listener de scroll:', error);
+    }
   }, []);
 
   // Array com todas as palavras do texto

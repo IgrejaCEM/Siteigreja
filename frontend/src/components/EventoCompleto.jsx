@@ -29,6 +29,7 @@ dayjs.locale('pt-br');
 const EventoCompleto = ({ event }) => {
   const [eventDetails, setEventDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedLot, setSelectedLot] = useState(null);
   const [cartProducts, setCartProducts] = useState([]);
   
@@ -39,68 +40,153 @@ const EventoCompleto = ({ event }) => {
   useEffect(() => {
     const loadEventDetails = async () => {
       try {
+        console.log('🔍 Carregando detalhes do evento:', event);
+        setLoading(true);
+        setError(null);
+        
+        if (!event || (!event.slug && !event.id)) {
+          throw new Error('Evento inválido');
+        }
+        
         const response = await api.get(`/events/${event.slug || event.id}`);
+        console.log('✅ Detalhes do evento carregados:', response.data);
         setEventDetails(response.data);
       } catch (error) {
-        console.error('Erro ao carregar detalhes do evento:', error);
+        console.error('❌ Erro ao carregar detalhes do evento:', error);
+        setError(error.response?.data?.error || 'Erro ao carregar evento');
       } finally {
         setLoading(false);
       }
     };
 
-    loadEventDetails();
+    if (event) {
+      loadEventDetails();
+    }
   }, [event]);
 
   const handleLotSelect = (lot) => {
-    setSelectedLot(lot);
+    try {
+      console.log('🎯 Lote selecionado:', lot);
+      setSelectedLot(lot);
+    } catch (error) {
+      console.error('❌ Erro ao selecionar lote:', error);
+    }
   };
 
   const handleAddProduct = (product, quantity = 1) => {
-    const existingProduct = cartProducts.find(p => p.id === product.id);
-    if (existingProduct) {
-      setCartProducts(cartProducts.map(p => 
-        p.id === product.id 
-          ? { ...p, quantity: p.quantity + quantity }
-          : p
-      ));
-    } else {
-      setCartProducts([...cartProducts, { ...product, quantity }]);
+    try {
+      console.log('🛒 Adicionando produto:', product, 'quantidade:', quantity);
+      const existingProduct = cartProducts.find(p => p.id === product.id);
+      if (existingProduct) {
+        setCartProducts(cartProducts.map(p => 
+          p.id === product.id 
+            ? { ...p, quantity: p.quantity + quantity }
+            : p
+        ));
+      } else {
+        setCartProducts([...cartProducts, { ...product, quantity }]);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao adicionar produto:', error);
     }
   };
 
   const handleRemoveProduct = (productId) => {
-    setCartProducts(cartProducts.filter(p => p.id !== productId));
+    try {
+      console.log('🗑️ Removendo produto:', productId);
+      setCartProducts(cartProducts.filter(p => p.id !== productId));
+    } catch (error) {
+      console.error('❌ Erro ao remover produto:', error);
+    }
   };
 
   const calculateTotal = () => {
-    let total = 0;
-    if (selectedLot) {
-      total += selectedLot.price;
+    try {
+      let total = 0;
+      if (selectedLot) {
+        // Converter price para número
+        const lotPrice = parseFloat(selectedLot.price) || 0;
+        total += lotPrice;
+      }
+      cartProducts.forEach(product => {
+        // Converter price para número
+        const productPrice = parseFloat(product.price) || 0;
+        const quantity = parseInt(product.quantity) || 1;
+        total += productPrice * quantity;
+      });
+      return total;
+    } catch (error) {
+      console.error('❌ Erro ao calcular total:', error);
+      return 0;
     }
-    cartProducts.forEach(product => {
-      total += product.price * product.quantity;
-    });
-    return total;
   };
 
   const handleProceedToRegistration = () => {
-    if (!selectedLot) {
-      alert('Por favor, selecione um ingresso primeiro!');
-      return;
+    try {
+      console.log('🚀 Iniciando processo de inscrição...');
+      
+      if (!selectedLot) {
+        alert('Por favor, selecione um ingresso primeiro!');
+        return;
+      }
+
+      if (!eventDetails) {
+        alert('Erro: Detalhes do evento não carregados');
+        return;
+      }
+
+      // Preparar dados para inscrição
+      const registrationData = {
+        eventId: eventDetails.id,
+        lotId: selectedLot.id,
+        products: cartProducts,
+        total: calculateTotal()
+      };
+
+      console.log('📦 Dados para inscrição:', registrationData);
+
+      // Redirecionar para página de inscrição
+      const eventSlug = eventDetails.slug || eventDetails.id;
+      const inscricaoUrl = `/evento/${eventSlug}/inscricao`;
+      console.log('🔗 Redirecionando para:', inscricaoUrl);
+      
+      window.location.href = inscricaoUrl;
+    } catch (error) {
+      console.error('❌ Erro ao redirecionar para inscrição:', error);
+      setError('Erro ao processar inscrição. Tente novamente.');
     }
-
-    // Preparar dados para inscrição
-    const registrationData = {
-      eventId: eventDetails.id,
-      lotId: selectedLot.id,
-      products: cartProducts,
-      total: calculateTotal()
-    };
-
-    // Redirecionar para página de inscrição
-    const eventSlug = eventDetails.slug || eventDetails.id;
-    window.location.href = `/evento/${eventSlug}/inscricao`;
   };
+
+  // Mostrar erro se houver
+  if (error) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '200px',
+        background: '#000000',
+        color: 'white',
+        p: 3
+      }}>
+        <Alert severity="error" sx={{ maxWidth: 600 }}>
+          <Typography variant="h6" gutterBottom>
+            Erro ao carregar evento
+          </Typography>
+          <Typography variant="body2">
+            {error}
+          </Typography>
+          <Button 
+            variant="contained" 
+            onClick={() => window.location.reload()}
+            sx={{ mt: 2 }}
+          >
+            Tentar Novamente
+          </Button>
+        </Alert>
+      </Box>
+    );
+  }
 
   if (loading) {
     return (
@@ -125,7 +211,7 @@ const EventoCompleto = ({ event }) => {
         height: '100vh',
         background: '#000000'
       }}>
-        <Alert severity="error">Erro ao carregar evento</Alert>
+        <Alert severity="error">Evento não encontrado</Alert>
       </Box>
     );
   }
@@ -412,7 +498,7 @@ const EventoCompleto = ({ event }) => {
                                 fontSize: isMobile ? '1.1rem' : '1.5rem'
                               }}
                             >
-                              R$ {lot.price.toFixed(2)}
+                              R$ {parseFloat(lot.price || 0).toFixed(2)}
                             </Typography>
                             <Chip 
                               label={`${lot.quantity} vagas`}
@@ -508,7 +594,7 @@ const EventoCompleto = ({ event }) => {
                                 fontSize: isMobile ? '1rem' : '1.25rem'
                               }}
                             >
-                              R$ {product.price.toFixed(2)}
+                              R$ {parseFloat(product.price || 0).toFixed(2)}
                             </Typography>
                             <Button
                               variant="contained"
@@ -580,7 +666,7 @@ const EventoCompleto = ({ event }) => {
                       color: '#666666',
                       fontSize: isMobile ? '0.9rem' : '1rem'
                     }}>
-                      R$ {selectedLot.price.toFixed(2)}
+                      R$ {parseFloat(selectedLot.price || 0).toFixed(2)}
                     </Typography>
                   </Box>
                 )}

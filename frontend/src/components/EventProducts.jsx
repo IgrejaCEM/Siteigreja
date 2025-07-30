@@ -133,7 +133,7 @@ const EventProducts = ({ eventId, onAddProduct }) => {
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
                   <Typography variant="h6" color="primary">
-                    R$ {product.price.toFixed(2)}
+                    R$ {parseFloat(product.price || 0).toFixed(2)}
                   </Typography>
                   <Button
                     variant="contained"
@@ -164,7 +164,7 @@ const EventProducts = ({ eventId, onAddProduct }) => {
                 {selectedProduct.name}
               </Typography>
               <Typography variant="body1" color="primary" gutterBottom>
-                R$ {selectedProduct.price.toFixed(2)}
+                                  R$ {parseFloat(selectedProduct.price || 0).toFixed(2)}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
                 <IconButton 

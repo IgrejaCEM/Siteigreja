@@ -153,7 +153,7 @@ const Evento = () => {
         <Box sx={{ mb: 2 }}>
           {selectedLot && (
             <Typography variant="body1">
-              Lote selecionado: {selectedLot.name} - R$ {lotPrice.toFixed(2)}
+              Lote selecionado: {selectedLot.name} - R$ {parseFloat(lotPrice || 0).toFixed(2)}
             </Typography>
           )}
           {cartProducts.length > 0 && (
@@ -366,7 +366,7 @@ const Evento = () => {
                         {product.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Quantidade: {product.quantity} | R$ {product.price.toFixed(2)} cada
+                        Quantidade: {product.quantity} | R$ {parseFloat(product.price || 0).toFixed(2)} cada
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
