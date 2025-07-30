@@ -26,6 +26,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import api from '../services/api';
 import { useCart, ITEM_TYPES } from '../contexts/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 dayjs.locale('pt-br');
 
@@ -38,6 +39,7 @@ const EventoCompleto = ({ event }) => {
   const [loadingStore, setLoadingStore] = useState(false);
   
   const { addItem, getEventItems, removeItem, updateQuantity, getStoreItems } = useCart();
+  const navigate = useNavigate();
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -152,7 +154,8 @@ const EventoCompleto = ({ event }) => {
   const handleQuantityChange = (product, change) => {
     try {
       console.log('📊 Alterando quantidade do produto:', product.id, 'mudança:', change);
-      updateQuantity(product.id, product.quantity + change);
+      const newQuantity = Math.max(1, product.quantity + change);
+      updateQuantity(product.id, newQuantity);
     } catch (error) {
       console.error('❌ Erro ao alterar quantidade:', error);
     }
@@ -186,7 +189,7 @@ const EventoCompleto = ({ event }) => {
 
   const handleProceedToRegistration = () => {
     try {
-      console.log('🚀 Prosseguindo para inscrição...');
+      console.log('🚀 Prosseguindo para checkout...');
       
       // Adicionar ingresso ao carrinho se selecionado
       if (selectedLot) {
@@ -206,9 +209,9 @@ const EventoCompleto = ({ event }) => {
       }
       
       // Redirecionar para checkout
-      window.location.href = '/checkout';
+      navigate('/checkout');
     } catch (error) {
-      console.error('❌ Erro ao prosseguir para inscrição:', error);
+      console.error('❌ Erro ao prosseguir para checkout:', error);
     }
   };
 

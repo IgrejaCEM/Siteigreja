@@ -193,7 +193,7 @@ const Checkout = () => {
       };
 
       const response = await api.post('/registrations', orderData, {
-        timeout: 30000 // Aumentar timeout para 30 segundos
+        timeout: 60000 // Aumentar timeout para 60 segundos
       });
 
       return {
@@ -219,7 +219,7 @@ const Checkout = () => {
       };
 
       const response = await api.post('/store-orders', orderData, {
-        timeout: 30000 // Aumentar timeout para 30 segundos
+        timeout: 60000 // Aumentar timeout para 60 segundos
       });
 
       return {

@@ -1,209 +1,196 @@
-import { Box, Typography, Button, IconButton, useMediaQuery, useTheme, Container, Drawer, List, ListItem, ListItemText } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
-import { useState } from 'react';
-import CartIcon from './CartIcon';
+import React, { useState, useEffect } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Container,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
+import {
+  Menu as MenuIcon,
+  AccountCircle as AccountIcon
+} from '@mui/icons-material';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-export default function ModernHeader() {
+const ModernHeader = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const menuItems = [
-    { label: 'O QUE É', href: '#oque-e' },
-    { label: 'FAQ', href: '#faq' },
-    { label: 'LOJA', href: '/loja' },
-    { label: 'GARANTA SEU INGRESSO', href: '#ingressos', isButton: true }
+    { text: 'O QUE É', path: '/#sobre' },
+    { text: 'FAQ', path: '/#faq' },
+    { text: 'LOJA', path: '/loja' }
   ];
 
-  const handleMenuClick = (href) => {
-    setMobileMenuOpen(false);
-    if (href.startsWith('#')) {
-      const element = document.querySelector(href);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
-      navigate(href);
-    }
-  };
-
-  const handleItemClick = (href) => {
-    if (href.startsWith('#')) {
-      const element = document.querySelector(href);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
-      navigate(href);
-    }
-  };
+  const drawer = (
+    <Box>
+      <List>
+        {menuItems.map((item) => (
+          <ListItem 
+            button 
+            key={item.text}
+            component={Link}
+            to={item.path}
+            onClick={handleDrawerToggle}
+          >
+            <ListItemText primary={item.text} />
+          </ListItem>
+        ))}
+        {isAuthenticated ? (
+          <ListItem button onClick={handleLogout}>
+            <ListItemText primary="Sair" />
+          </ListItem>
+        ) : (
+          <ListItem 
+            button 
+            component={Link}
+            to="/login"
+            onClick={handleDrawerToggle}
+          >
+            <ListItemText primary="Entrar" />
+          </ListItem>
+        )}
+      </List>
+    </Box>
+  );
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        zIndex: 1200,
-        background: 'rgba(0, 0, 0, 0.5)',
-        backdropFilter: 'blur(8px)',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
-        py: 2,
-      }}
-    >
-      <Container maxWidth="xl" sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            width: { xs: '100%', sm: '90%', md: '70%' },
-            bgcolor: 'rgba(255,255,255,0.05)',
-            border: '0.5px solid rgba(255,255,255,0.2)',
-            borderRadius: 8,
-            px: { xs: 2, sm: 4 },
-            py: 1.5,
-            boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)',
-          }}
-        >
-          {/* Logo */}
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              cursor: 'pointer'
-            }}
-            onClick={() => navigate('/')}
-          >
-            <img
-              src="/images_site/logo.png"
-              alt="Logo"
-              style={{ 
-                height: isMobile ? 50 : 70,
-                marginRight: 8 
+    <>
+      <AppBar position="fixed" sx={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)' }}>
+        <Container maxWidth="lg">
+          <Toolbar sx={{ justifyContent: 'space-between' }}>
+            {/* Logo */}
+            <Typography
+              variant="h6"
+              component={Link}
+              to="/"
+              sx={{
+                textDecoration: 'none',
+                color: 'white',
+                fontWeight: 'bold',
+                flexGrow: 1
               }}
-            />
-          </Box>
+            >
+              CONNECT
+            </Typography>
 
-          {/* Menu Desktop */}
-          {!isMobile && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              {menuItems.map((item) => 
-                item.isButton ? (
+            {/* Desktop Menu */}
+            {!isMobile && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {menuItems.map((item) => (
                   <Button
-                    key={item.label}
-                    variant="text"
-                    size="large"
+                    key={item.text}
+                    component={Link}
+                    to={item.path}
                     sx={{
-                      borderRadius: 4,
-                      px: 4,
-                      py: 1.5,
-                      color: '#fff',
-                      fontWeight: 600,
-                      fontSize: '0.9rem',
+                      color: 'white',
                       textTransform: 'none',
-                      background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
-                      boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)',
-                      transition: 'all 0.3s ease',
+                      fontSize: '0.9rem',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #ff5252 0%, #d63031 100%)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
-                      },
+                        background: 'rgba(255,255,255,0.1)'
+                      }
                     }}
-                    onClick={() => handleItemClick(item.href)}
                   >
-                    {item.label}
+                    {item.text}
+                  </Button>
+                ))}
+                
+                {isAuthenticated ? (
+                  <Button
+                    onClick={handleLogout}
+                    sx={{
+                      color: 'white',
+                      textTransform: 'none',
+                      fontSize: '0.9rem',
+                      '&:hover': {
+                        background: 'rgba(255,255,255,0.1)'
+                      }
+                    }}
+                  >
+                    Sair
                   </Button>
                 ) : (
-                  <Typography
-                    key={item.label}
-                    variant="body1"
+                  <Button
+                    component={Link}
+                    to="/login"
+                    variant="outlined"
                     sx={{
-                      color: '#fff',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      transition: 'color 0.3s ease',
+                      color: 'white',
+                      borderColor: 'white',
+                      textTransform: 'none',
+                      fontSize: '0.9rem',
                       '&:hover': {
-                        color: '#ff6b6b',
-                      },
+                        background: 'rgba(255,255,255,0.1)',
+                        borderColor: 'white'
+                      }
                     }}
-                    onClick={() => handleItemClick(item.href)}
                   >
-                    {item.label}
-                  </Typography>
-                )
-              )}
-              
-              {/* Carrinho */}
-              <CartIcon />
-            </Box>
-          )}
+                    Entrar
+                  </Button>
+                )}
+              </Box>
+            )}
 
-          {/* Menu Mobile */}
-          {isMobile && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CartIcon />
+            {/* Mobile Menu Button */}
+            {isMobile && (
               <IconButton
                 color="inherit"
-                onClick={() => setMobileMenuOpen(true)}
-                sx={{ color: '#fff' }}
+                aria-label="open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
               >
                 <MenuIcon />
               </IconButton>
-            </Box>
-          )}
-        </Box>
-      </Container>
+            )}
+          </Toolbar>
+        </Container>
+      </AppBar>
 
-      {/* Drawer Mobile */}
+      {/* Mobile Drawer */}
       <Drawer
+        variant="temporary"
         anchor="right"
-        open={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-        PaperProps={{
-          sx: {
-            width: 280,
-            background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
-            color: '#fff',
-          },
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { 
+            boxSizing: 'border-box', 
+            width: 240,
+            background: 'rgba(0,0,0,0.9)',
+            color: 'white'
+          }
         }}
       >
-        <Box sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-            Menu
-          </Typography>
-          <List>
-            {menuItems.map((item) => (
-              <ListItem
-                key={item.label}
-                button
-                onClick={() => handleMenuClick(item.href)}
-                sx={{
-                  borderRadius: 2,
-                  mb: 1,
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.1)',
-                  },
-                }}
-              >
-                <ListItemText
-                  primary={item.label}
-                  sx={{
-                    '& .MuiListItemText-primary': {
-                      fontWeight: item.isButton ? 600 : 400,
-                      color: item.isButton ? '#ff6b6b' : '#fff',
-                    },
-                  }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
+        {drawer}
       </Drawer>
-    </Box>
+    </>
   );
-} 
+};
+
+export default ModernHeader; 
