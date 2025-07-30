@@ -153,16 +153,15 @@ class RegistrationController {
 
       // Criar pagamento se necessário
       let paymentInfo = null;
-      if (registration.lot_id) {
-        const lot = await db('lots').where('id', registration.lot_id).first();
-        if (lot && lot.price > 0) {
-          // Aqui você pode integrar com o gateway de pagamento
-          // Por enquanto, retornar dados básicos
-          paymentInfo = {
-            payment_url: `https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=TEST-${registration.id}`,
-            payment_id: `PAY-${registration.id}`
-          };
-        }
+      
+      // Sempre gerar payment_url se houver qualquer item (ingresso ou produtos)
+      if (registration.lot_id || (products && products.length > 0)) {
+        // Aqui você pode integrar com o gateway de pagamento
+        // Por enquanto, retornar dados básicos
+        paymentInfo = {
+          payment_url: `https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=TEST-${registration.id}`,
+          payment_id: `PAY-${registration.id}`
+        };
       }
 
       console.log('✅ Inscrição processada com sucesso');
