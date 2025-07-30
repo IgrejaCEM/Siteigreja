@@ -427,9 +427,6 @@ const Inscricao = () => {
       setRegistrationCode(response.data.registration_code);
       setRegistrationComplete(true);
       
-      // Verificar se é lote gratuito
-      const isFree = selectedLot && (selectedLot?.price === 0 || selectedLot?.price === '0' || selectedLot?.price === 0.00 || selectedLot?.price === '0.00' || parseFloat(selectedLot?.price) === 0) && cartProducts.length === 0;
-      
       console.log('🆓 Verificação de lote gratuito:', {
         selectedLot,
         price: selectedLot?.price,
