@@ -1724,4 +1724,51 @@ router.post('/clear-orphaned-data', async (req, res) => {
   }
 });
 
+// Buscar registrations com produtos comprados
+router.get('/registrations-with-products', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    console.log('🔍 DEBUG: Buscando registrations com produtos...');
+    
+    const registrations = await db('registrations')
+      .select(
+        'registrations.*',
+        'events.name as event_name',
+        'events.slug as event_slug'
+      )
+      .leftJoin('events', 'registrations.event_id', 'events.id')
+      .whereNotNull('registrations.products')
+      .where('registrations.products', '!=', '[]')
+      .orderBy('registrations.created_at', 'desc');
+    
+    console.log(`📊 DEBUG: Encontrados ${registrations.length} registrations com produtos`);
+    
+    // Processar produtos de cada registration
+    const processedRegistrations = registrations.map(registration => {
+      let products = [];
+      try {
+        if (registration.products && registration.products !== '[]') {
+          products = JSON.parse(registration.products);
+        }
+      } catch (error) {
+        console.error('Erro ao processar produtos:', error);
+        products = [];
+      }
+      
+      return {
+        ...registration,
+        products: products,
+        participant_name: registration.nome || registration.name || 'Participante',
+        participant_email: registration.email
+      };
+    });
+    
+    console.log('📋 DEBUG: Registrations processados:', JSON.stringify(processedRegistrations, null, 2));
+    
+    res.json(processedRegistrations);
+  } catch (error) {
+    console.error('Erro ao buscar registrations com produtos:', error);
+    res.status(500).json({ error: 'Erro ao buscar registrations com produtos' });
+  }
+});
+
 module.exports = router; 
