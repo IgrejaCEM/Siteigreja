@@ -57,21 +57,32 @@ const Home = () => {
         setLoading(true);
         setError('');
         
-        // Carregar o conteúdo personalizado
-        const contentResponse = await api.get('/settings/home-content');
+        // Carregar o conteúdo personalizado com timeout maior
+        const contentResponse = await api.get('/settings/home-content', {
+          timeout: 30000 // 30 segundos
+        });
         setContent(contentResponse.data.content || '');
         setCss(contentResponse.data.css || '');
 
         // Carregar o layout personalizado
-        const layoutResponse = await api.get('/settings/home-layout');
+        const layoutResponse = await api.get('/settings/home-layout', {
+          timeout: 30000
+        });
         setLayout(layoutResponse.data?.layout || []);
 
         // Carregar eventos
-        const eventsResponse = await api.get('/events');
+        const eventsResponse = await api.get('/events', {
+          timeout: 30000
+        });
         setEvents(eventsResponse.data);
       } catch (error) {
         console.error('Erro ao carregar conteúdo:', error);
-        setError('Erro ao carregar eventos. Tente novamente mais tarde.');
+        // Se falhar, usar conteúdo padrão
+        setContent(defaultHtml);
+        setCss('');
+        setLayout([]);
+        setEvents([]);
+        setError('Erro ao carregar conteúdo personalizado. Mostrando versão padrão.');
       } finally {
         setLoading(false);
       }
