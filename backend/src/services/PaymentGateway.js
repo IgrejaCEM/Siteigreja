@@ -108,7 +108,7 @@ class MercadoPagoGateway {
 
       console.log('📦 Payload da preferência:', JSON.stringify(payload, null, 2));
       
-      const response = await this.api.post('/checkout/preferences', payload);
+      const response = await this.api.post('/v1/preferences', payload);
       
       console.log('✅ Preferência criada com sucesso!');
       console.log('🔗 ID da preferência:', response.data.id);
