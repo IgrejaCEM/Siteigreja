@@ -3,11 +3,11 @@ const router = express.Router();
 const RegistrationController = require('../controllers/RegistrationController');
 const authMiddleware = require('../middlewares/auth');
 
-// Rotas protegidas (exemplo, ajuste conforme sua necessidade)
-router.use(authMiddleware);
-
-// Criar inscrição
+// Criar inscrição - PÚBLICO (para checkout)
 router.post('/', RegistrationController.create);
+
+// Rotas protegidas (apenas para admin)
+router.use(authMiddleware);
 
 // Listar inscrições
 router.get('/', RegistrationController.list);
