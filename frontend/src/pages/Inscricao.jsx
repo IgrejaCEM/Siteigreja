@@ -833,7 +833,8 @@ const Inscricao = () => {
                   </Button>
                 {renderValueSummary()}
               </Box>
-                )}
+              </>
+            )}
           </Box>
         );
       case 1:
