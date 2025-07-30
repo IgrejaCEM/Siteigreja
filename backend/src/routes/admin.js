@@ -184,7 +184,32 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
     const eventData = {
       title,
       description,
-      date: date.includes('T') ? date : date + ' 00:00:00', // Garantir formato correto
+      date: (() => {
+        // Limpar e formatar a data corretamente
+        let cleanDate = date;
+        
+        // Remover duplicação de timezone se existir
+        if (cleanDate.includes(' 00:00:00 00:00:00')) {
+          cleanDate = cleanDate.replace(' 00:00:00 00:00:00', '');
+        }
+        
+        // Se já tem formato ISO (com T), usar como está
+        if (cleanDate.includes('T')) {
+          return cleanDate;
+        }
+        
+        // Se tem apenas data (YYYY-MM-DD), adicionar hora
+        if (cleanDate.length === 10) {
+          return cleanDate + ' 00:00:00';
+        }
+        
+        // Se tem data e hora sem T, adicionar T
+        if (cleanDate.includes(' ') && !cleanDate.includes('T')) {
+          return cleanDate.replace(' ', 'T');
+        }
+        
+        return cleanDate;
+      })(),
       location,
       banner: banner || null,
       banner_desktop: banner_desktop || banner || null,
@@ -217,14 +242,38 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
       const lotsToInsert = lots.map(lot => {
         let startDate = lot.start_date;
         let endDate = lot.end_date;
-        if (!startDate || startDate === "") startDate = null;
-        if (!endDate || endDate === "") endDate = null;
-        if (startDate && startDate.length === 10) {
-          startDate += ' 00:00:00';
-        }
-        if (endDate && endDate.length === 10) {
-          endDate += ' 23:59:59';
-        }
+        
+        // Função para limpar e formatar datas
+        const formatDate = (dateStr) => {
+          if (!dateStr || dateStr === "") return null;
+          
+          let cleanDate = dateStr;
+          
+          // Remover duplicação de timezone se existir
+          if (cleanDate.includes(' 00:00:00 00:00:00')) {
+            cleanDate = cleanDate.replace(' 00:00:00 00:00:00', '');
+          }
+          
+          // Se já tem formato ISO (com T), usar como está
+          if (cleanDate.includes('T')) {
+            return cleanDate;
+          }
+          
+          // Se tem apenas data (YYYY-MM-DD), adicionar hora
+          if (cleanDate.length === 10) {
+            return cleanDate + ' 00:00:00';
+          }
+          
+          // Se tem data e hora sem T, adicionar T
+          if (cleanDate.includes(' ') && !cleanDate.includes('T')) {
+            return cleanDate.replace(' ', 'T');
+          }
+          
+          return cleanDate;
+        };
+        
+        startDate = formatDate(startDate);
+        endDate = formatDate(endDate);
         const price = parseFloat(lot.price) || 0;
         return {
           event_id: event.id,
