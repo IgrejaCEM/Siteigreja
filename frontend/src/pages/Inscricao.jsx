@@ -715,9 +715,6 @@ const Inscricao = () => {
                   <Typography variant="h5" color="primary" fontWeight="bold">
                     {lot.price === 0 ? 'Gratuito' : `R$ ${Number(lot.price).toFixed(2)}`}
                   </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                    {lot.quantity} vagas disponíveis
-                    </Typography>
                   {lot.start_date && lot.end_date && (
                     <Typography variant="body2" color="text.secondary">
                       {dayjs(lot.start_date).format('DD/MM/YYYY')} - {dayjs(lot.end_date).format('DD/MM/YYYY')}
