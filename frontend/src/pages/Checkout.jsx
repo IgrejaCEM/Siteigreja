@@ -105,6 +105,8 @@ const Checkout = () => {
   const requiresAddress = eventData?.registration_form?.endereco || hasEventTickets;
 
   const handleNext = () => {
+    console.log('🔄 handleNext chamado, step atual:', activeStep);
+    
     if (activeStep === 0) {
       // Validar se há itens no carrinho
       if (items.length === 0) {
@@ -135,10 +137,12 @@ const Checkout = () => {
       }
     } else if (activeStep === 2) {
       // Processar pagamento
+      console.log('💳 Step 2 - Chamando handlePayment...');
       handlePayment();
       return;
     }
     
+    console.log('➡️ Avançando para próximo step...');
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
     setError('');
   };
@@ -178,6 +182,7 @@ const Checkout = () => {
           if (result.success) {
             paymentUrl = result.paymentUrl;
             orderId = result.orderId;
+            console.log('🔗 Payment URL definida:', paymentUrl);
           } else {
             throw new Error(result.error);
           }
@@ -192,16 +197,18 @@ const Checkout = () => {
         if (result.success) {
           paymentUrl = result.paymentUrl;
           orderId = result.orderId;
+          console.log('🔗 Payment URL definida:', paymentUrl);
         } else {
           throw new Error(result.error);
         }
       }
 
       console.log('🎉 Processamento concluído!');
-      console.log('🔗 Payment URL:', paymentUrl);
-      console.log('🆔 Order ID:', orderId);
+      console.log('🔗 Payment URL final:', paymentUrl);
+      console.log('🆔 Order ID final:', orderId);
 
       if (paymentUrl) {
+        console.log('✅ Definindo paymentUrl no estado...');
         setOrderId(orderId);
         setPaymentUrl(paymentUrl);
         setActiveStep(3); // Ir para finalização
@@ -210,6 +217,7 @@ const Checkout = () => {
           openCheckout(paymentUrl);
         }, 1000);
       } else {
+        console.error('❌ Payment URL não foi gerada');
         throw new Error('URL de pagamento não foi gerada');
       }
     } catch (error) {
