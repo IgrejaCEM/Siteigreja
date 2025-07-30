@@ -417,13 +417,24 @@ const Inscricao = () => {
       setRegistrationComplete(true);
       
       // Verificar se é lote gratuito
-      const isFree = selectedLot && selectedLot?.price === 0 && cartProducts.length === 0;
+      const isFree = selectedLot && (selectedLot?.price === 0 || selectedLot?.price === '0' || selectedLot?.price === 0.00) && cartProducts.length === 0;
+      
+      console.log('🆓 Verificação de lote gratuito:', {
+        selectedLot,
+        price: selectedLot?.price,
+        priceType: typeof selectedLot?.price,
+        cartProductsLength: cartProducts.length,
+        isFree
+      });
       
       if (isFree) {
         // Para lotes gratuitos, ir direto para a última etapa
+        console.log('✅ Lote gratuito detectado - finalizando inscrição');
         setPaymentStatus('completed');
         setActiveStep(2);
-        } else {
+        setLoading(false);
+        return; // IMPORTANTE: Sair da função aqui!
+      } else {
         // Para lotes pagos, verificar se há link de pagamento
         if (response.data.payment_info && response.data.payment_info.payment_url) {
           setPaymentUrl(response.data.payment_info.payment_url);
@@ -975,7 +986,7 @@ const Inscricao = () => {
                 disabled={loading}
                 startIcon={loading ? <CircularProgress size={20} /> : null}
                         >
-                {activeStep === 1 ? 'Ir para Checkout' : 'Próximo'}
+                {activeStep === 1 ? (selectedLot && (selectedLot.price === 0 || selectedLot.price === '0' || selectedLot.price === 0.00) && cartProducts.length === 0 ? 'Finalizar' : 'Ir para Checkout') : 'Próximo'}
                         </Button>
               )}
             </Box>
