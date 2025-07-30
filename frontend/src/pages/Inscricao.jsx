@@ -748,69 +748,70 @@ const Inscricao = () => {
               Inscrições
             </Typography>
             {renderLotSelection()}
-            {selectedLotId && (
-              <>
-                {/* Seção de Produtos */}
-                {event && event.products && event.products.length > 0 && (
+            
+            {/* Seção de Produtos - Independente da seleção do lote */}
+            {event && event.products && event.products.length > 0 && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  🛍️ Loja do Evento
+                </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Adicione produtos à sua inscrição (opcional)
+                </Typography>
+                <EventProducts 
+                  eventId={event.id} 
+                  onAddProduct={handleAddProduct}
+                />
+                
+                {/* Carrinho de Produtos */}
+                {cartProducts.length > 0 && (
                   <Box sx={{ mt: 3 }}>
                     <Typography variant="h6" gutterBottom>
-                      🛍️ Produtos do Evento
+                      🛒 Produtos Selecionados
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Adicione produtos à sua inscrição
-                    </Typography>
-                    <EventProducts 
-                      eventId={event.id} 
-                      onAddProduct={handleAddProduct}
-                    />
-                    
-                    {/* Carrinho de Produtos */}
-                    {cartProducts.length > 0 && (
-                      <Box sx={{ mt: 3 }}>
-                        <Typography variant="h6" gutterBottom>
-                          🛒 Produtos Selecionados
-                        </Typography>
-                        <Paper sx={{ p: 2 }}>
-                          {cartProducts.map((product) => (
-                            <Box key={product.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                              <Box>
-                                <Typography variant="body1">
-                                  {product.name} x {product.quantity}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  R$ {parseFloat(product.price).toFixed(2)} cada
-                                </Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Typography variant="body1" sx={{ mr: 2 }}>
-                                  R$ {(parseFloat(product.price) * product.quantity).toFixed(2)}
-                                </Typography>
-                                <IconButton
-                                  onClick={() => handleRemoveProduct(product.id)}
-                                  color="error"
-                                  size="small"
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Box>
-                            </Box>
-                          ))}
-                        </Paper>
-                      </Box>
-                    )}
+                    <Paper sx={{ p: 2 }}>
+                      {cartProducts.map((product) => (
+                        <Box key={product.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Box>
+                            <Typography variant="body1">
+                              {product.name} x {product.quantity}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              R$ {parseFloat(product.price).toFixed(2)} cada
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography variant="body1" sx={{ mr: 2 }}>
+                              R$ {(parseFloat(product.price) * product.quantity).toFixed(2)}
+                            </Typography>
+                            <IconButton
+                              onClick={() => handleRemoveProduct(product.id)}
+                              color="error"
+                              size="small"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Paper>
                   </Box>
                 )}
-                
-                <Box sx={{ mt: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Participantes
-                  </Typography>
-            {inscricoes.map((inscricao, index) => (
+              </Box>
+            )}
+            
+            {/* Seção de Participantes - Só aparece se tiver lote selecionado */}
+            {selectedLotId && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Participantes
+                </Typography>
+                {inscricoes.map((inscricao, index) => (
                   <Paper key={index} sx={{ p: 3, mb: 2 }}>
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                       <Typography variant="h6">
                         Participante {index + 1}
-                </Typography>
+                      </Typography>
                       {inscricoes.length > 1 && (
                         <IconButton
                           onClick={() => removeInscricao(index)}
@@ -820,20 +821,19 @@ const Inscricao = () => {
                         </IconButton>
                       )}
                     </Box>
-                {renderInscricaoForm(index)}
+                    {renderInscricaoForm(index)}
                   </Paper>
                 ))}
-                  <Button
+                <Button
                   startIcon={<AddIcon />}
                   onClick={addInscricao}
-                    variant="outlined"
-                    sx={{ mt: 2 }}
-                  >
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                >
                   Adicionar Participante
-                  </Button>
+                </Button>
                 {renderValueSummary()}
               </Box>
-              </>
             )}
           </Box>
         );

@@ -24,6 +24,7 @@ import {
   QrCode2 as QrCodeIcon,
   Settings as SettingsIcon,
   Edit as EditIcon,
+  ShoppingCart as ShoppingCartIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -35,6 +36,7 @@ const mainMenuItems = [
   { text: 'Check-in', icon: <QrCodeIcon />, path: '/admin/checkin' },
   { text: 'Participantes', icon: <PeopleIcon />, path: '/admin/participantes' },
   { text: 'Financeiro', icon: <MoneyIcon />, path: '/admin/financeiro' },
+  { text: 'Produtos Comprados', icon: <ShoppingCartIcon />, path: '/admin/produtos-comprados' },
 ];
 
 // Itens secundários do menu (configurações, etc)
