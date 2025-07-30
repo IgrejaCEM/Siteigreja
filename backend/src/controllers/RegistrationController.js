@@ -168,6 +168,9 @@ class RegistrationController {
       // Sempre gerar payment_url se houver qualquer item (ingresso ou produtos)
       if (registration.lot_id || (products && products.length > 0) || totalAmount > 0) {
         console.log('💳 Criando pagamento real no MercadoPago...');
+        console.log('💰 Valor total:', totalAmount);
+        console.log('🎫 Lot ID:', registration.lot_id);
+        console.log('🏪 Produtos:', products);
         
         try {
           const paymentData = {
@@ -183,9 +186,13 @@ class RegistrationController {
             }
           };
 
-          console.log('📦 Dados do pagamento:', paymentData);
+          console.log('📦 Dados do pagamento:', JSON.stringify(paymentData, null, 2));
+          console.log('🔧 PaymentGateway disponível:', !!this.paymentGateway);
+          console.log('🔧 Métodos do PaymentGateway:', Object.keys(this.paymentGateway));
           
           const paymentResult = await this.paymentGateway.createPayment(paymentData);
+          
+          console.log('✅ Resultado do PaymentGateway:', JSON.stringify(paymentResult, null, 2));
           
           paymentInfo = {
             payment_url: paymentResult.payment_url,
@@ -195,12 +202,15 @@ class RegistrationController {
           console.log('✅ Payment info criada:', paymentInfo);
         } catch (paymentError) {
           console.error('❌ Erro ao criar pagamento:', paymentError);
+          console.error('❌ Stack trace:', paymentError.stack);
           // Continuar mesmo se o pagamento falhar
           paymentInfo = {
             payment_url: null,
             payment_id: null
           };
         }
+      } else {
+        console.log('⚠️ Nenhum item para pagamento encontrado');
       }
 
       console.log('✅ Inscrição processada com sucesso');
