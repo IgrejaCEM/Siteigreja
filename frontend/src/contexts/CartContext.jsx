@@ -164,13 +164,16 @@ export const CartProvider = ({ children }) => {
 
   const getEventItems = (eventId) => {
     return state.items.filter(item => 
-      (item.type === ITEM_TYPES.EVENT_TICKET || item.type === ITEM_TYPES.EVENT_PRODUCT) && 
-      item.eventId === eventId
+      item.type === ITEM_TYPES.EVENT_PRODUCT && item.eventId === eventId
     );
   };
 
   const getStoreItems = () => {
     return state.items.filter(item => item.type === ITEM_TYPES.STORE_PRODUCT);
+  };
+
+  const getEventTicketItems = () => {
+    return state.items.filter(item => item.type === ITEM_TYPES.EVENT_TICKET);
   };
 
   const value = {
