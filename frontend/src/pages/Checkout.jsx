@@ -34,12 +34,13 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useCart, ITEM_TYPES } from '../contexts/CartContext';
+import { openCheckout } from '../utils/checkoutUtils';
 import api from '../services/api';
 import ModernHeader from '../components/ModernHeader';
 import Footer from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 
-const steps = ['Resumo da Compra', 'Pagamento', 'Finalização'];
+const steps = ['Resumo da Compra', 'Dados Pessoais', 'Pagamento', 'Finalização'];
 
 const Checkout = () => {
   const { items, total, removeItem, updateQuantity, clearCart } = useCart();
@@ -50,6 +51,7 @@ const Checkout = () => {
   const [success, setSuccess] = useState('');
   const [paymentUrl, setPaymentUrl] = useState('');
   const [orderId, setOrderId] = useState('');
+  const [eventData, setEventData] = useState(null);
   
   // Dados do formulário
   const [formData, setFormData] = useState({
@@ -75,6 +77,33 @@ const Checkout = () => {
     }
   }, [items, navigate]);
 
+  // Carregar dados do evento se houver tickets
+  useEffect(() => {
+    const loadEventData = async () => {
+      const eventItems = items.filter(item => 
+        item.type === ITEM_TYPES.EVENT_TICKET || item.type === ITEM_TYPES.EVENT_PRODUCT
+      );
+      
+      if (eventItems.length > 0) {
+        const eventId = eventItems[0].eventId;
+        try {
+          const response = await api.get(`/events/${eventId}`);
+          setEventData(response.data);
+        } catch (error) {
+          console.error('Erro ao carregar dados do evento:', error);
+        }
+      }
+    };
+
+    loadEventData();
+  }, [items]);
+
+  // Verificar se há tickets no carrinho
+  const hasEventTickets = items.some(item => item.type === ITEM_TYPES.EVENT_TICKET);
+  
+  // Verificar se o evento requer endereço
+  const requiresAddress = eventData?.registration_form?.endereco || hasEventTickets;
+
   const handleNext = () => {
     if (activeStep === 0) {
       // Validar se há itens no carrinho
@@ -83,6 +112,28 @@ const Checkout = () => {
         return;
       }
     } else if (activeStep === 1) {
+      // Validar dados pessoais
+      if (!formData.name || !formData.email || !formData.phone) {
+        setError('Preencha todos os campos obrigatórios');
+        return;
+      }
+      
+      // Validar CPF se o evento requer
+      if (eventData?.registration_form?.cpf && !formData.cpf) {
+        setError('CPF é obrigatório para este evento');
+        return;
+      }
+      
+      // Validar endereço se necessário
+      if (requiresAddress) {
+        const addressFields = ['street', 'number', 'neighborhood', 'city', 'state', 'zipCode'];
+        const missingAddressFields = addressFields.filter(field => !formData.address[field]);
+        if (missingAddressFields.length > 0) {
+          setError('Preencha todos os campos do endereço');
+          return;
+        }
+      }
+    } else if (activeStep === 2) {
       // Processar pagamento
       handlePayment();
       return;
@@ -127,7 +178,7 @@ const Checkout = () => {
       if (results.every(result => result.success)) {
         setOrderId(results[0]?.orderId || '');
         setPaymentUrl(results[0]?.paymentUrl || '');
-        setActiveStep(2); // Ir para finalização
+        setActiveStep(3); // Ir para finalização
       } else {
         setError('Erro ao processar pagamento. Tente novamente.');
       }
@@ -283,9 +334,7 @@ const Checkout = () => {
                 </ListItem>
               ))}
             </List>
-            
             <Divider sx={{ my: 2 }} />
-            
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="h6">Total:</Typography>
               <Typography variant="h6" color="primary">
@@ -307,10 +356,10 @@ const Checkout = () => {
       <Card>
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Nome Completo *"
+                label="Nome Completo"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 required
@@ -319,7 +368,7 @@ const Checkout = () => {
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Email *"
+                label="Email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
@@ -329,83 +378,98 @@ const Checkout = () => {
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Telefone *"
+                label="Telefone"
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="CPF"
-                value={formData.cpf}
-                onChange={(e) => handleInputChange('cpf', e.target.value)}
-              />
-            </Grid>
             
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                Endereço (Opcional)
-              </Typography>
-            </Grid>
+            {/* CPF - só se o evento requer */}
+            {eventData?.registration_form?.cpf && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="CPF"
+                  value={formData.cpf}
+                  onChange={(e) => handleInputChange('cpf', e.target.value)}
+                  required
+                />
+              </Grid>
+            )}
             
-            <Grid item xs={12} sm={8}>
-              <TextField
-                fullWidth
-                label="Rua"
-                value={formData.address.street}
-                onChange={(e) => handleInputChange('address.street', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Número"
-                value={formData.address.number}
-                onChange={(e) => handleInputChange('address.number', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Complemento"
-                value={formData.address.complement}
-                onChange={(e) => handleInputChange('address.complement', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Bairro"
-                value={formData.address.neighborhood}
-                onChange={(e) => handleInputChange('address.neighborhood', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Cidade"
-                value={formData.address.city}
-                onChange={(e) => handleInputChange('address.city', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Estado"
-                value={formData.address.state}
-                onChange={(e) => handleInputChange('address.state', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="CEP"
-                value={formData.address.zipCode}
-                onChange={(e) => handleInputChange('address.zipCode', e.target.value)}
-              />
-            </Grid>
+            {/* Endereço - só se necessário */}
+            {requiresAddress && (
+              <>
+                <Grid item xs={12}>
+                  <Typography variant="h6" gutterBottom>
+                    Endereço de Entrega
+                  </Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Rua"
+                    value={formData.address.street}
+                    onChange={(e) => handleInputChange('address.street', e.target.value)}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Número"
+                    value={formData.address.number}
+                    onChange={(e) => handleInputChange('address.number', e.target.value)}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Complemento"
+                    value={formData.address.complement}
+                    onChange={(e) => handleInputChange('address.complement', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Bairro"
+                    value={formData.address.neighborhood}
+                    onChange={(e) => handleInputChange('address.neighborhood', e.target.value)}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="CEP"
+                    value={formData.address.zipCode}
+                    onChange={(e) => handleInputChange('address.zipCode', e.target.value)}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Cidade"
+                    value={formData.address.city}
+                    onChange={(e) => handleInputChange('address.city', e.target.value)}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Estado"
+                    value={formData.address.state}
+                    onChange={(e) => handleInputChange('address.state', e.target.value)}
+                    required
+                  />
+                </Grid>
+              </>
+            )}
           </Grid>
         </CardContent>
       </Card>
@@ -429,7 +493,7 @@ const Checkout = () => {
               variant="contained"
               size="large"
               fullWidth
-              onClick={() => window.open(paymentUrl, '_blank')}
+              onClick={() => openCheckout(paymentUrl)}
               sx={{ mt: 2 }}
             >
               <PaymentIcon sx={{ mr: 1 }} />
@@ -511,14 +575,9 @@ const Checkout = () => {
   return (
     <Box sx={{ minHeight: '100vh', background: '#f5f5f5' }}>
       <ModernHeader />
-      
-      <Container maxWidth="lg" sx={{ py: 4, mt: 8 }}> {/* Adicionado mt: 8 para evitar header */}
+      <Container maxWidth="lg" sx={{ py: 4, mt: 8 }}>
         <Card>
           <CardContent>
-            <Typography variant="h4" gutterBottom align="center">
-              Checkout
-            </Typography>
-            
             <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
               {steps.map((label) => (
                 <Step key={label}>
@@ -533,15 +592,7 @@ const Checkout = () => {
               </Alert>
             )}
             
-            {success && (
-              <Alert severity="success" sx={{ mb: 2 }}>
-                {success}
-              </Alert>
-            )}
-            
-            <Box sx={{ mt: 2 }}>
-              {getStepContent(activeStep)}
-            </Box>
+            {getStepContent(activeStep)}
             
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
               <Button
@@ -550,20 +601,17 @@ const Checkout = () => {
               >
                 Voltar
               </Button>
-              
               <Button
                 variant="contained"
                 onClick={handleNext}
                 disabled={loading}
               >
-                {loading ? <CircularProgress size={20} /> : 
-                 activeStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
+                {activeStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
               </Button>
             </Box>
           </CardContent>
         </Card>
       </Container>
-      
       <Footer />
       <WhatsAppButton />
     </Box>
