@@ -135,11 +135,6 @@ const Checkout = () => {
           return;
         }
       }
-    } else if (activeStep === 2) {
-      // Processar pagamento
-      console.log('💳 Step 2 - Chamando handlePayment...');
-      handlePayment();
-      return;
     }
     
     console.log('➡️ Avançando para próximo step...');
@@ -514,67 +509,89 @@ const Checkout = () => {
     </Box>
   );
 
-  const renderPaymentStep = () => (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        Pagamento
-      </Typography>
-      
-      <Card>
-        <CardContent>
-          {loading ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <CircularProgress size={60} />
-              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-                Processando pagamento...
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Aguarde enquanto preparamos seu pagamento
-              </Typography>
-            </Box>
-          ) : (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <PaymentIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Pagamento Pronto!
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                Clique no botão abaixo para prosseguir com o pagamento via MercadoPago.
-              </Typography>
-              
-              <Button
-                variant="contained"
-                size="large"
-                fullWidth
-                onClick={() => {
-                  console.log('🌐 Clicou no botão de pagamento');
-                  if (paymentUrl) {
+  const renderPaymentStep = () => {
+    // Processar pagamento automaticamente quando chegar no step
+    React.useEffect(() => {
+      if (activeStep === 2 && !paymentUrl && !loading) {
+        console.log('💳 Step 2 - Processando pagamento automaticamente...');
+        handlePayment();
+      }
+    }, [activeStep]);
+
+    return (
+      <Box>
+        <Typography variant="h5" gutterBottom>
+          Pagamento
+        </Typography>
+        
+        <Card>
+          <CardContent>
+            {loading ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <CircularProgress size={60} />
+                <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+                  Processando pagamento...
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Aguarde enquanto preparamos seu pagamento
+                </Typography>
+              </Box>
+            ) : paymentUrl ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <PaymentIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  Pagamento Pronto!
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  Clique no botão abaixo para prosseguir com o pagamento via MercadoPago.
+                </Typography>
+                
+                <Button
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  onClick={() => {
+                    console.log('🌐 Clicou no botão de pagamento');
+                    console.log('🔗 URL:', paymentUrl);
                     openCheckout(paymentUrl);
-                  } else {
-                    console.error('❌ Payment URL não disponível');
-                    setError('Erro: URL de pagamento não disponível');
-                  }
-                }}
-                sx={{ 
-                  mt: 2,
-                  py: 2,
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold'
-                }}
-              >
-                <PaymentIcon sx={{ mr: 1 }} />
-                Pagar com MercadoPago
-              </Button>
-              
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                Você será redirecionado para o MercadoPago para finalizar o pagamento
-              </Typography>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-    </Box>
-  );
+                  }}
+                  sx={{ 
+                    mt: 2,
+                    py: 2,
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  <PaymentIcon sx={{ mr: 1 }} />
+                  Pagar com MercadoPago
+                </Button>
+                
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  Você será redirecionado para o MercadoPago para finalizar o pagamento
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography variant="h6" color="error" gutterBottom>
+                  Erro no Processamento
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Não foi possível gerar o link de pagamento. Tente novamente.
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={handlePayment}
+                  sx={{ mt: 2 }}
+                >
+                  Tentar Novamente
+                </Button>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  };
 
   const renderConfirmationStep = () => (
     <Box>
