@@ -8,6 +8,14 @@ const paymentGateway = require('../services/PaymentGateway');
 class RegistrationController {
   constructor() {
     this.paymentGateway = paymentGateway; // Use the exported instance directly
+    
+    // Verificar se o PaymentGateway foi inicializado corretamente
+    if (!this.paymentGateway) {
+      console.error('❌ PaymentGateway não foi inicializado corretamente');
+      throw new Error('PaymentGateway não foi inicializado');
+    }
+    
+    console.log('✅ PaymentGateway inicializado:', !!this.paymentGateway);
   }
 
   async create(req, res) {
@@ -218,6 +226,11 @@ class RegistrationController {
           console.log('📦 Dados do pagamento:', JSON.stringify(paymentData, null, 2));
           console.log('🔧 PaymentGateway disponível:', !!this.paymentGateway);
           console.log('🔧 Métodos do PaymentGateway:', Object.keys(this.paymentGateway));
+          
+          // Verificar se o PaymentGateway está disponível
+          if (!this.paymentGateway) {
+            throw new Error('PaymentGateway não está disponível');
+          }
           
           const paymentResult = await this.paymentGateway.createPayment(paymentData);
           
