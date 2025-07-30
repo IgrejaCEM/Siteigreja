@@ -7,7 +7,7 @@ const paymentGateway = require('../services/PaymentGateway');
 
 class RegistrationController {
   constructor() {
-    this.paymentGateway = paymentGateway;
+    this.paymentGateway = paymentGateway; // Use the exported instance directly
   }
 
   async create(req, res) {
