@@ -24,7 +24,7 @@ async function testBackendLogs() {
 
     console.log('📦 Dados de teste:', JSON.stringify(testData, null, 2));
 
-    const response = await axios.post('https://siteigreja-1.onrender.com/api/registrations', testData, {
+    const response = await axios.post('https://siteigreja.onrender.com/api/registrations', testData, {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json'

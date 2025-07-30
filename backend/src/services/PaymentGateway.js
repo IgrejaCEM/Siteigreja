@@ -41,28 +41,24 @@ class MercadoPagoGateway {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || firstName;
       
+      // Payload simplificado baseado na documentação oficial
       const payload = {
         items: [
           {
             id: customer.registration_code || 'INSCRICAO-001',
             title: description || 'Inscrição no Evento',
-            description: `Inscrição para ${customer.name || 'Participante'} - ${description || 'Evento'}`,
-            category_id: 'events',
+            description: `Inscrição para ${customer.name || 'Participante'}`,
             quantity: 1,
             unit_price: Number(amount)
           }
         ],
         payer: {
           name: firstName,
-          surname: lastName, // ✅ MELHORIA: Sobrenome do comprador
+          surname: lastName,
           email: customer.email || '',
           phone: {
             area_code: '11',
             number: '999999999'
-          },
-          identification: {
-            type: 'CPF',
-            number: '12345678901'
           }
         },
         back_urls: {
@@ -75,40 +71,15 @@ class MercadoPagoGateway {
         notification_url: 'https://siteigreja-1.onrender.com/api/payments/webhook',
         statement_descriptor: 'INSCRICAO',
         binary_mode: true,
-        installments: 1,
-        payment_methods: {
-          installments: 1,
-          default_installments: 1,
-          // ✅ ACEITA TODOS OS MÉTODOS: cartão, PIX e boleto
-          excluded_payment_methods: [
-            { id: "amex" },
-            { id: "naranja" },
-            { id: "nativa" },
-            { id: "shopping" },
-            { id: "cencosud" },
-            { id: "argencard" },
-            { id: "cabal" },
-            { id: "diners" }
-          ]
-        },
         expires: true,
         expiration_date_from: new Date().toISOString(),
-        expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        metadata: {
-          registration_code: customer.registration_code,
-          customer_id: customer.id,
-          event_id: customer.event_id,
-          force_web_checkout: true,
-          platform: 'web',
-          user_agent: 'mobile',
-          prevent_deep_link: true,
-          web_only: true
-        }
+        expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       };
 
       console.log('📦 Payload da preferência:', JSON.stringify(payload, null, 2));
       
-      const response = await this.api.post('/v1/preferences', payload);
+      // Usar endpoint correto da documentação
+      const response = await this.api.post('/checkout/preferences', payload);
       
       console.log('✅ Preferência criada com sucesso!');
       console.log('🔗 ID da preferência:', response.data.id);
