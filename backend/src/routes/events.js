@@ -50,10 +50,12 @@ router.get('/:id', async (req, res) => {
       .orderBy('created_at', 'asc');
     
     // Buscar produtos do evento
+    console.log('🔍 Buscando produtos para evento ID:', event.id);
     const products = await db('event_products')
       .where('event_id', event.id)
       .where('is_active', true)
       .orderBy('created_at', 'desc');
+    console.log('📊 Produtos encontrados:', products.length);
     
     const eventWithDetails = {
       ...event,
