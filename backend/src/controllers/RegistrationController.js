@@ -187,6 +187,7 @@ class RegistrationController {
       console.log('   - products:', products);
       console.log('   - items.length:', items ? items.length : 0);
       console.log('   - products.length:', products ? products.length : 0);
+      console.log('   - totalAmount:', totalAmount);
       
       if ((items && items.length > 0) || (products && products.length > 0)) {
         console.log('✅ Condições atendidas - criando pagamento real no MercadoPago...');
