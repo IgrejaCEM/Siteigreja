@@ -125,10 +125,12 @@ class StoreProductController {
   // Criar pedido da loja
   static async createOrder(req, res) {
     try {
+      console.log('🏪 Recebendo pedido da loja:', req.body);
       const { customer, items } = req.body;
 
       // Validar dados
       if (!customer || !items || items.length === 0) {
+        console.log('❌ Dados inválidos:', { customer, items });
         return res.status(400).json({ error: 'Dados do pedido inválidos' });
       }
 
@@ -139,54 +141,64 @@ class StoreProductController {
           .where('active', true);
 
         if (!product) {
+          console.log('❌ Produto não encontrado:', item.product_id);
           return res.status(400).json({ 
             error: `Produto ${item.product_id} não encontrado` 
           });
         }
 
         if (product.stock < item.quantity) {
+          console.log('❌ Estoque insuficiente:', product.name);
           return res.status(400).json({ 
             error: `Estoque insuficiente para o produto ${product.name}` 
           });
         }
       }
 
-      // Criar pedido
-      const order = await StoreOrder.query().insert({
-        customer_name: customer.name,
-        customer_email: customer.email,
-        customer_phone: customer.phone,
-        customer_cpf: customer.cpf,
-        customer_address: JSON.stringify(customer.address),
+      // Criar pedido com campos opcionais
+      const orderData = {
+        customer_name: customer.name || '',
+        customer_email: customer.email || '',
+        customer_phone: customer.phone || '',
+        customer_cpf: customer.cpf || null,
+        customer_address: customer.address ? JSON.stringify(customer.address) : null,
         status: 'pending',
         total_amount: 0
-      });
+      };
+
+      console.log('📝 Criando pedido:', orderData);
+      const order = await StoreOrder.query().insert(orderData);
 
       // Adicionar itens ao pedido e calcular total
       let totalAmount = 0;
       for (const item of items) {
         const product = await StoreProduct.query().findById(item.product_id);
         
-        await StoreOrderItem.query().insert({
+        const itemData = {
           order_id: order.id,
           product_id: item.product_id,
           quantity: item.quantity,
-          unit_price: item.unit_price,
-          total_price: item.quantity * item.unit_price
-        });
+          unit_price: item.price || product.price,
+          total_price: item.quantity * (item.price || product.price)
+        };
+
+        console.log('📦 Adicionando item:', itemData);
+        await StoreOrderItem.query().insert(itemData);
 
         // Atualizar estoque
         await StoreProduct.query()
           .findById(item.product_id)
           .patch({ stock: product.stock - item.quantity });
 
-        totalAmount += item.quantity * item.unit_price;
+        totalAmount += itemData.total_price;
       }
 
       // Atualizar total do pedido
       await StoreOrder.query()
         .findById(order.id)
         .patch({ total_amount: totalAmount });
+
+      console.log('✅ Pedido criado com sucesso:', order.id);
 
       // Gerar payment_url
       const paymentInfo = {
@@ -205,7 +217,8 @@ class StoreProductController {
         status: 'pending'
       });
     } catch (error) {
-      console.error('Erro ao criar pedido da loja:', error);
+      console.error('❌ Erro ao criar pedido da loja:', error);
+      console.error('📋 Stack:', error.stack);
       return res.status(500).json({ error: 'Erro interno do servidor' });
     }
   }

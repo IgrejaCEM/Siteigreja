@@ -513,9 +513,12 @@ const Checkout = () => {
   React.useEffect(() => {
     if (activeStep === 2 && !paymentUrl && !loading) {
       console.log('💳 Step 2 - Processando pagamento automaticamente...');
-      handlePayment();
+      // Usar setTimeout para evitar loop infinito
+      setTimeout(() => {
+        handlePayment();
+      }, 100);
     }
-  }, [activeStep, paymentUrl, loading, handlePayment]);
+  }, [activeStep, paymentUrl, loading]); // Remover handlePayment das dependências
 
   const renderPaymentStep = () => {
     return (
