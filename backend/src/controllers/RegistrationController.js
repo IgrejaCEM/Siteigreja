@@ -3,11 +3,11 @@ const EventProduct = require('../models/EventProduct');
 const RegistrationProduct = require('../models/RegistrationProduct');
 const { generateRegistrationCode } = require('../utils/registrationUtils');
 const { db } = require('../database/db');
-const PaymentGateway = require('../services/PaymentGateway');
+const paymentGateway = require('../services/PaymentGateway');
 
 class RegistrationController {
   constructor() {
-    this.paymentGateway = new PaymentGateway();
+    this.paymentGateway = paymentGateway;
   }
 
   async create(req, res) {
