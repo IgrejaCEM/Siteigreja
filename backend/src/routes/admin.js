@@ -188,26 +188,35 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
         // Limpar e formatar a data corretamente
         let cleanDate = date;
         
+        console.log('🔧 Formatando data original:', cleanDate);
+        
         // Remover duplicação de timezone se existir
         if (cleanDate.includes(' 00:00:00 00:00:00')) {
           cleanDate = cleanDate.replace(' 00:00:00 00:00:00', '');
+          console.log('🔧 Removida duplicação de timezone:', cleanDate);
         }
         
         // Se já tem formato ISO (com T), usar como está
         if (cleanDate.includes('T')) {
+          console.log('🔧 Data já em formato ISO:', cleanDate);
           return cleanDate;
         }
         
         // Se tem apenas data (YYYY-MM-DD), adicionar hora
         if (cleanDate.length === 10) {
-          return cleanDate + ' 00:00:00';
+          const formatted = cleanDate + ' 00:00:00';
+          console.log('🔧 Data apenas data, adicionada hora:', formatted);
+          return formatted;
         }
         
-        // Se tem data e hora sem T, adicionar T
+        // Se tem data e hora sem T, converter para formato ISO
         if (cleanDate.includes(' ') && !cleanDate.includes('T')) {
-          return cleanDate.replace(' ', 'T');
+          const formatted = cleanDate.replace(' ', 'T');
+          console.log('🔧 Data com espaço convertida para ISO:', formatted);
+          return formatted;
         }
         
+        console.log('🔧 Data final:', cleanDate);
         return cleanDate;
       })(),
       location,
