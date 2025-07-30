@@ -621,7 +621,7 @@ router.get('/participants', authenticateToken, requireAdmin, async (req, res) =>
         'registrations.phone',
         db.raw('MIN(registrations.created_at) as created_at'),
         db.raw('COUNT(registrations.event_id) as events_count'),
-        db.raw("GROUP_CONCAT(events.title, '; ') as events_titles"),
+        db.raw("STRING_AGG(events.title, '; ') as events_titles"),
         db.raw('MAX(registrations.payment_status) as last_status')
       )
       .groupBy('registrations.name', 'registrations.email', 'registrations.phone')
