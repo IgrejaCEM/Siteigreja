@@ -20,6 +20,7 @@ import {
 } from '@mui/icons-material';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import CartIcon from './CartIcon';
 
 const ModernHeader = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -40,8 +41,7 @@ const ModernHeader = () => {
 
   const menuItems = [
     { text: 'O QUE É', path: '/#sobre' },
-    { text: 'FAQ', path: '/#faq' },
-    { text: 'LOJA', path: '/loja' }
+    { text: 'FAQ', path: '/#faq' }
   ];
 
   const drawer = (
@@ -117,6 +117,9 @@ const ModernHeader = () => {
                   </Button>
                 ))}
                 
+                {/* Carrinho */}
+                <CartIcon />
+                
                 {isAuthenticated ? (
                   <Button
                     onClick={handleLogout}
@@ -155,14 +158,17 @@ const ModernHeader = () => {
 
             {/* Mobile Menu Button */}
             {isMobile && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-              >
-                <MenuIcon />
-              </IconButton>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CartIcon />
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  edge="start"
+                  onClick={handleDrawerToggle}
+                >
+                  <MenuIcon />
+                </IconButton>
+              </Box>
             )}
           </Toolbar>
         </Container>
