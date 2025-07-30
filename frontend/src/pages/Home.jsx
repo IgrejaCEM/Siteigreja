@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Button, Grid, Container, Card, CardContent, CardMedia, CardActions, Skeleton, Alert, Chip, Divider, Snackbar, CircularProgress } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import ModernHeader from '../components/ModernHeader';
 import HeroSection from '../components/HeroSection';
@@ -345,125 +345,24 @@ const Home = () => {
       </Box>
 
       {/* Seção da Loja */}
-      <Box sx={{ 
-        width: '100%', 
-        py: 8, 
-        bgcolor: '#f8f9fa',
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center'
-      }}>
+      <Box sx={{ py: 6, bgcolor: 'grey.50' }}>
         <Container maxWidth="lg">
-          <Typography variant="h3" component="h2" sx={{ 
-            textAlign: 'center', 
-            mb: 2,
-            fontWeight: 'bold',
-            color: '#333'
-          }}>
-            🏪 Loja da Igreja
+          <Typography variant="h4" component="h2" align="center" gutterBottom>
+            Loja da Igreja
           </Typography>
-          <Typography variant="h6" sx={{ 
-            textAlign: 'center', 
-            mb: 4,
-            color: '#666'
-          }}>
+          <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 4 }}>
             Produtos especiais para sua fé e devoção
           </Typography>
           
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: 3,
-            flexWrap: 'wrap'
-          }}>
-            <Card sx={{ 
-              maxWidth: 300, 
-              textAlign: 'center',
-              transition: 'transform 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-8px)'
-              }
-            }}>
-              <CardContent>
-                <Typography variant="h5" component="h3" gutterBottom>
-                  📚 Livros
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Bíblias, livros de oração e literatura cristã
-                </Typography>
-                <Button 
-                  variant="contained" 
-                  onClick={() => navigate('/loja')}
-                  sx={{ mt: 2 }}
-                >
-                  Ver Produtos
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card sx={{ 
-              maxWidth: 300, 
-              textAlign: 'center',
-              transition: 'transform 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-8px)'
-              }
-            }}>
-              <CardContent>
-                <Typography variant="h5" component="h3" gutterBottom>
-                  👕 Vestuário
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Camisetas, bonés e acessórios com mensagens de fé
-                </Typography>
-                <Button 
-                  variant="contained" 
-                  onClick={() => navigate('/loja')}
-                  sx={{ mt: 2 }}
-                >
-                  Ver Produtos
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card sx={{ 
-              maxWidth: 300, 
-              textAlign: 'center',
-              transition: 'transform 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-8px)'
-              }
-            }}>
-              <CardContent>
-                <Typography variant="h5" component="h3" gutterBottom>
-                  🎁 Presentes
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Canecas, chaveiros e outros itens personalizados
-                </Typography>
-                <Button 
-                  variant="contained" 
-                  onClick={() => navigate('/loja')}
-                  sx={{ mt: 2 }}
-                >
-                  Ver Produtos
-                </Button>
-              </CardContent>
-            </Card>
-          </Box>
-
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
-            <Button 
-              variant="outlined" 
+          <Box sx={{ textAlign: 'center' }}>
+            <Button
+              variant="contained"
               size="large"
-              onClick={() => navigate('/loja')}
-              sx={{ 
-                fontSize: '1.1rem',
-                px: 4,
-                py: 1.5
-              }}
+              component={Link}
+              to="/loja"
+              sx={{ px: 4, py: 1.5 }}
             >
-              🛍️ Visitar Loja Completa
+              Visitar Loja
             </Button>
           </Box>
         </Container>

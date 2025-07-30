@@ -26,6 +26,7 @@ import { AdminLayout } from './components/Sidebar';
 import CheckIn from './pages/dashboard/CheckIn';
 import ProdutosComprados from './pages/dashboard/ProdutosComprados';
 import TesteGrapesImport from './pages/TesteGrapesImport';
+import Loja from './pages/dashboard/Loja';
 // import TesteGrapes from './pages/TesteGrapes';
 
 // Styles
@@ -90,6 +91,7 @@ export default function App() {
                         <Route path="financeiro" element={<Financeiro />} />
                         <Route path="checkin" element={<CheckIn />} />
                         <Route path="produtos-comprados" element={<ProdutosComprados />} />
+                        <Route path="loja" element={<Loja />} />
                         <Route path="editor-home" element={<EditorHome />} />
                         <Route path="criar-evento" element={<CriarEvento />} />
                         <Route path="editar-evento/:id" element={<EditarEvento />} />

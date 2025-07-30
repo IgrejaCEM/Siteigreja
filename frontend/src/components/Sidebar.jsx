@@ -25,6 +25,7 @@ import {
   Settings as SettingsIcon,
   Edit as EditIcon,
   ShoppingCart as ShoppingCartIcon,
+  Store as StoreIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -37,6 +38,7 @@ const mainMenuItems = [
   { text: 'Participantes', icon: <PeopleIcon />, path: '/admin/participantes' },
   { text: 'Financeiro', icon: <MoneyIcon />, path: '/admin/financeiro' },
   { text: 'Produtos Comprados', icon: <ShoppingCartIcon />, path: '/admin/produtos-comprados' },
+  { text: 'Loja', icon: <StoreIcon />, path: '/admin/loja' },
 ];
 
 // Itens secundários do menu (configurações, etc)
