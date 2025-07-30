@@ -749,10 +749,62 @@ const Inscricao = () => {
             </Typography>
             {renderLotSelection()}
             {selectedLotId && (
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Participantes
-                </Typography>
+              <>
+                {/* Seção de Produtos */}
+                {event && event.products && event.products.length > 0 && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      🛍️ Produtos do Evento
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Adicione produtos à sua inscrição
+                    </Typography>
+                    <EventProducts 
+                      eventId={event.id} 
+                      onAddProduct={handleAddProduct}
+                    />
+                    
+                    {/* Carrinho de Produtos */}
+                    {cartProducts.length > 0 && (
+                      <Box sx={{ mt: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                          🛒 Produtos Selecionados
+                        </Typography>
+                        <Paper sx={{ p: 2 }}>
+                          {cartProducts.map((product) => (
+                            <Box key={product.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                              <Box>
+                                <Typography variant="body1">
+                                  {product.name} x {product.quantity}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  R$ {parseFloat(product.price).toFixed(2)} cada
+                                </Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Typography variant="body1" sx={{ mr: 2 }}>
+                                  R$ {(parseFloat(product.price) * product.quantity).toFixed(2)}
+                                </Typography>
+                                <IconButton
+                                  onClick={() => handleRemoveProduct(product.id)}
+                                  color="error"
+                                  size="small"
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Box>
+                            </Box>
+                          ))}
+                        </Paper>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+                
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Participantes
+                  </Typography>
             {inscricoes.map((inscricao, index) => (
                   <Paper key={index} sx={{ p: 3, mb: 2 }}>
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
