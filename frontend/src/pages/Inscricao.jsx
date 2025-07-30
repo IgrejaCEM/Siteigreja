@@ -417,7 +417,7 @@ const Inscricao = () => {
       setRegistrationComplete(true);
       
       // Verificar se é lote gratuito
-      const isFree = selectedLot && (selectedLot?.price === 0 || selectedLot?.price === '0' || selectedLot?.price === 0.00) && cartProducts.length === 0;
+      const isFree = selectedLot && (selectedLot?.price === 0 || selectedLot?.price === '0' || selectedLot?.price === 0.00 || selectedLot?.price === '0.00' || parseFloat(selectedLot?.price) === 0) && cartProducts.length === 0;
       
       console.log('🆓 Verificação de lote gratuito:', {
         selectedLot,
@@ -524,6 +524,15 @@ const Inscricao = () => {
   } else if (event && event.lots && event.lots.length > 0) {
     selectedLot = event.lots[0];
   }
+  
+  // Debug: Log do lote selecionado
+  console.log('🔍 DEBUG - Lote selecionado:', {
+    selectedLot,
+    selectedLotId,
+    price: selectedLot?.price,
+    priceType: typeof selectedLot?.price,
+    isFree: selectedLot && (selectedLot.price === 0 || selectedLot.price === '0' || selectedLot.price === 0.00 || selectedLot.price === '0.00' || parseFloat(selectedLot?.price) === 0) && cartProducts.length === 0
+  });
 
   const renderInscricaoForm = (index) => (
     <Grid container spacing={2}>
@@ -986,7 +995,11 @@ const Inscricao = () => {
                 disabled={loading}
                 startIcon={loading ? <CircularProgress size={20} /> : null}
                         >
-                {activeStep === 1 ? (selectedLot && (selectedLot.price === 0 || selectedLot.price === '0' || selectedLot.price === 0.00) && cartProducts.length === 0 ? 'Finalizar' : 'Ir para Checkout') : 'Próximo'}
+                {activeStep === 1 ? (() => {
+                  const isFree = selectedLot && (selectedLot.price === 0 || selectedLot.price === '0' || selectedLot.price === 0.00 || selectedLot.price === '0.00' || parseFloat(selectedLot?.price) === 0) && cartProducts.length === 0;
+                  console.log('🔍 DEBUG - Botão:', { isFree, price: selectedLot?.price, cartProductsLength: cartProducts.length });
+                  return isFree ? 'Finalizar' : 'Ir para Checkout';
+                })() : 'Próximo'}
                         </Button>
               )}
             </Box>
