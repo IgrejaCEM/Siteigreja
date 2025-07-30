@@ -1661,6 +1661,20 @@ router.post('/testar-webhook', authenticateToken, requireAdmin, async (req, res)
   }
 });
 
+// Listar todos os produtos de eventos
+router.get('/event-products', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const products = await db('event_products')
+      .select('*')
+      .orderBy('created_at', 'desc');
+    
+    res.json(products);
+  } catch (error) {
+    console.error('Erro ao listar produtos:', error);
+    res.status(500).json({ error: 'Erro ao listar produtos' });
+  }
+});
+
 // Rota de emergência para limpar dados órfãos
 router.post('/clear-orphaned-data', async (req, res) => {
   try {
