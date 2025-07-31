@@ -24,7 +24,6 @@ class RegistrationController {
   }
 
   async create(req, res) {
-    console.log('🔔 RegistrationController.create chamado! Dados recebidos:', JSON.stringify(req.body, null, 2));
     try {
       console.log('📦 Dados recebidos no RegistrationController:', JSON.stringify(req.body, null, 2));
       
