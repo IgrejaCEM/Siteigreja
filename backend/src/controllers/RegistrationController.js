@@ -24,7 +24,7 @@ class RegistrationController {
   }
 
   async create(req, res) {
-    try {
+    try {image.png
       console.log('📦 Dados recebidos no RegistrationController:', JSON.stringify(req.body, null, 2));
       
       const {
@@ -176,12 +176,13 @@ class RegistrationController {
               updated_at: new Date()
             });
 
-          // Adicionar produto da loja à inscrição
-          await db('store_order_items').insert({
-            order_id: registration.id, // Usar registration.id como order_id
+          // Adicionar produto da loja à inscrição (usando registration_products)
+          await db('registration_products').insert({
+            registration_id: registration.id,
             product_id: product.product_id,
             quantity: product.quantity,
             unit_price: product.unit_price,
+            total_price: product.unit_price * product.quantity,
             created_at: new Date(),
             updated_at: new Date()
           });
