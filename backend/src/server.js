@@ -69,18 +69,14 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Adicionar middleware de log para todas as requisições
 app.use((req, res, next) => {
-  // Log mais limpo e eficiente
+  // Log mais detalhado para debug
   const timestamp = new Date().toISOString();
   const method = req.method;
   const path = req.path;
   
-  // Só logar detalhes completos em desenvolvimento
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`${timestamp} - ${method} ${path}`);
-  } else {
-    // Em produção, log mais simples
-    console.log(`${timestamp} - ${method} ${path}`);
-  }
+  console.log(`🔔 REQUISIÇÃO RECEBIDA: ${timestamp} - ${method} ${path}`);
+  console.log(`🔔 Headers:`, req.headers);
+  console.log(`🔔 Body:`, req.body);
   
   next();
 });
