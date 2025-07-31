@@ -75,8 +75,9 @@ app.use((req, res, next) => {
   const path = req.path;
   
   console.log(`🔔 REQUISIÇÃO RECEBIDA: ${timestamp} - ${method} ${path}`);
-  console.log(`🔔 Headers:`, req.headers);
-  console.log(`🔔 Body:`, req.body);
+console.log(`🔔 Headers:`, req.headers);
+console.log(`🔔 Body:`, req.body);
+console.log(`🔔 Debug: Servidor funcionando corretamente`);
   
   next();
 });
