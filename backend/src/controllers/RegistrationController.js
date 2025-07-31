@@ -242,9 +242,10 @@ class RegistrationController {
           console.log('🔧 PaymentGateway object:', this.paymentGateway);
           console.log('🔧 PaymentGateway methods:', Object.keys(this.paymentGateway));
           
+          let paymentResult;
           try {
             console.log('🔧 Iniciando chamada para PaymentGateway.createPayment...');
-            const paymentResult = await this.paymentGateway.createPayment(paymentData);
+            paymentResult = await this.paymentGateway.createPayment(paymentData);
             console.log('✅ PaymentGateway.createPayment executado com sucesso');
             console.log('✅ Resultado:', JSON.stringify(paymentResult, null, 2));
           } catch (paymentError) {
