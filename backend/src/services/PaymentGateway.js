@@ -1,23 +1,28 @@
+require('dotenv').config();
 const axios = require('axios');
 const config = require('../config');
 
 // Classe do Mercado Pago
 class MercadoPagoGateway {
   constructor() {
-    // Carregar variáveis de ambiente de forma mais robusta
-    console.log('🔧 Carregando variáveis de ambiente do MercadoPago...');
-    console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
-    console.log('🔧 MERCADOPAGO_ACCESS_TOKEN definido:', !!process.env.MERCADOPAGO_ACCESS_TOKEN);
-    console.log('🔧 MERCADOPAGO_PUBLIC_KEY definido:', !!process.env.MERCADOPAGO_PUBLIC_KEY);
-    
     // Credenciais de produção do Checkout PRO
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-7906695833613236-072622-a7c53bcaf7bc8b8289f1961ce3937843-2568627728';
-    const publicKey = process.env.MERCADOPAGO_PUBLIC_KEY || 'APP_USR-c478c542-b18d-4ab1-acba-9539754cb167';
+    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+    const publicKey = process.env.MERCADOPAGO_PUBLIC_KEY;
     
+    if (!accessToken) {
+      console.error('[MP] ERRO: MERCADOPAGO_ACCESS_TOKEN não está definido!');
+      throw new Error('MERCADOPAGO_ACCESS_TOKEN não está definido');
+    }
+    
+    if (!publicKey) {
+      console.error('[MP] ERRO: MERCADOPAGO_PUBLIC_KEY não está definido!');
+      throw new Error('MERCADOPAGO_PUBLIC_KEY não está definido');
+    }
+    
+    console.log('[MP] Access Token em uso:', accessToken);
     console.log('🔑 Configurando Mercado Pago Checkout PRO');
     console.log('   Access Token:', accessToken.substring(0, 20) + '...');
     console.log('   Public Key:', publicKey.substring(0, 20) + '...');
-    console.log('   Token completo (últimos 10 chars):', accessToken.substring(accessToken.length - 10));
     
     this.api = axios.create({
       baseURL: 'https://api.mercadopago.com',
@@ -40,11 +45,11 @@ class MercadoPagoGateway {
     try {
       const { amount, description, customer } = paymentData;
       
-      console.log('🔗 Criando preferência no Mercado Pago...');
-      console.log('🔧 PaymentData recebido:', JSON.stringify(paymentData, null, 2));
-      console.log('🔧 Amount:', amount);
-      console.log('🔧 Description:', description);
-      console.log('🔧 Customer:', customer);
+      console.log('[MP] Criando preferência no Mercado Pago...');
+      console.log('[MP] PaymentData recebido:', JSON.stringify(paymentData, null, 2));
+      console.log('[MP] Amount:', amount);
+      console.log('[MP] Description:', description);
+      console.log('[MP] Customer:', customer);
       
       // Extrair nome e sobrenome do cliente
       const fullName = customer.name || '';
@@ -87,21 +92,13 @@ class MercadoPagoGateway {
         expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       };
 
-      console.log('📦 Payload da preferência:', JSON.stringify(payload, null, 2));
+      console.log('[MP] Payload enviado:', JSON.stringify(payload, null, 2));
       
       // Usar endpoint correto da documentação
-      console.log('🔧 Fazendo requisição para:', 'https://api.mercadopago.com/checkout/preferences');
-      console.log('🔧 Headers da requisição:', {
-        'Authorization': 'Bearer ' + (this.api.defaults.headers.Authorization || 'TOKEN_NÃO_ENCONTRADO').substring(0, 20) + '...',
-        'Content-Type': 'application/json'
-      });
-      
       const response = await this.api.post('/checkout/preferences', payload);
       
+      console.log('[MP] Resposta do Mercado Pago:', JSON.stringify(response.data, null, 2));
       console.log('✅ Preferência criada com sucesso!');
-      console.log('🔧 Status da resposta:', response.status);
-      console.log('🔧 Headers da resposta:', response.headers);
-      console.log('🔧 Dados completos da resposta:', JSON.stringify(response.data, null, 2));
       console.log('🔗 ID da preferência:', response.data.id);
       console.log('🔗 URL do checkout:', response.data.init_point);
       
@@ -112,13 +109,11 @@ class MercadoPagoGateway {
       };
       
     } catch (error) {
-      console.error('❌ Erro ao criar preferência no Mercado Pago:');
-      console.error('🔧 Error message:', error.message);
-      console.error('🔧 Error stack:', error.stack);
+      console.error('[MP] Erro ao criar preferência:', error.response?.data || error.message);
       if (error.response) {
-        console.error('🔧 Response status:', error.response.status);
-        console.error('🔧 Response headers:', error.response.headers);
-        console.error('🔧 Response data:', JSON.stringify(error.response.data, null, 2));
+        console.error('[MP] Status:', error.response.status);
+        console.error('[MP] Headers:', error.response.headers);
+        console.error('[MP] Data:', JSON.stringify(error.response.data, null, 2));
       }
       throw error;
     }
@@ -126,20 +121,10 @@ class MercadoPagoGateway {
 
   async getPaymentStatus(paymentId) {
     try {
-      const response = await this.api.get(`/v1/payments/${paymentId}`);
-      return {
-        status: response.data.status,
-        status_detail: response.data.status_detail,
-        payment_method_id: response.data.payment_method_id,
-        payment_type_id: response.data.payment_type_id,
-        external_reference: response.data.external_reference,
-        transaction_details: response.data.transaction_details,
-        point_of_interaction: response.data.point_of_interaction,
-        metadata: response.data.metadata,
-        raw: response.data
-      };
+      const response = await this.api.get(`/checkout/preferences/${paymentId}`);
+      return response.data;
     } catch (error) {
-      console.error('Erro ao consultar status Mercado Pago:', error.response?.data || error.message);
+      console.error('Erro ao consultar status MercadoPago:', error.response?.data || error.message);
       throw error;
     }
   }
