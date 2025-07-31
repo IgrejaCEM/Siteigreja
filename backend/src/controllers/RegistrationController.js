@@ -232,6 +232,9 @@ class RegistrationController {
             throw new Error('PaymentGateway não está disponível');
           }
           
+          console.log('🔧 PaymentGateway disponível, chamando createPayment...');
+          console.log('🔧 PaymentData:', JSON.stringify(paymentData, null, 2));
+          
           const paymentResult = await this.paymentGateway.createPayment(paymentData);
           
           console.log('✅ Resultado do PaymentGateway:', JSON.stringify(paymentResult, null, 2));

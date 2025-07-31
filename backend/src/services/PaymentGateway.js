@@ -278,4 +278,12 @@ class PaymentGateway {
   }
 }
 
-module.exports = new PaymentGateway(); 
+// Criar instância do PaymentGateway
+const paymentGatewayInstance = new PaymentGateway();
+
+// Verificar se foi inicializado corretamente
+console.log('🔧 PaymentGateway instance criada:', !!paymentGatewayInstance);
+console.log('🔧 PaymentGateway methods:', Object.keys(paymentGatewayInstance));
+console.log('🔧 PaymentGateway activeGateway:', paymentGatewayInstance.activeGateway);
+
+module.exports = paymentGatewayInstance; 
