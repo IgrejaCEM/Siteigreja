@@ -226,7 +226,20 @@ class PaymentGateway {
     this.mercadoPago = new MercadoPagoGateway();
     this.abacatePay = new AbacatePayGateway();
     this.activeGateway = 'mercadopago'; // Define Mercado Pago como gateway padrão
-    this.config = require('../config');
+    
+    // Carregar config de forma mais robusta
+    try {
+      this.config = require('../config');
+      console.log('✅ Config carregado com sucesso');
+    } catch (configError) {
+      console.error('❌ Erro ao carregar config:', configError.message);
+      // Fallback para config básico
+      this.config = {
+        PAYMENT_FAKE_MODE: false
+      };
+      console.log('⚠️ Usando config fallback');
+    }
+    
     // Desativar modo fake para usar credenciais reais
     this.config.PAYMENT_FAKE_MODE = false;
     console.log('🔧 PaymentGateway inicializado com PAYMENT_FAKE_MODE:', this.config.PAYMENT_FAKE_MODE);
