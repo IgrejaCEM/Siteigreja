@@ -243,12 +243,18 @@ class RegistrationController {
           console.log('🔧 PaymentGateway methods:', Object.keys(this.paymentGateway));
           
           try {
+            console.log('🔧 Iniciando chamada para PaymentGateway.createPayment...');
             const paymentResult = await this.paymentGateway.createPayment(paymentData);
             console.log('✅ PaymentGateway.createPayment executado com sucesso');
             console.log('✅ Resultado:', JSON.stringify(paymentResult, null, 2));
           } catch (paymentError) {
             console.error('❌ Erro ao chamar PaymentGateway.createPayment:', paymentError);
             console.error('❌ Stack trace:', paymentError.stack);
+            console.error('❌ Error message:', paymentError.message);
+            if (paymentError.response) {
+              console.error('❌ Response status:', paymentError.response.status);
+              console.error('❌ Response data:', JSON.stringify(paymentError.response.data, null, 2));
+            }
             throw paymentError;
           }
           
