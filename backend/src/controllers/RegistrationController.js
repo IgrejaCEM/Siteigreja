@@ -63,9 +63,15 @@ class RegistrationController {
         });
       }
 
+      console.log('🔍 Verificando conexão com banco...');
+      const testConnection = await db.raw('SELECT 1 as test');
+      console.log('✅ Conexão com banco OK:', testConnection.rows[0]);
+
       const registrationCode = await generateRegistrationCode();
+      console.log('🎫 Registration code gerado:', registrationCode);
 
       // Criar inscrição usando Knex diretamente
+      console.log('📝 Criando inscrição...');
       const [registration] = await db('registrations').insert({
         event_id: parseInt(event_id),
         lot_id: lot_id ? parseInt(lot_id) : null,
@@ -94,6 +100,7 @@ class RegistrationController {
         for (const item of items) {
           if (item.type === 'EVENT_PRODUCT') {
             // Produto do evento
+            console.log('🔍 Buscando produto do evento:', item.id);
             const eventProduct = await db('event_products')
               .where('id', item.id)
               .first();
@@ -131,6 +138,7 @@ class RegistrationController {
           } else if (item.type === 'EVENT_TICKET') {
             // Ingresso do evento - calcular valor do lote
             if (item.lot_id) {
+              console.log('🔍 Buscando lote:', item.lot_id);
               const lot = await db('lots')
                 .where('id', item.lot_id)
                 .first();
@@ -153,6 +161,7 @@ class RegistrationController {
         console.log('🏪 Processando produtos da loja:', products);
         
         for (const product of products) {
+          console.log('🔍 Buscando produto da loja:', product.product_id);
           const storeProduct = await db('store_products')
             .where('id', product.product_id)
             .first();
