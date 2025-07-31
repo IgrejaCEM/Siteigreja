@@ -20,6 +20,12 @@ const databaseConfig = {
   }
 };
 
+console.log('🔧 Configuração do banco:', {
+  client: databaseConfig.client,
+  connection: databaseConfig.connection ? 'CONFIGURADO' : 'NÃO CONFIGURADO',
+  pool: databaseConfig.pool
+});
+
 const db = knex(databaseConfig);
 
 // Configurar Objection.js com a instância do Knex

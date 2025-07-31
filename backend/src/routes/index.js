@@ -12,6 +12,7 @@ const lotRoutes = require('./lots');
 const uploadRoutes = require('./upload');
 const storeRoutes = require('./store');
 const testRoutes = require('./test');
+const ticketRoutes = require('./tickets');
 
 // Rotas públicas
 router.use('/events', eventRoutes);
@@ -20,6 +21,7 @@ router.use('/event-products', eventProductRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/', storeRoutes); // Rotas da loja
 router.use('/test', testRoutes); // Rotas de teste
+router.use('/tickets', ticketRoutes); // Rotas de tickets
 
 // Rotas protegidas
 router.use('/admin', adminRoutes);
