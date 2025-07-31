@@ -136,6 +136,11 @@ const Checkout = () => {
           return;
         }
       }
+    } else if (activeStep === 2) {
+      // No step 2 (pagamento), não avançar automaticamente
+      // O usuário deve clicar no botão de pagamento
+      console.log('💳 Step 2 - Usuário deve clicar no botão de pagamento');
+      return;
     }
     
     console.log('➡️ Avançando para próximo step...');
@@ -180,14 +185,22 @@ const Checkout = () => {
       let paymentUrl = '';
       let orderId = '';
 
-      // Processar eventos
+      // Processar todos os itens juntos
       if (eventItems.length > 0) {
         console.log('📝 Processando pedidos de evento...');
         const eventGroups = groupItemsByEvent(eventItems);
         
         for (const [eventId, eventGroupItems] of Object.entries(eventGroups)) {
           console.log('🎯 Processando evento', eventId, ':', eventGroupItems);
-          const result = await processEventOrder(eventId, eventGroupItems);
+          
+          // Incluir produtos da loja no mesmo pedido se houver
+          const allItems = [...eventGroupItems];
+          if (storeItems.length > 0) {
+            console.log('🏪 Adicionando produtos da loja ao pedido...');
+            allItems.push(...storeItems);
+          }
+          
+          const result = await processEventOrder(eventId, allItems);
           console.log('✅ Resultado do evento:', result);
           
           if (result.success) {
@@ -198,11 +211,9 @@ const Checkout = () => {
             throw new Error(result.error);
           }
         }
-      }
-
-      // Processar produtos da loja
-      if (storeItems.length > 0) {
-        console.log('🏪 Processando produtos da loja...');
+      } else if (storeItems.length > 0) {
+        // Se só há produtos da loja (sem eventos)
+        console.log('🏪 Processando apenas produtos da loja...');
         const result = await processStoreOrder(storeItems);
         console.log('✅ Resultado da loja:', result);
         if (result.success) {
