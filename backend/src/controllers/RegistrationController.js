@@ -3,11 +3,15 @@ const EventProduct = require('../models/EventProduct');
 const RegistrationProduct = require('../models/RegistrationProduct');
 const { generateRegistrationCode } = require('../utils/registrationUtils');
 const { db } = require('../database/db');
+console.log('🔧 Importando PaymentGateway...');
 const paymentGateway = require('../services/PaymentGateway');
+console.log('🔧 PaymentGateway importado:', !!paymentGateway);
 
 class RegistrationController {
   constructor() {
+    console.log('🔧 RegistrationController constructor iniciado...');
     this.paymentGateway = paymentGateway; // Use the exported instance directly
+    console.log('🔧 PaymentGateway atribuído:', !!this.paymentGateway);
     
     // Verificar se o PaymentGateway foi inicializado corretamente
     if (!this.paymentGateway) {
@@ -16,6 +20,7 @@ class RegistrationController {
     }
     
     console.log('✅ PaymentGateway inicializado:', !!this.paymentGateway);
+    console.log('🔧 Métodos do PaymentGateway:', Object.keys(this.paymentGateway));
   }
 
   async create(req, res) {
