@@ -72,8 +72,11 @@ class RegistrationController {
 
       // Criar inscrição usando Knex diretamente
       console.log('📝 Criando inscrição...');
+      console.log('🔍 event_id recebido:', event_id, 'tipo:', typeof event_id);
+      console.log('🔍 lot_id recebido:', lot_id, 'tipo:', typeof lot_id);
+      
       const [registration] = await db('registrations').insert({
-        event_id: parseInt(event_id),
+        event_id: event_id ? parseInt(event_id) : null,
         lot_id: lot_id ? parseInt(lot_id) : null,
         name: finalName,
         email: finalEmail,
