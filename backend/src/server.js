@@ -14,6 +14,10 @@ const app = express();
 
 // Middleware CORS mais robusto
 app.use((req, res, next) => {
+  console.log('🔧 CORS - Origin recebido:', req.headers.origin);
+  console.log('🔧 CORS - Method:', req.method);
+  console.log('🔧 CORS - Path:', req.path);
+  
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
@@ -27,6 +31,9 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    console.log('✅ CORS - Origin permitido:', origin);
+  } else {
+    console.log('❌ CORS - Origin não permitido:', origin);
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
@@ -34,6 +41,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
+    console.log('✅ CORS - OPTIONS request respondida com sucesso');
     res.status(200).end();
     return;
   }
