@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const RegistrationController = require('../controllers/RegistrationController');
 const authMiddleware = require('../middlewares/auth');
+const db = require('../db'); // Added db import
 
 // Criar inscrição - PÚBLICO (para checkout)
 router.post('/', (req, res, next) => {
@@ -24,5 +25,33 @@ router.put('/:id', RegistrationController.update);
 
 // Deletar inscrição
 router.delete('/:id', RegistrationController.delete);
+
+// Verificar status do pagamento
+router.get('/:registrationCode/status', async (req, res) => {
+  try {
+    const { registrationCode } = req.params;
+    
+    console.log('🔍 Verificando status do pagamento para:', registrationCode);
+    
+    const registration = await db('registrations')
+      .where('registration_code', registrationCode)
+      .first();
+    
+    if (!registration) {
+      return res.status(404).json({ error: 'Inscrição não encontrada' });
+    }
+    
+    console.log('📊 Status atual:', registration.payment_status);
+    
+    res.json({
+      registration_code: registration.registration_code,
+      status: registration.payment_status,
+      created_at: registration.created_at
+    });
+  } catch (error) {
+    console.error('❌ Erro ao verificar status:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
 
 module.exports = router; 

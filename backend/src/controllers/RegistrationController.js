@@ -24,7 +24,7 @@ class RegistrationController {
   }
 
   async create(req, res) {
-    try {image.png
+    try {
       console.log('📦 Dados recebidos no RegistrationController:', JSON.stringify(req.body, null, 2));
       
       const {
