@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { APP_CONFIG } from '../config';
 
+console.log('🔧 API Base URL:', APP_CONFIG.api.baseURL);
+
 const api = axios.create({
   baseURL: APP_CONFIG.api.baseURL,
   timeout: APP_CONFIG.api.timeout
@@ -8,6 +10,7 @@ const api = axios.create({
 
 // Adiciona o token em todas as requisições
 api.interceptors.request.use(config => {
+  console.log('🌐 Fazendo requisição para:', config.baseURL + config.url);
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
