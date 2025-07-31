@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const RegistrationController = require('../controllers/RegistrationController');
 const authMiddleware = require('../middlewares/auth');
-const db = require('../db'); // Added db import
+const { db } = require('../database/db');
 
 // Criar inscrição - PÚBLICO (para checkout)
 router.post('/', (req, res, next) => {
