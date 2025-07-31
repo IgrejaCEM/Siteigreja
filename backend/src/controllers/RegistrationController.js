@@ -116,16 +116,15 @@ class RegistrationController {
                 updated_at: new Date()
               });
 
-            // Adicionar produto à inscrição
-            await db('registration_products').insert({
-              registration_id: registration.id,
-              product_id: item.id,
-              quantity: item.quantity,
-              unit_price: eventProduct.price,
-              total_price: eventProduct.price * item.quantity,
-              created_at: new Date(),
-              updated_at: new Date()
-            });
+                         // Adicionar produto à inscrição
+             await db('registration_products').insert({
+               registration_id: registration.id,
+               product_id: item.id,
+               quantity: item.quantity,
+               unit_price: eventProduct.price,
+               created_at: new Date(),
+               updated_at: new Date()
+             });
 
             totalAmount += eventProduct.price * item.quantity;
             console.log(`✅ Produto ${eventProduct.name} adicionado`);
@@ -176,16 +175,15 @@ class RegistrationController {
               updated_at: new Date()
             });
 
-          // Adicionar produto da loja à inscrição (usando registration_products)
-          await db('registration_products').insert({
-            registration_id: registration.id,
-            product_id: product.product_id,
-            quantity: product.quantity,
-            unit_price: product.unit_price,
-            total_price: product.unit_price * product.quantity,
-            created_at: new Date(),
-            updated_at: new Date()
-          });
+                     // Adicionar produto da loja à inscrição (usando registration_products)
+           await db('registration_products').insert({
+             registration_id: registration.id,
+             product_id: product.product_id,
+             quantity: product.quantity,
+             unit_price: product.unit_price,
+             created_at: new Date(),
+             updated_at: new Date()
+           });
 
           totalAmount += product.unit_price * product.quantity;
           console.log(`✅ Produto da loja ${storeProduct.name} adicionado`);
