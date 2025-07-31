@@ -175,8 +175,8 @@ class RegistrationController {
               updated_at: new Date()
             });
 
-                     // Adicionar produto da loja à inscrição (usando registration_products)
-           await db('registration_products').insert({
+                     // Adicionar produto da loja à inscrição (usando registration_store_products)
+           await db('registration_store_products').insert({
              registration_id: registration.id,
              product_id: product.product_id,
              quantity: product.quantity,
