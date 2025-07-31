@@ -33,6 +33,18 @@ exports.seed = function(knex) {
           status: 'active',
           created_at: new Date(),
           updated_at: new Date()
+        },
+        {
+          id: 14,
+          title: 'CONNECT CONF 2025 - INPROVÁVEIS',
+          description: 'Evento de teste para checkout',
+          date: '2025-10-24T19:00:00.000Z',
+          location: 'Igreja CEM - CAJATI, localizada na Av. dos trabalhadores, Nº99 - Centro, Cajati/SP.',
+          max_participants: 100,
+          current_participants: 0,
+          status: 'active',
+          created_at: new Date(),
+          updated_at: new Date()
         }
       ]);
     });
