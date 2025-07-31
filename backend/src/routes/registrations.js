@@ -8,7 +8,17 @@ const { db } = require('../database/db');
 router.post('/', (req, res, next) => {
   console.log('🔔 ROTA /registrations POST chamada!');
   console.log('📦 Dados recebidos na rota:', JSON.stringify(req.body, null, 2));
-  RegistrationController.create(req, res, next);
+  
+  try {
+    console.log('🔧 Chamando RegistrationController.create...');
+    RegistrationController.create(req, res, next);
+  } catch (error) {
+    console.error('❌ Erro na rota /registrations:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error.message 
+    });
+  }
 });
 
 // Rotas protegidas (apenas para admin)
