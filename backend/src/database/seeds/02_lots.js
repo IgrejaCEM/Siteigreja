@@ -1,7 +1,13 @@
 exports.seed = function(knex) {
-  // Deletes ALL existing entries
-  return knex('lots').del()
-    .then(function () {
+  // Verificar se já existem lotes
+  return knex('lots').count('* as count')
+    .then(function(result) {
+      if (result[0].count > 0) {
+        console.log('ℹ️ Lotes já existem, pulando seed...');
+        return;
+      }
+      
+      console.log('🌱 Inserindo lotes de teste...');
       // Inserts seed entries
       return knex('lots').insert([
         {

@@ -1,7 +1,13 @@
 exports.seed = function(knex) {
-  // Deletes ALL existing entries
-  return knex('events').del()
-    .then(function () {
+  // Verificar se já existem eventos
+  return knex('events').count('* as count')
+    .then(function(result) {
+      if (result[0].count > 0) {
+        console.log('ℹ️ Eventos já existem, pulando seed...');
+        return;
+      }
+      
+      console.log('🌱 Inserindo eventos de teste...');
       // Inserts seed entries
       return knex('events').insert([
         {

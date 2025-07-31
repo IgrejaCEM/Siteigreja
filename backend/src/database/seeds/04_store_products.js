@@ -1,7 +1,13 @@
 exports.seed = function(knex) {
-  // Deletes ALL existing entries
-  return knex('store_products').del()
-    .then(function () {
+  // Verificar se já existem produtos da loja
+  return knex('store_products').count('* as count')
+    .then(function(result) {
+      if (result[0].count > 0) {
+        console.log('ℹ️ Produtos da loja já existem, pulando seed...');
+        return;
+      }
+      
+      console.log('🌱 Inserindo produtos da loja de teste...');
       // Inserts seed entries
       return knex('store_products').insert([
         {
