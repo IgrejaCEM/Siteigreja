@@ -180,7 +180,7 @@ const Checkout = () => {
       let paymentUrl = '';
       let orderId = '';
 
-      // Processar apenas eventos por enquanto (pular produtos da loja)
+      // Processar eventos
       if (eventItems.length > 0) {
         console.log('📝 Processando pedidos de evento...');
         const eventGroups = groupItemsByEvent(eventItems);
@@ -200,18 +200,18 @@ const Checkout = () => {
         }
       }
 
-      // Temporariamente pular produtos da loja até o backend estar funcionando
+      // Processar produtos da loja
       if (storeItems.length > 0) {
-        console.log('⚠️ Produtos da loja temporariamente desabilitados - backend em manutenção');
-        // const result = await processStoreOrder(storeItems);
-        // console.log('✅ Resultado da loja:', result);
-        // if (result.success) {
-        //   paymentUrl = result.paymentUrl;
-        //   orderId = result.orderId;
-        //   console.log('🔗 Payment URL definida:', paymentUrl);
-        // } else {
-        //   throw new Error(result.error);
-        // }
+        console.log('🏪 Processando produtos da loja...');
+        const result = await processStoreOrder(storeItems);
+        console.log('✅ Resultado da loja:', result);
+        if (result.success) {
+          paymentUrl = result.paymentUrl;
+          orderId = result.orderId;
+          console.log('🔗 Payment URL definida:', paymentUrl);
+        } else {
+          throw new Error(result.error);
+        }
       }
 
       console.log('🎉 Processamento concluído!');
@@ -222,11 +222,8 @@ const Checkout = () => {
         console.log('✅ Definindo paymentUrl no estado...');
         setOrderId(orderId);
         setPaymentUrl(paymentUrl);
-        setActiveStep(3); // Ir para finalização
-        console.log('🌐 Abrindo MercadoPago...');
-        setTimeout(() => {
-          openCheckout(paymentUrl);
-        }, 1000);
+        // NÃO ir para finalização ainda - aguardar pagamento
+        console.log('🌐 Payment URL gerada, aguardando pagamento...');
       } else {
         console.error('❌ Payment URL não foi gerada');
         throw new Error('URL de pagamento não foi gerada');
@@ -530,14 +527,10 @@ const Checkout = () => {
   // Processar pagamento automaticamente quando chegar no step
   React.useEffect(() => {
     if (activeStep === 2 && !paymentUrl && !loading && !paymentAttempted) {
-      console.log('💳 Step 2 - Processando pagamento automaticamente...');
-      setPaymentAttempted(true);
-      // Usar setTimeout para evitar loop infinito
-      setTimeout(() => {
-        handlePayment();
-      }, 100);
+      console.log('💳 Step 2 - Aguardando usuário clicar no botão de pagamento...');
+      // NÃO processar automaticamente - aguardar clique do usuário
     }
-  }, [activeStep, paymentUrl, loading, paymentAttempted]); // Remover handlePayment das dependências
+  }, [activeStep, paymentUrl, loading, paymentAttempted]);
 
   const renderPaymentStep = () => {
     return (
@@ -637,8 +630,19 @@ const Checkout = () => {
               startIcon={<DownloadIcon />}
               sx={{ mt: 2 }}
               onClick={() => {
-                // Aqui você pode implementar o download do ticket
-                window.open(`/api/tickets/${orderId}/download`, '_blank');
+                // Download do ticket
+                const registrationCode = orderId || 'TEMP-' + Date.now();
+                const downloadUrl = `https://siteigreja-1.onrender.com/api/tickets/${registrationCode}/download`;
+                console.log('🎫 Tentando baixar ticket:', downloadUrl);
+                
+                // Criar um link temporário para forçar o download
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.target = '_blank';
+                link.download = `ticket-${registrationCode}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
               }}
             >
               Baixar Ticket
