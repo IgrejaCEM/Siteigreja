@@ -213,16 +213,8 @@ const Checkout = () => {
         }
       } else if (storeItems.length > 0) {
         // Se só há produtos da loja (sem eventos)
-        console.log('🏪 Processando apenas produtos da loja...');
-        const result = await processStoreOrder(storeItems);
-        console.log('✅ Resultado da loja:', result);
-        if (result.success) {
-          paymentUrl = result.paymentUrl;
-          orderId = result.orderId;
-          console.log('🔗 Payment URL definida:', paymentUrl);
-        } else {
-          throw new Error(result.error);
-        }
+        console.log('⚠️ Produtos da loja sem eventos não são suportados');
+        throw new Error('Produtos da loja sem eventos não são suportados no momento');
       }
 
       console.log('🎉 Processamento concluído!');
@@ -290,17 +282,30 @@ const Checkout = () => {
 
   const processEventOrder = async (eventId, eventItems) => {
     try {
+      // Separar itens de evento e produtos da loja
+      const eventOnlyItems = eventItems.filter(item => 
+        item.type === ITEM_TYPES.EVENT_TICKET || item.type === ITEM_TYPES.EVENT_PRODUCT
+      );
+      const storeItems = eventItems.filter(item => item.type === ITEM_TYPES.STORE_PRODUCT);
+
       const orderData = {
         event_id: eventId,
         customer: formData,
-        items: eventItems.map(item => ({
+        items: eventOnlyItems.map(item => ({
           type: item.type,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
           lot_id: item.lotId
+        })),
+        products: storeItems.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price
         }))
       };
+
+      console.log('📦 Dados do pedido:', orderData);
 
       const response = await api.post('/registrations', orderData, {
         timeout: 60000 // Aumentar timeout para 60 segundos
@@ -317,31 +322,7 @@ const Checkout = () => {
     }
   };
 
-  const processStoreOrder = async (storeItems) => {
-    try {
-      const orderData = {
-        customer: formData,
-        items: storeItems.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity,
-          unit_price: item.price
-        }))
-      };
 
-      const response = await api.post('/store-orders', orderData, {
-        timeout: 60000 // Aumentar timeout para 60 segundos
-      });
-
-      return {
-        success: true,
-        orderId: response.data.id,
-        paymentUrl: response.data.payment_url
-      };
-    } catch (error) {
-      console.error('Erro ao processar pedido da loja:', error);
-      return { success: false, error: error.message };
-    }
-  };
 
   const renderCartStep = () => (
     <Box>
