@@ -53,6 +53,8 @@ const Checkout = () => {
   const [orderId, setOrderId] = useState('');
   const [eventData, setEventData] = useState(null);
   const [paymentAttempted, setPaymentAttempted] = useState(false);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [autoPaymentTriggered, setAutoPaymentTriggered] = useState(false);
   
   // Dados do formulário
   const [formData, setFormData] = useState({
@@ -138,8 +140,14 @@ const Checkout = () => {
       }
     } else if (activeStep === 2) {
       // No step 2 (pagamento), não avançar automaticamente
-      // O usuário deve clicar no botão de pagamento
-      console.log('💳 Step 2 - Usuário deve clicar no botão de pagamento');
+      // O pagamento será processado automaticamente
+      console.log('💳 Step 2 - Pagamento será processado automaticamente');
+      return;
+    } else if (activeStep === 3) {
+      // Na finalização, voltar para home
+      console.log('🏠 Finalizando e voltando para home...');
+      clearCart();
+      navigate('/');
       return;
     }
     
@@ -322,7 +330,69 @@ const Checkout = () => {
     }
   };
 
+  // Efeito para abrir pagamento automaticamente quando chegar no step 2
+  useEffect(() => {
+    if (activeStep === 2 && !autoPaymentTriggered && !paymentUrl) {
+      console.log('🚀 Abrindo pagamento automaticamente...');
+      setAutoPaymentTriggered(true);
+      handlePayment();
+    }
+  }, [activeStep, autoPaymentTriggered, paymentUrl]);
 
+  // Efeito para abrir MercadoPago automaticamente quando paymentUrl estiver disponível
+  useEffect(() => {
+    if (paymentUrl && activeStep === 2 && !paymentConfirmed) {
+      console.log('🌐 Abrindo MercadoPago automaticamente...');
+      console.log('🔗 URL:', paymentUrl);
+      
+      // Pequeno delay para garantir que a URL foi processada
+      setTimeout(() => {
+        openCheckout(paymentUrl);
+      }, 1000);
+    }
+  }, [paymentUrl, activeStep, paymentConfirmed]);
+
+  // Efeito para verificar status do pagamento periodicamente
+  useEffect(() => {
+    if (orderId && activeStep === 2 && !paymentConfirmed) {
+      const checkPaymentStatus = async () => {
+        try {
+          const response = await api.get(`/registrations/${orderId}/status`);
+          if (response.data.status === 'paid') {
+            console.log('✅ Pagamento confirmado!');
+            setPaymentConfirmed(true);
+            setActiveStep(3); // Ir para finalização
+          }
+        } catch (error) {
+          console.log('⏳ Aguardando confirmação do pagamento...');
+        }
+      };
+
+      const interval = setInterval(checkPaymentStatus, 3000); // Verificar a cada 3 segundos
+      return () => clearInterval(interval);
+    }
+  }, [orderId, activeStep, paymentConfirmed]);
+
+  // Efeito para download automático do ticket na finalização
+  useEffect(() => {
+    if (activeStep === 3 && orderId) {
+      console.log('🎫 Fazendo download automático do ticket...');
+      
+      setTimeout(() => {
+        const downloadUrl = `https://siteigreja-1.onrender.com/api/tickets/${orderId}/download`;
+        console.log('🎫 Tentando baixar ticket:', downloadUrl);
+        
+        // Criar um link temporário para forçar o download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.target = '_blank';
+        link.download = `ticket-${orderId}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, 2000); // Delay de 2 segundos para garantir que a página carregou
+    }
+  }, [activeStep, orderId]);
 
   const renderCartStep = () => (
     <Box>
@@ -516,14 +586,6 @@ const Checkout = () => {
     </Box>
   );
 
-  // Processar pagamento automaticamente quando chegar no step
-  React.useEffect(() => {
-    if (activeStep === 2 && !paymentUrl && !loading && !paymentAttempted) {
-      console.log('💳 Step 2 - Aguardando usuário clicar no botão de pagamento...');
-      // NÃO processar automaticamente - aguardar clique do usuário
-    }
-  }, [activeStep, paymentUrl, loading, paymentAttempted]);
-
   const renderPaymentStep = () => {
     return (
       <Box>
@@ -547,34 +609,16 @@ const Checkout = () => {
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <PaymentIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
                 <Typography variant="h6" gutterBottom>
-                  Pagamento Pronto!
+                  Redirecionando para MercadoPago...
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                  Clique no botão abaixo para prosseguir com o pagamento via MercadoPago.
+                  Você será redirecionado automaticamente para o MercadoPago.
                 </Typography>
                 
-                <Button
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  onClick={() => {
-                    console.log('🌐 Clicou no botão de pagamento');
-                    console.log('🔗 URL:', paymentUrl);
-                    openCheckout(paymentUrl);
-                  }}
-                  sx={{ 
-                    mt: 2,
-                    py: 2,
-                    fontSize: '1.1rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  <PaymentIcon sx={{ mr: 1 }} />
-                  Pagar com MercadoPago
-                </Button>
+                <CircularProgress size={40} sx={{ mb: 2 }} />
                 
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  Você será redirecionado para o MercadoPago para finalizar o pagamento
+                  Aguardando confirmação do pagamento...
                 </Typography>
               </Box>
             ) : (
@@ -617,38 +661,19 @@ const Checkout = () => {
               Seu pedido foi processado com sucesso.
             </Typography>
             
-            <Button
-              variant="contained"
-              startIcon={<DownloadIcon />}
-              sx={{ mt: 2 }}
-              onClick={() => {
-                // Download do ticket
-                const registrationCode = orderId || 'TEMP-' + Date.now();
-                const downloadUrl = `https://siteigreja-1.onrender.com/api/tickets/${registrationCode}/download`;
-                console.log('🎫 Tentando baixar ticket:', downloadUrl);
-                
-                // Criar um link temporário para forçar o download
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.target = '_blank';
-                link.download = `ticket-${registrationCode}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }}
-            >
-              Baixar Ticket
-            </Button>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              O download do ticket foi iniciado automaticamente.
+            </Typography>
             
             <Button
-              variant="outlined"
-              sx={{ mt: 2, ml: 2 }}
+              variant="contained"
               onClick={() => {
                 clearCart();
                 navigate('/');
               }}
+              sx={{ mt: 2 }}
             >
-              Voltar ao Início
+              Concluído - Voltar para Home
             </Button>
           </Box>
         </CardContent>
