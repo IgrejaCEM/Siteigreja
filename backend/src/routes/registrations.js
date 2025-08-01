@@ -37,17 +37,18 @@ router.put('/:id', RegistrationController.update);
 router.delete('/:id', RegistrationController.delete);
 
 // Verificar status do pagamento
-router.get('/:registrationCode/status', async (req, res) => {
+router.get('/:orderId/status', async (req, res) => {
   try {
-    const { registrationCode } = req.params;
+    const { orderId } = req.params;
     
-    console.log('🔍 Verificando status do pagamento para:', registrationCode);
+    console.log('🔍 Verificando status do pagamento para orderId:', orderId);
     
     const registration = await db('registrations')
-      .where('registration_code', registrationCode)
+      .where('id', orderId)
       .first();
     
     if (!registration) {
+      console.log('❌ Inscrição não encontrada para orderId:', orderId);
       return res.status(404).json({ error: 'Inscrição não encontrada' });
     }
     
