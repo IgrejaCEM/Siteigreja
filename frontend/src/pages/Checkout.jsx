@@ -333,13 +333,18 @@ const Checkout = () => {
       };
 
       console.log('📦 Dados do pedido:', orderData);
-      console.log('🔍 FormData:', formData);
+      console.log('🔍 FormData:', JSON.stringify(formData, null, 2));
       console.log('🔍 Customer data:', {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         cpf: formData.cpf
       });
+      console.log('🔍 Valores específicos:');
+      console.log('   - name:', formData.name, 'tipo:', typeof formData.name);
+      console.log('   - email:', formData.email, 'tipo:', typeof formData.email);
+      console.log('   - phone:', formData.phone, 'tipo:', typeof formData.phone);
+      console.log('   - cpf:', formData.cpf, 'tipo:', typeof formData.cpf);
 
       const response = await api.post('/registrations', orderData, {
         timeout: 60000 // Aumentar timeout para 60 segundos
