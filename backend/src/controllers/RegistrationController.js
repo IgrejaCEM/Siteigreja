@@ -162,12 +162,31 @@ class RegistrationController {
       // Processar produtos da loja se houver
       if (products && products.length > 0) {
         console.log('🏪 Processando produtos da loja:', products);
+        console.log('🔍 Tabela registration_store_products existe?');
+        
+        try {
+          // Verificar se a tabela existe
+          const tableExists = await db.schema.hasTable('registration_store_products');
+          console.log('✅ Tabela registration_store_products existe:', tableExists);
+          
+          if (!tableExists) {
+            console.error('❌ Tabela registration_store_products não existe!');
+            throw new Error('Tabela registration_store_products não existe');
+          }
+        } catch (error) {
+          console.error('❌ Erro ao verificar tabela:', error);
+          throw error;
+        }
         
         for (const product of products) {
           console.log('🔍 Buscando produto da loja:', product.product_id);
+          console.log('🔍 Dados do produto:', JSON.stringify(product, null, 2));
+          
           const storeProduct = await db('store_products')
             .where('id', product.product_id)
             .first();
+          
+          console.log('🔍 Produto encontrado:', storeProduct);
           
           if (!storeProduct) {
             console.error(`❌ Produto da loja ${product.product_id} não encontrado`);
@@ -179,6 +198,7 @@ class RegistrationController {
             continue;
           }
 
+          console.log('📝 Atualizando estoque...');
           // Atualizar estoque
           await db('store_products')
             .where('id', product.product_id)
@@ -187,15 +207,23 @@ class RegistrationController {
               updated_at: new Date()
             });
 
-                     // Adicionar produto da loja à inscrição (usando registration_store_products)
-           await db('registration_store_products').insert({
-             registration_id: registration.id,
-             product_id: product.product_id,
-             quantity: product.quantity,
-             unit_price: product.unit_price,
-             created_at: new Date(),
-             updated_at: new Date()
-           });
+          console.log('📝 Inserindo na tabela registration_store_products...');
+          console.log('🔍 Dados para inserção:', {
+            registration_id: registration.id,
+            product_id: product.product_id,
+            quantity: product.quantity,
+            unit_price: product.unit_price
+          });
+          
+          // Adicionar produto da loja à inscrição (usando registration_store_products)
+          await db('registration_store_products').insert({
+            registration_id: registration.id,
+            product_id: product.product_id,
+            quantity: product.quantity,
+            unit_price: product.unit_price,
+            created_at: new Date(),
+            updated_at: new Date()
+          });
 
           totalAmount += product.unit_price * product.quantity;
           console.log(`✅ Produto da loja ${storeProduct.name} adicionado`);
