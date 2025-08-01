@@ -159,35 +159,62 @@ class RegistrationController {
         }
       }
 
-      // Processar produtos da loja se houver
-      if (products && products.length > 0) {
-        console.log('🏪 Processando produtos da loja:', products);
-        console.log('🔍 Verificando tabela registration_store_products...');
-        
-        try {
-          // Verificar se a tabela existe
-          const tableExists = await db.schema.hasTable('registration_store_products');
-          console.log('✅ Tabela registration_store_products existe:', tableExists);
-          
-          if (!tableExists) {
-            console.log('⚠️ Tabela não existe, criando automaticamente...');
-            
-            // Criar a tabela automaticamente
-            await db.schema.createTable('registration_store_products', (table) => {
-              table.increments('id').primary();
-              table.integer('registration_id').unsigned().references('id').inTable('registrations').onDelete('CASCADE');
-              table.integer('product_id').unsigned().references('id').inTable('store_products').onDelete('CASCADE');
-              table.integer('quantity').notNullable();
-              table.decimal('unit_price', 10, 2).notNullable();
-              table.timestamps(true, true);
-            });
-            
-            console.log('✅ Tabela registration_store_products criada com sucesso!');
-          }
-        } catch (error) {
-          console.error('❌ Erro ao verificar/criar tabela:', error);
-          throw error;
-        }
+             // Processar produtos da loja se houver
+       if (products && products.length > 0) {
+         console.log('🏪 Processando produtos da loja:', products);
+         console.log('🔍 Verificando tabelas necessárias...');
+         
+         try {
+           // Verificar se a tabela store_products existe
+           const storeProductsExists = await db.schema.hasTable('store_products');
+           console.log('✅ Tabela store_products existe:', storeProductsExists);
+           
+           if (!storeProductsExists) {
+             console.log('⚠️ Tabela store_products não existe, criando automaticamente...');
+             
+             // Criar a tabela store_products automaticamente
+             await db.schema.createTable('store_products', (table) => {
+               table.increments('id').primary();
+               table.string('name', 255).notNullable();
+               table.text('description');
+               table.decimal('price', 10, 2).notNullable();
+               table.integer('stock').notNullable().defaultTo(0);
+               table.string('image_url', 500);
+               table.string('category', 100);
+               table.boolean('active').notNullable().defaultTo(true);
+               table.timestamps(true, true);
+               
+               // Índices
+               table.index('active');
+               table.index('category');
+             });
+             
+             console.log('✅ Tabela store_products criada com sucesso!');
+           }
+           
+           // Verificar se a tabela registration_store_products existe
+           const registrationStoreProductsExists = await db.schema.hasTable('registration_store_products');
+           console.log('✅ Tabela registration_store_products existe:', registrationStoreProductsExists);
+           
+           if (!registrationStoreProductsExists) {
+             console.log('⚠️ Tabela registration_store_products não existe, criando automaticamente...');
+             
+             // Criar a tabela registration_store_products automaticamente
+             await db.schema.createTable('registration_store_products', (table) => {
+               table.increments('id').primary();
+               table.integer('registration_id').unsigned().references('id').inTable('registrations').onDelete('CASCADE');
+               table.integer('product_id').unsigned().references('id').inTable('store_products').onDelete('CASCADE');
+               table.integer('quantity').notNullable();
+               table.decimal('unit_price', 10, 2).notNullable();
+               table.timestamps(true, true);
+             });
+             
+             console.log('✅ Tabela registration_store_products criada com sucesso!');
+           }
+         } catch (error) {
+           console.error('❌ Erro ao verificar/criar tabelas:', error);
+           throw error;
+         }
         
         for (const product of products) {
           console.log('🔍 Buscando produto da loja:', product.product_id);
