@@ -345,6 +345,7 @@ const Checkout = () => {
       console.log('   - email:', formData.email, 'tipo:', typeof formData.email);
       console.log('   - phone:', formData.phone, 'tipo:', typeof formData.phone);
       console.log('   - cpf:', formData.cpf, 'tipo:', typeof formData.cpf);
+      console.log('🔍 CPF processado:', formData.cpf && formData.cpf.trim() !== '' ? formData.cpf : null);
 
       const response = await api.post('/registrations', orderData, {
         timeout: 60000 // Aumentar timeout para 60 segundos
