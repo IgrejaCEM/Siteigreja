@@ -221,8 +221,21 @@ const Checkout = () => {
         }
       } else if (storeItems.length > 0) {
         // Se só há produtos da loja (sem eventos)
-        console.log('⚠️ Produtos da loja sem eventos não são suportados');
-        throw new Error('Produtos da loja sem eventos não são suportados no momento');
+        console.log('🏪 Processando apenas produtos da loja...');
+        
+        // Usar um event_id padrão para produtos da loja
+        const defaultEventId = 14; // Evento padrão para produtos da loja
+        
+        const result = await processEventOrder(defaultEventId, storeItems);
+        console.log('✅ Resultado dos produtos da loja:', result);
+        
+        if (result.success) {
+          paymentUrl = result.paymentUrl;
+          orderId = result.orderId;
+          console.log('🔗 Payment URL definida:', paymentUrl);
+        } else {
+          throw new Error(result.error);
+        }
       }
 
       console.log('🎉 Processamento concluído!');
