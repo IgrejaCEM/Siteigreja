@@ -333,6 +333,13 @@ const Checkout = () => {
       };
 
       console.log('📦 Dados do pedido:', orderData);
+      console.log('🔍 FormData:', formData);
+      console.log('🔍 Customer data:', {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        cpf: formData.cpf
+      });
 
       const response = await api.post('/registrations', orderData, {
         timeout: 60000 // Aumentar timeout para 60 segundos
