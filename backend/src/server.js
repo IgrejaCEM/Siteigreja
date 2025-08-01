@@ -124,6 +124,10 @@ app.post('/api/payments/webhook', async (req, res) => {
   }
 });
 
+// Health check routes
+const healthRoutes = require('./routes/health');
+app.use('/api', healthRoutes);
+
 // Rotas
 app.use('/api', routes);
 
