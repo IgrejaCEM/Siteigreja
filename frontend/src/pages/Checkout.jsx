@@ -298,7 +298,13 @@ const Checkout = () => {
 
       const orderData = {
         event_id: eventId,
-        customer: formData,
+        customer: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          cpf: formData.cpf || null,
+          address: formData.address
+        },
         items: eventOnlyItems.map(item => ({
           type: item.type,
           name: item.name,
