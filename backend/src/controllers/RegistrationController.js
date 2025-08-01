@@ -162,7 +162,7 @@ class RegistrationController {
       // Processar produtos da loja se houver
       if (products && products.length > 0) {
         console.log('🏪 Processando produtos da loja:', products);
-        console.log('🔍 Tabela registration_store_products existe?');
+        console.log('🔍 Verificando tabela registration_store_products...');
         
         try {
           // Verificar se a tabela existe
@@ -170,11 +170,22 @@ class RegistrationController {
           console.log('✅ Tabela registration_store_products existe:', tableExists);
           
           if (!tableExists) {
-            console.error('❌ Tabela registration_store_products não existe!');
-            throw new Error('Tabela registration_store_products não existe');
+            console.log('⚠️ Tabela não existe, criando automaticamente...');
+            
+            // Criar a tabela automaticamente
+            await db.schema.createTable('registration_store_products', (table) => {
+              table.increments('id').primary();
+              table.integer('registration_id').unsigned().references('id').inTable('registrations').onDelete('CASCADE');
+              table.integer('product_id').unsigned().references('id').inTable('store_products').onDelete('CASCADE');
+              table.integer('quantity').notNullable();
+              table.decimal('unit_price', 10, 2).notNullable();
+              table.timestamps(true, true);
+            });
+            
+            console.log('✅ Tabela registration_store_products criada com sucesso!');
           }
         } catch (error) {
-          console.error('❌ Erro ao verificar tabela:', error);
+          console.error('❌ Erro ao verificar/criar tabela:', error);
           throw error;
         }
         
