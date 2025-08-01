@@ -149,10 +149,15 @@ class RegistrationController {
                 .first();
               
               if (lot) {
-                             totalAmount += lot.price * item.quantity;
-             console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
-             console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
-           }
+               totalAmount += lot.price * item.quantity;
+               console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
+               console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
+             } else {
+               console.log('⚠️ Lote não encontrado, usando preço do item');
+               totalAmount += item.price * item.quantity;
+               console.log(`✅ Ingresso adicionado usando preço do item - R$ ${item.price}`);
+               console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
+             }
          } else {
            // Se não tem lot_id, usar o preço do item
            totalAmount += item.price * item.quantity;
