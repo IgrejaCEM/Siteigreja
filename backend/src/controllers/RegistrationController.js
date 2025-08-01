@@ -52,17 +52,31 @@ class RegistrationController {
       const finalCpf = customerData.cpf || cpf || '';
       const finalAddress = customerData.address || address || '';
 
-      console.log('👤 Dados do cliente:', {
+      console.log('👤 Dados do cliente extraídos:', {
         name: finalName,
         email: finalEmail,
         phone: finalPhone,
-        cpf: finalCpf
+        cpf: finalCpf,
+        address: finalAddress
       });
+
+      console.log('🔍 Customer original:', customer);
+      console.log('🔍 CustomerData:', customerData);
+      console.log('🔍 Campos individuais:', { name, email, phone, cpf });
 
       // Validar dados obrigatórios
       if (!finalName || !finalEmail || !finalPhone) {
+        console.log('❌ Validação falhou:');
+        console.log('   - finalName:', finalName, 'tipo:', typeof finalName);
+        console.log('   - finalEmail:', finalEmail, 'tipo:', typeof finalEmail);
+        console.log('   - finalPhone:', finalPhone, 'tipo:', typeof finalPhone);
         return res.status(400).json({ 
-          error: 'Nome, email e telefone são obrigatórios' 
+          error: 'Nome, email e telefone são obrigatórios',
+          details: {
+            name: finalName,
+            email: finalEmail,
+            phone: finalPhone
+          }
         });
       }
 

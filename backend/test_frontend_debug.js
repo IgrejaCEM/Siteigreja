@@ -1,86 +1,119 @@
 const axios = require('axios');
 
-const BASE_URL = 'https://siteigreja-1.onrender.com';
-
-console.log('🔍 DEBUGANDO PROBLEMA DO FRONTEND');
-console.log('==================================');
-
-async function testarFrontendDebug() {
+async function testFrontendDebug() {
   try {
-    console.log('📋 Passo 1: Simulando requisição do frontend...');
+    console.log('🧪 Testando debug do frontend...');
     
-    // Simular exatamente o que o frontend envia
-    const frontendData = {
-      lot_id: 2,
-      participantes: [
+    // Simular diferentes cenários que podem estar causando o erro 400
+    
+    // Cenário 1: Dados exatamente como o frontend pode estar enviando
+    const scenario1 = {
+      event_id: 14,
+      customer: {
+        name: 'Teste Usuário',
+        email: 'teste@teste.com',
+        phone: '11999999999'
+      },
+      items: [
         {
-          name: 'João Silva Teste',
-          email: 'joao.teste@email.com',
-          phone: '11999999999',
-          cpf: '12345678901',
-          address: 'Rua Teste, 123',
-          form_data: {
-            nome: 'João Silva Teste',
-            email: 'joao.teste@email.com',
-            telefone: '11999999999',
-            cpf: '12345678901',
-            endereco: 'Rua Teste, 123'
-          }
+          type: 'EVENT_TICKET',
+          name: 'Ingresso - FREE TESTE',
+          price: 50,
+          quantity: 1,
+          lot_id: 1
         }
       ],
-      payment_method: 'CHECKOUT_PRO',
       products: []
     };
-
-    console.log('📦 Dados que o frontend envia:', JSON.stringify(frontendData, null, 2));
-
-    const response = await axios.post(`${BASE_URL}/api/events/4/inscricao-unificada`, frontendData);
     
-    console.log('✅ Resposta da API:', response.status);
-    console.log('📦 Dados da resposta:', JSON.stringify(response.data, null, 2));
+    console.log('📦 Cenário 1 - Dados básicos:', JSON.stringify(scenario1, null, 2));
     
-    if (response.data.payment_info?.payment_url) {
-      console.log('🔗 URL do pagamento:', response.data.payment_info.payment_url);
-      
-      // Testar acessibilidade
-      try {
-        const urlResponse = await axios.get(response.data.payment_info.payment_url, {
-          timeout: 10000,
-          maxRedirects: 5,
-          validateStatus: function (status) {
-            return status < 500;
-          }
-        });
-        
-        console.log('✅ URL acessível!');
-        console.log('📊 Status:', urlResponse.status);
-        
-      } catch (urlError) {
-        console.log('❌ URL não acessível:', urlError.message);
-      }
-    } else {
-      console.log('❌ Nenhuma URL de pagamento recebida!');
+    try {
+      const response1 = await axios.post('https://siteigreja-1.onrender.com/api/registrations', scenario1, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('✅ Cenário 1 - Sucesso:', response1.data);
+    } catch (error) {
+      console.error('❌ Cenário 1 - Erro:', error.response?.status, error.response?.data);
     }
-
-    console.log('\n📋 Passo 2: Verificando logs do backend...');
     
-    // Fazer uma requisição para verificar se há logs
-    const logsResponse = await axios.get(`${BASE_URL}/api/auth/health`);
-    console.log('✅ Backend online:', logsResponse.data);
-
-    console.log('\n🎯 CONCLUSÃO:');
-    console.log('🔗 URL para teste manual:', response.data.payment_info?.payment_url);
-    console.log('💰 Valor: R$ 50,00');
-    console.log('🔍 Compare com a URL que aparece no frontend');
-
+    // Cenário 2: Dados com campos extras que podem estar sendo enviados
+    const scenario2 = {
+      event_id: 14,
+      customer: {
+        name: 'Teste Usuário',
+        email: 'teste@teste.com',
+        phone: '11999999999'
+      },
+      items: [
+        {
+          type: 'EVENT_TICKET',
+          name: 'Ingresso - FREE TESTE',
+          price: 50,
+          quantity: 1,
+          lot_id: 1,
+          id: 1, // Campo extra que pode estar sendo enviado
+          eventId: 14, // Campo extra
+          eventName: 'CONNECT CONF 2025 - INPROVÁVEIS' // Campo extra
+        }
+      ],
+      products: []
+    };
+    
+    console.log('\n📦 Cenário 2 - Dados com campos extras:', JSON.stringify(scenario2, null, 2));
+    
+    try {
+      const response2 = await axios.post('https://siteigreja-1.onrender.com/api/registrations', scenario2, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('✅ Cenário 2 - Sucesso:', response2.data);
+    } catch (error) {
+      console.error('❌ Cenário 2 - Erro:', error.response?.status, error.response?.data);
+    }
+    
+    // Cenário 3: Dados com valores undefined/null
+    const scenario3 = {
+      event_id: 14,
+      customer: {
+        name: 'Teste Usuário',
+        email: 'teste@teste.com',
+        phone: '11999999999'
+      },
+      items: [
+        {
+          type: 'EVENT_TICKET',
+          name: 'Ingresso - FREE TESTE',
+          price: 50,
+          quantity: 1,
+          lot_id: 1
+        }
+      ],
+      products: [],
+      name: undefined, // Campo que pode estar sendo enviado como undefined
+      email: undefined,
+      phone: undefined
+    };
+    
+    console.log('\n📦 Cenário 3 - Dados com campos undefined:', JSON.stringify(scenario3, null, 2));
+    
+    try {
+      const response3 = await axios.post('https://siteigreja-1.onrender.com/api/registrations', scenario3, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('✅ Cenário 3 - Sucesso:', response3.data);
+    } catch (error) {
+      console.error('❌ Cenário 3 - Erro:', error.response?.status, error.response?.data);
+    }
+    
   } catch (error) {
-    console.error('❌ Erro no teste:', error.response?.data || error.message);
-    console.error('📊 Status:', error.response?.status);
-    
-    if (error.response?.data) {
-      console.error('📦 Data do erro:', JSON.stringify(error.response.data, null, 2));
-    }
+    console.error('❌ Erro geral:', error);
   }
 }
 
-testarFrontendDebug(); 
+testFrontendDebug(); 
