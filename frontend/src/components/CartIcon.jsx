@@ -39,7 +39,7 @@ const CartIcon = () => {
 
   const handleQuantityChange = (item, change) => {
     const newQuantity = Math.max(1, item.quantity + change);
-    updateQuantity(item.id, newQuantity);
+    updateQuantity(item, newQuantity);
   };
 
   // Função segura para formatar preço

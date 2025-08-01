@@ -142,10 +142,10 @@ const EventoCompleto = ({ event }) => {
     }
   };
 
-  const handleRemoveProduct = (productId) => {
+  const handleRemoveProduct = (product) => {
     try {
-      console.log('🗑️ Removendo produto do carrinho:', productId);
-      removeItem(productId);
+      console.log('🗑️ Removendo produto do carrinho:', product);
+      removeItem(product);
     } catch (error) {
       console.error('❌ Erro ao remover produto:', error);
     }
@@ -155,7 +155,7 @@ const EventoCompleto = ({ event }) => {
     try {
       console.log('📊 Alterando quantidade do produto:', product.id, 'mudança:', change);
       const newQuantity = Math.max(1, product.quantity + change);
-      updateQuantity(product.id, newQuantity);
+      updateQuantity(product, newQuantity);
     } catch (error) {
       console.error('❌ Erro ao alterar quantidade:', error);
     }
@@ -546,7 +546,7 @@ const EventoCompleto = ({ event }) => {
                               size="small"
                               color="error"
                               variant="outlined"
-                              onClick={() => handleRemoveProduct(product.id)}
+                              onClick={() => handleRemoveProduct(product)}
                             >
                               Remover
                             </Button>
@@ -592,7 +592,7 @@ const EventoCompleto = ({ event }) => {
                               size="small"
                               color="error"
                               variant="outlined"
-                              onClick={() => handleRemoveProduct(product.id)}
+                              onClick={() => handleRemoveProduct(product)}
                             >
                               Remover
                             </Button>
