@@ -34,7 +34,7 @@ const CartIcon = () => {
   };
 
   const handleRemoveItem = (item) => {
-    removeItem(item.id);
+    removeItem(item);
   };
 
   const handleQuantityChange = (item, change) => {
