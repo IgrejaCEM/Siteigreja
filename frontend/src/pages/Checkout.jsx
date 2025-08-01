@@ -315,7 +315,7 @@ const Checkout = () => {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          cpf: formData.cpf || null,
+          cpf: formData.cpf && formData.cpf.trim() !== '' ? formData.cpf : null,
           address: formData.address
         },
         items: eventOnlyItems.map(item => ({
