@@ -26,6 +26,9 @@ class RegistrationController {
   async create(req, res) {
     try {
       console.log('📦 Dados recebidos no RegistrationController:', JSON.stringify(req.body, null, 2));
+      console.log('🔍 Headers recebidos:', req.headers);
+      console.log('🔍 Content-Type:', req.headers['content-type']);
+      console.log('🔍 Content-Length:', req.headers['content-length']);
       
       const {
         event_id,
