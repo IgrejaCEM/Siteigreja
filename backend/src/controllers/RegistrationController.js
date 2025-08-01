@@ -93,12 +93,14 @@ class RegistrationController {
 
       console.log('✅ Inscrição criada:', registration.id);
 
-      // Calcular valor total
-      let totalAmount = 0;
+             // Calcular valor total
+       let totalAmount = 0;
+       console.log('💰 Iniciando cálculo do valor total...');
 
-      // Processar itens se houver
-      if (items && items.length > 0) {
-        console.log('🛍️ Processando itens:', items);
+             // Processar itens se houver
+       if (items && items.length > 0) {
+         console.log('🛍️ Processando itens:', items);
+         console.log('💰 TotalAmount antes dos itens:', totalAmount);
         
         for (const item of items) {
           if (item.type === 'EVENT_PRODUCT') {
@@ -147,17 +149,21 @@ class RegistrationController {
                 .first();
               
               if (lot) {
-                totalAmount += lot.price * item.quantity;
-                console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
-              }
-            } else {
-              // Se não tem lot_id, usar o preço do item
-              totalAmount += item.price * item.quantity;
-              console.log(`✅ Ingresso adicionado - R$ ${item.price}`);
-            }
-          }
-        }
-      }
+                             totalAmount += lot.price * item.quantity;
+             console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
+             console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
+           }
+         } else {
+           // Se não tem lot_id, usar o preço do item
+           totalAmount += item.price * item.quantity;
+           console.log(`✅ Ingresso adicionado - R$ ${item.price}`);
+           console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
+         }
+       }
+     }
+   }
+   
+   console.log('💰 TotalAmount após processar itens:', totalAmount);
 
              // Processar produtos da loja se houver
        if (products && products.length > 0) {
@@ -265,8 +271,11 @@ class RegistrationController {
 
           totalAmount += product.unit_price * product.quantity;
           console.log(`✅ Produto da loja ${storeProduct.name} adicionado`);
+          console.log(`💰 TotalAmount após produto da loja: R$ ${totalAmount}`);
         }
       }
+      
+      console.log('💰 TotalAmount final após todos os itens:', totalAmount);
 
       // Criar pagamento real se necessário
       let paymentInfo = null;
@@ -285,10 +294,13 @@ class RegistrationController {
         console.log('🎫 Lot ID:', registration.lot_id);
         console.log('🏪 Produtos:', products);
         
-        // Forçar totalAmount a ser pelo menos 1 se for 0
-        if (totalAmount === 0) {
-          console.log('⚠️ TotalAmount é 0, forçando para 1');
-          totalAmount = 1;
+        // Verificar se o totalAmount é válido
+        if (totalAmount <= 0) {
+          console.log('⚠️ TotalAmount é inválido:', totalAmount);
+          return res.status(400).json({ 
+            error: 'Valor total inválido',
+            details: 'O valor total deve ser maior que zero' 
+          });
         }
         
         try {
