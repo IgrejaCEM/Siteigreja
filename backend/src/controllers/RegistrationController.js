@@ -299,14 +299,16 @@ class RegistrationController {
         console.log('🎫 Lot ID:', registration.lot_id);
         console.log('🏪 Produtos:', products);
         
-        // Verificar se o totalAmount é válido
-        if (totalAmount <= 0) {
-          console.log('⚠️ TotalAmount é inválido:', totalAmount);
-          return res.status(400).json({ 
-            error: 'Valor total inválido',
-            details: 'O valor total deve ser maior que zero' 
-          });
-        }
+               // Verificar se o totalAmount é válido
+       console.log('🔍 Verificando totalAmount:', totalAmount);
+       if (totalAmount <= 0) {
+         console.log('⚠️ TotalAmount é inválido:', totalAmount);
+         return res.status(400).json({ 
+           error: 'Valor total inválido',
+           details: 'O valor total deve ser maior que zero' 
+         });
+       }
+       console.log('✅ TotalAmount válido:', totalAmount);
         
         try {
           const paymentData = {
