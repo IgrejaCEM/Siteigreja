@@ -1,0 +1,2 @@
+Deploy trigger: 2025-08-02T18:45:00Z
+Added detailed logging for /registrations requests in api.js interceptor 
