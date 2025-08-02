@@ -80,6 +80,8 @@ class RegistrationController {
         });
       }
 
+      console.log('✅ Validação de dados obrigatórios passou');
+
       console.log('🔍 Verificando conexão com banco...');
       const testConnection = await db.raw('SELECT 1 as test');
       console.log('✅ Conexão com banco OK:', testConnection.rows[0]);
