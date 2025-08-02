@@ -7,6 +7,11 @@ const { db } = require('../database/db');
 // Criar inscrição - PÚBLICO (para checkout)
 router.post('/', (req, res, next) => {
   console.log('🔔 ROTA /registrations POST chamada!');
+  console.log('🔍 Headers recebidos na rota:', req.headers);
+  console.log('🔍 Content-Type:', req.headers['content-type']);
+  console.log('🔍 Content-Length:', req.headers['content-length']);
+  console.log('🔍 Origin:', req.headers['origin']);
+  console.log('🔍 User-Agent:', req.headers['user-agent']);
   console.log('📦 Dados recebidos na rota:', JSON.stringify(req.body, null, 2));
   
   try {
