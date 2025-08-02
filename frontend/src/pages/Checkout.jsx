@@ -323,7 +323,7 @@ const Checkout = () => {
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-          lot_id: item.lotId
+          lot_id: item.lotId ? parseInt(item.lotId) : null
         })),
         products: storeItems.map(item => ({
           product_id: item.id,
