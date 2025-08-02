@@ -86,6 +86,12 @@ class RegistrationController {
       const testConnection = await db.raw('SELECT 1 as test');
       console.log('✅ Conexão com banco OK:', testConnection.rows[0]);
 
+      console.log('🔍 Verificando dados de entrada...');
+      console.log('   - event_id:', event_id, 'tipo:', typeof event_id);
+      console.log('   - items:', items);
+      console.log('   - products:', products);
+      console.log('   - customer:', customer);
+
       const registrationCode = await generateRegistrationCode();
       console.log('🎫 Registration code gerado:', registrationCode);
 
