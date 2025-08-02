@@ -1,6 +1,6 @@
-// Cache busting: 2025-08-02T18:20:00Z
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'https://siteigreja.onrender.com/api';
+// Cache busting: 2025-08-02T18:25:00Z
+// Forçar URL correta do backend
+export const API_BASE_URL = 'https://siteigreja.onrender.com/api';
 
 export const APP_CONFIG = {
   name: 'Sistema de Eventos',
