@@ -178,7 +178,7 @@ class RegistrationController {
 
             totalAmount += eventProduct.price * item.quantity;
             console.log(`✅ Produto ${eventProduct.name} adicionado`);
-          } else if (item.type === 'EVENT_TICKET') {
+          } else if (item.type === 'EVENT_TICKET' || item.type === 'event_ticket') {
             // Ingresso do evento - calcular valor do lote
             if (item.lot_id) {
               console.log('🔍 Buscando lote:', item.lot_id);
