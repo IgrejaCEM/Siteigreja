@@ -83,6 +83,17 @@ app.use((req, res, next) => {
   if (path === '/api/registrations' && method === 'POST') {
     console.log('🎯 REQUISIÇÃO /api/registrations POST DETECTADA!');
     console.log('📦 Body completo:', JSON.stringify(req.body, null, 2));
+    console.log('🔍 Origin:', req.headers.origin);
+    console.log('🔍 User-Agent:', req.headers['user-agent']);
+    console.log('🔍 Content-Type:', req.headers['content-type']);
+  }
+  
+  // Log para qualquer requisição POST
+  if (method === 'POST') {
+    console.log('📝 REQUISIÇÃO POST DETECTADA!');
+    console.log('   - Path:', path);
+    console.log('   - Origin:', req.headers.origin);
+    console.log('   - Content-Type:', req.headers['content-type']);
   }
   
   next();
