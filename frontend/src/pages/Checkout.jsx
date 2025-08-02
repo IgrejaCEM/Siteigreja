@@ -310,7 +310,7 @@ const Checkout = () => {
       const storeItems = eventItems.filter(item => item.type === ITEM_TYPES.STORE_PRODUCT);
 
       const orderData = {
-        event_id: eventId,
+        event_id: parseInt(eventId),
         customer: {
           name: formData.name,
           email: formData.email,
