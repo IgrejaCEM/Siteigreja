@@ -29,6 +29,9 @@ class RegistrationController {
       console.log('🔍 Headers recebidos:', req.headers);
       console.log('🔍 Content-Type:', req.headers['content-type']);
       console.log('🔍 Content-Length:', req.headers['content-length']);
+      console.log('🔍 User-Agent:', req.headers['user-agent']);
+      console.log('🔍 Origin:', req.headers['origin']);
+      console.log('🔍 Referer:', req.headers['referer']);
       
       const {
         event_id,
@@ -43,6 +46,16 @@ class RegistrationController {
         form_data,
         products
       } = req.body;
+
+      console.log('🔍 Dados extraídos do body:');
+      console.log('   - event_id:', event_id, 'tipo:', typeof event_id);
+      console.log('   - customer:', customer);
+      console.log('   - items:', items);
+      console.log('   - products:', products);
+      console.log('   - name:', name);
+      console.log('   - email:', email);
+      console.log('   - phone:', phone);
+      console.log('   - cpf:', cpf);
 
       // Extrair dados do customer se fornecido
       const customerData = customer || {};
