@@ -75,9 +75,15 @@ app.use((req, res, next) => {
   const path = req.path;
   
   console.log(`🔔 REQUISIÇÃO RECEBIDA: ${timestamp} - ${method} ${path}`);
-console.log(`🔔 Headers:`, req.headers);
-console.log(`🔔 Body:`, req.body);
-console.log(`🔔 Debug: Servidor funcionando corretamente`);
+  console.log(`🔔 Headers:`, req.headers);
+  console.log(`🔔 Body:`, req.body);
+  console.log(`🔔 Debug: Servidor funcionando corretamente`);
+  
+  // Log específico para /api/registrations
+  if (path === '/api/registrations' && method === 'POST') {
+    console.log('🎯 REQUISIÇÃO /api/registrations POST DETECTADA!');
+    console.log('📦 Body completo:', JSON.stringify(req.body, null, 2));
+  }
   
   next();
 });
