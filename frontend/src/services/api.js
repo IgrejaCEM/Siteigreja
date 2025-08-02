@@ -11,12 +11,16 @@ const api = axios.create({
 // Adiciona o token em todas as requisições
 api.interceptors.request.use(config => {
   console.log('🌐 Fazendo requisição para:', config.baseURL + config.url);
+  console.log('🔍 Método:', config.method);
+  console.log('🔍 Headers:', config.headers);
+  console.log('🔍 Data:', config.data);
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 }, error => {
+  console.error('❌ Erro no interceptor de request:', error);
   return Promise.reject(error);
 });
 
