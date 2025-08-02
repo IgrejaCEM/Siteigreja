@@ -17,6 +17,7 @@ app.use((req, res, next) => {
   console.log('🔧 CORS - Origin recebido:', req.headers.origin);
   console.log('🔧 CORS - Method:', req.method);
   console.log('🔧 CORS - Path:', req.path);
+  console.log('🔧 CORS - User-Agent:', req.headers['user-agent']);
   
   const allowedOrigins = [
     'http://localhost:5173',
@@ -34,6 +35,9 @@ app.use((req, res, next) => {
     console.log('✅ CORS - Origin permitido:', origin);
   } else {
     console.log('❌ CORS - Origin não permitido:', origin);
+    // Temporariamente permitir todos os origins para debug
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    console.log('⚠️ CORS - Origin temporariamente permitido para debug');
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
