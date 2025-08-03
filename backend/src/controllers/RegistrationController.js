@@ -299,6 +299,17 @@ class RegistrationController {
           console.log('🔍 Tipo do ID buscado:', typeof product.product_id);
           console.log('🔍 ID buscado:', product.product_id);
           
+          // Debug adicional - verificar se há algum problema com a query
+          console.log('🔍 Executando query de debug...');
+          const allProducts = await db('store_products').select('*');
+          console.log('🔍 Todos os produtos no banco:', allProducts);
+          
+          // Verificar se o produto existe com uma query mais específica
+          const debugProduct = await db('store_products')
+            .where('id', '=', productId)
+            .first();
+          console.log('🔍 Produto encontrado com query específica:', debugProduct);
+          
           if (!storeProduct) {
             console.error(`❌ Produto da loja ${product.product_id} não encontrado`);
             console.log('🔍 Tentando buscar todos os produtos para debug...');
