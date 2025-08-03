@@ -1,3 +1,4 @@
-# Deploy trigger - 2025-08-03T15:40:00Z
+# Deploy trigger - 2025-08-03T15:45:00Z
 # Forçar novo deploy do backend para aplicar correções de produtos da loja
-# Fix: Converter product_id para número para resolver erro 400 
+# Fix: Converter product_id para número para resolver erro 400
+# Fix: Tratamento especial para event_id 999 
