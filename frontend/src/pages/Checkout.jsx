@@ -268,7 +268,15 @@ const Checkout = () => {
   const handleQuantityChange = (item, change) => {
     const newQuantity = Math.max(1, item.quantity + change);
     console.log('🔄 Atualizando quantidade:', item.name, 'de', item.quantity, 'para', newQuantity);
+    console.log('🔍 Item completo:', JSON.stringify(item, null, 2));
+    console.log('🔍 Total antes da atualização:', total);
     updateQuantity(item, newQuantity);
+    
+    // Log após um pequeno delay para verificar se o total foi atualizado
+    setTimeout(() => {
+      console.log('🔍 Total após atualização:', total);
+      console.log('🔍 Itens após atualização:', items);
+    }, 100);
   };
 
   const handleInputChange = (field, value) => {

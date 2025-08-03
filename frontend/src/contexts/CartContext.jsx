@@ -77,6 +77,9 @@ const cartReducer = (state, action) => {
       };
 
     case 'UPDATE_QUANTITY':
+      console.log('🔄 UPDATE_QUANTITY chamado com:', action.payload);
+      console.log('🔍 Estado atual:', state);
+      
       const updatedItemsQuantity = state.items.map(item =>
         item.id === action.payload.id && 
         item.type === action.payload.type &&
@@ -85,8 +88,13 @@ const cartReducer = (state, action) => {
           : item
       );
       
+      console.log('🔍 Itens atualizados:', updatedItemsQuantity);
+      
       const newTotalQuantity = updatedItemsQuantity.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       const newItemCountQuantity = updatedItemsQuantity.reduce((sum, item) => sum + item.quantity, 0);
+      
+      console.log('💰 Novo total calculado:', newTotalQuantity);
+      console.log('📊 Nova contagem de itens:', newItemCountQuantity);
       
       return {
         ...state,
