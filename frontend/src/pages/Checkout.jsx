@@ -223,10 +223,10 @@ const Checkout = () => {
         // Se só há produtos da loja (sem eventos)
         console.log('🏪 Processando apenas produtos da loja...');
         
-        // Usar um event_id padrão para produtos da loja
-        const defaultEventId = 14; // Evento padrão para produtos da loja
+        // Usar um event_id especial para produtos da loja (sem validações específicas)
+        const storeOnlyEventId = 999; // Evento especial para produtos da loja
         
-        const result = await processEventOrder(defaultEventId, storeItems);
+        const result = await processEventOrder(storeOnlyEventId, storeItems);
         console.log('✅ Resultado dos produtos da loja:', result);
         
         if (result.success) {
