@@ -116,6 +116,10 @@ class RegistrationController {
 
       console.log('✅ Validação de itens/produtos passou');
 
+      // Tratamento especial para produtos da loja apenas (event_id 999)
+      const isStoreOnly = event_id === 999;
+      console.log('🔍 É compra apenas de produtos da loja:', isStoreOnly);
+
       const registrationCode = await generateRegistrationCode();
       console.log('🎫 Registration code gerado:', registrationCode);
 
@@ -125,7 +129,7 @@ class RegistrationController {
       console.log('🔍 lot_id recebido:', lot_id, 'tipo:', typeof lot_id);
       
       const [registration] = await db('registrations').insert({
-        event_id: event_id ? parseInt(event_id) : null,
+        event_id: isStoreOnly ? null : (event_id ? parseInt(event_id) : null),
         lot_id: lot_id ? parseInt(lot_id) : null,
         name: finalName,
         email: finalEmail,
