@@ -359,7 +359,9 @@ class RegistrationController {
               registration_code: registrationCode,
               id: registration.id,
               event_id: event_id
-            }
+            },
+            items: items,
+            products: products
           };
 
           console.log('📦 Dados do pagamento:', JSON.stringify(paymentData, null, 2));

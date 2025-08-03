@@ -43,13 +43,15 @@ class MercadoPagoGateway {
 
   async createPayment(paymentData) {
     try {
-      const { amount, description, customer } = paymentData;
+      const { amount, description, customer, items, products } = paymentData;
       
       console.log('[MP] Criando preferência no Mercado Pago...');
       console.log('[MP] PaymentData recebido:', JSON.stringify(paymentData, null, 2));
       console.log('[MP] Amount:', amount);
       console.log('[MP] Description:', description);
       console.log('[MP] Customer:', customer);
+      console.log('[MP] Items:', items);
+      console.log('[MP] Products:', products);
       
       // Extrair nome e sobrenome do cliente
       const fullName = customer.name || '';
@@ -57,17 +59,51 @@ class MercadoPagoGateway {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || firstName;
       
-      // Payload simplificado baseado na documentação oficial
+      // Criar array de itens para o MercadoPago
+      const mpItems = [];
+      
+      // Adicionar itens de evento (tickets)
+      if (items && items.length > 0) {
+        for (const item of items) {
+          mpItems.push({
+            id: `ticket-${item.lot_id || 'default'}`,
+            title: item.name || 'Ingresso do Evento',
+            description: `Ingresso: ${item.name}`,
+            quantity: item.quantity || 1,
+            unit_price: Number(item.price || 0)
+          });
+        }
+      }
+      
+      // Adicionar produtos da loja
+      if (products && products.length > 0) {
+        for (const product of products) {
+          mpItems.push({
+            id: `product-${product.product_id}`,
+            title: `Produto da Loja`,
+            description: `Produto ID: ${product.product_id}`,
+            quantity: product.quantity || 1,
+            unit_price: Number(product.unit_price || 0)
+          });
+        }
+      }
+      
+      // Se não houver itens específicos, usar o valor total como fallback
+      if (mpItems.length === 0) {
+        mpItems.push({
+          id: customer.registration_code || 'INSCRICAO-001',
+          title: description || 'Inscrição no Evento',
+          description: `Inscrição para ${customer.name || 'Participante'}`,
+          quantity: 1,
+          unit_price: Number(amount)
+        });
+      }
+      
+      console.log('[MP] Itens para MercadoPago:', JSON.stringify(mpItems, null, 2));
+      
+      // Payload com múltiplos itens
       const payload = {
-        items: [
-          {
-            id: customer.registration_code || 'INSCRICAO-001',
-            title: description || 'Inscrição no Evento',
-            description: `Inscrição para ${customer.name || 'Participante'}`,
-            quantity: 1,
-            unit_price: Number(amount)
-          }
-        ],
+        items: mpItems,
         payer: {
           name: firstName,
           surname: lastName,
