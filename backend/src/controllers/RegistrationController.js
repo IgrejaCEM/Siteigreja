@@ -105,6 +105,17 @@ class RegistrationController {
       console.log('   - products:', products);
       console.log('   - customer:', customer);
 
+      // Verificar se há pelo menos um item ou produto
+      if ((!items || items.length === 0) && (!products || products.length === 0)) {
+        console.log('❌ Nenhum item ou produto fornecido');
+        return res.status(400).json({ 
+          error: 'É necessário pelo menos um item ou produto',
+          details: 'Adicione pelo menos um ingresso ou produto da loja' 
+        });
+      }
+
+      console.log('✅ Validação de itens/produtos passou');
+
       const registrationCode = await generateRegistrationCode();
       console.log('🎫 Registration code gerado:', registrationCode);
 
@@ -269,14 +280,22 @@ class RegistrationController {
           console.log('🔍 Buscando produto da loja:', product.product_id);
           console.log('🔍 Dados do produto:', JSON.stringify(product, null, 2));
           
+          // Log da query que será executada
+          console.log('🔍 Query que será executada: SELECT * FROM store_products WHERE id =', product.product_id);
+          
           const storeProduct = await db('store_products')
             .where('id', product.product_id)
             .first();
           
           console.log('🔍 Produto encontrado:', storeProduct);
+          console.log('🔍 Tipo do ID buscado:', typeof product.product_id);
+          console.log('🔍 ID buscado:', product.product_id);
           
           if (!storeProduct) {
             console.error(`❌ Produto da loja ${product.product_id} não encontrado`);
+            console.log('🔍 Tentando buscar todos os produtos para debug...');
+            const allProducts = await db('store_products').select('*');
+            console.log('🔍 Todos os produtos no banco:', allProducts);
             continue;
           }
 
