@@ -283,8 +283,12 @@ class RegistrationController {
           // Log da query que será executada
           console.log('🔍 Query que será executada: SELECT * FROM store_products WHERE id =', product.product_id);
           
+          // Converter para número se necessário
+          const productId = parseInt(product.product_id);
+          console.log('🔍 ID convertido para número:', productId);
+          
           const storeProduct = await db('store_products')
-            .where('id', product.product_id)
+            .where('id', productId)
             .first();
           
           console.log('🔍 Produto encontrado:', storeProduct);
@@ -307,7 +311,7 @@ class RegistrationController {
           console.log('📝 Atualizando estoque...');
           // Atualizar estoque
           await db('store_products')
-            .where('id', product.product_id)
+            .where('id', productId)
             .update({ 
               stock: storeProduct.stock - product.quantity,
               updated_at: new Date()
@@ -316,7 +320,7 @@ class RegistrationController {
           console.log('📝 Inserindo na tabela registration_store_products...');
           console.log('🔍 Dados para inserção:', {
             registration_id: registration.id,
-            product_id: product.product_id,
+            product_id: productId,
             quantity: product.quantity,
             unit_price: product.unit_price
           });
@@ -324,7 +328,7 @@ class RegistrationController {
           // Adicionar produto da loja à inscrição (usando registration_store_products)
           await db('registration_store_products').insert({
             registration_id: registration.id,
-            product_id: product.product_id,
+            product_id: productId,
             quantity: product.quantity,
             unit_price: product.unit_price,
             created_at: new Date(),
