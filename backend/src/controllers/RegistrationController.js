@@ -53,7 +53,7 @@ class RegistrationController {
 
       // Criar inscrição no banco
       const [registration] = await db('registrations').insert({
-        event_id: event_id || null,
+        event_id: event_id === 999 ? null : event_id, // Para event_id 999, usar null
         name: finalName,
         email: finalEmail,
         phone: finalPhone,
