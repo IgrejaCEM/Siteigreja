@@ -1,3 +1,5 @@
-# Forçar novo deploy - $(date)
-# Este arquivo força o Render a fazer um novo deploy
-# Última atualização: $(date) 
+# FORCE DEPLOY - URGENTE
+# Data: 2025-08-04 01:20:00
+# Problema: RegistrationController não encontra produtos
+# Solução: Mudar de db('store_products') para StoreProduct.query()
+# Status: Aguardando deploy 

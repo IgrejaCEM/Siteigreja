@@ -1,0 +1,6 @@
+# URGENT DEPLOY - REGISTRATION CONTROLLER FIX
+# Timestamp: 2025-08-04T01:25:00Z
+# Issue: RegistrationController not finding products in database
+# Fix: Changed from db('store_products') to StoreProduct.query()
+# Status: Waiting for deploy to apply
+# Priority: HIGH 

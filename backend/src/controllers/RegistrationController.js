@@ -1,140 +1,63 @@
-const Registration = require('../models/Registration');
-const EventProduct = require('../models/EventProduct');
-const RegistrationProduct = require('../models/RegistrationProduct');
-const { generateRegistrationCode } = require('../utils/registrationUtils');
 const { db } = require('../database/db');
-console.log('🔧 Importando PaymentGateway...');
-const paymentGateway = require('../services/PaymentGateway');
-console.log('🔧 PaymentGateway importado:', !!paymentGateway);
+const PaymentGateway = require('../services/PaymentGateway');
+const StoreProduct = require('../models/StoreProduct');
 
 class RegistrationController {
   constructor() {
-    console.log('🔧 RegistrationController constructor iniciado...');
-    this.paymentGateway = paymentGateway; // Use the exported instance directly
-    console.log('🔧 PaymentGateway atribuído:', !!this.paymentGateway);
-    
-    // Verificar se o PaymentGateway foi inicializado corretamente
-    if (!this.paymentGateway) {
-      console.error('❌ PaymentGateway não foi inicializado corretamente');
-      throw new Error('PaymentGateway não foi inicializado');
-    }
-    
-    console.log('✅ PaymentGateway inicializado:', !!this.paymentGateway);
-    console.log('🔧 Métodos do PaymentGateway:', Object.keys(this.paymentGateway));
+    this.generateRegistrationCode = this.generateRegistrationCode.bind(this);
+    this.create = this.create.bind(this);
+    this.list = this.list.bind(this);
+    this.getById = this.getById.bind(this);
+    this.update = this.update.bind(this);
+    this.delete = this.delete.bind(this);
+  }
+
+  generateRegistrationCode() {
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8);
+    return `REG-${timestamp}-${random}`.toUpperCase();
   }
 
   async create(req, res) {
     try {
-      console.log('📦 Dados recebidos no RegistrationController:', JSON.stringify(req.body, null, 2));
-      console.log('🔍 Headers recebidos:', req.headers);
-      console.log('🔍 Content-Type:', req.headers['content-type']);
-      console.log('🔍 Content-Length:', req.headers['content-length']);
-      console.log('🔍 User-Agent:', req.headers['user-agent']);
-      console.log('🔍 Origin:', req.headers['origin']);
-      console.log('🔍 Referer:', req.headers['referer']);
-      
+      console.log('🔄 Iniciando criação de inscrição...');
+      console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
+
       const {
         event_id,
-        lot_id,
         customer,
-        items,
-        name,
-        email,
-        phone,
-        cpf,
-        address,
-        form_data,
-        products
+        items = [],
+        products = [],
+        totalAmount: clientTotalAmount
       } = req.body;
 
-      console.log('🔍 Dados extraídos do body:');
-      console.log('   - event_id:', event_id, 'tipo:', typeof event_id);
-      console.log('   - customer:', customer);
-      console.log('   - items:', items);
-      console.log('   - products:', products);
-      console.log('   - name:', name);
-      console.log('   - email:', email);
-      console.log('   - phone:', phone);
-      console.log('   - cpf:', cpf);
+      // Validações básicas
+      if (!customer || !customer.name || !customer.email || !customer.phone) {
+        return res.status(400).json({
+          error: 'Dados do cliente incompletos',
+          details: 'Nome, email e telefone são obrigatórios'
+        });
+      }
 
-      // Extrair dados do customer se fornecido
-      const customerData = customer || {};
-      const finalName = customerData.name || name || '';
-      const finalEmail = customerData.email || email || '';
-      const finalPhone = customerData.phone || phone || '';
-      const finalCpf = customerData.cpf || cpf || '';
-      const finalAddress = customerData.address || address || '';
+      // Processar dados do cliente
+      const finalName = customer.name.trim();
+      const finalEmail = customer.email.trim().toLowerCase();
+      const finalPhone = customer.phone.trim();
+      const finalCpf = customer.cpf && customer.cpf.trim() !== '' ? customer.cpf.trim() : null;
+      const finalAddress = customer.address || null;
+      const form_data = customer.form_data || null;
 
-      console.log('👤 Dados do cliente extraídos:', {
+      // Gerar código de inscrição
+      const registrationCode = this.generateRegistrationCode();
+      console.log('🎫 Código de inscrição gerado:', registrationCode);
+
+      // Criar inscrição no banco
+      const [registration] = await db('registrations').insert({
+        event_id: event_id || null,
         name: finalName,
         email: finalEmail,
         phone: finalPhone,
         cpf: finalCpf,
-        address: finalAddress
-      });
-
-      console.log('🔍 Customer original:', customer);
-      console.log('🔍 CustomerData:', customerData);
-      console.log('🔍 Campos individuais:', { name, email, phone, cpf });
-
-      // Validar dados obrigatórios
-      if (!finalName || !finalEmail || !finalPhone) {
-        console.log('❌ Validação falhou:');
-        console.log('   - finalName:', finalName, 'tipo:', typeof finalName);
-        console.log('   - finalEmail:', finalEmail, 'tipo:', typeof finalEmail);
-        console.log('   - finalPhone:', finalPhone, 'tipo:', typeof finalPhone);
-        return res.status(400).json({ 
-          error: 'Nome, email e telefone são obrigatórios',
-          details: {
-            name: finalName,
-            email: finalEmail,
-            phone: finalPhone
-          }
-        });
-      }
-
-      console.log('✅ Validação de dados obrigatórios passou');
-
-      console.log('🔍 Verificando conexão com banco...');
-      const testConnection = await db.raw('SELECT 1 as test');
-      console.log('✅ Conexão com banco OK:', testConnection.rows[0]);
-
-      console.log('🔍 Verificando dados de entrada...');
-      console.log('   - event_id:', event_id, 'tipo:', typeof event_id);
-      console.log('   - items:', items);
-      console.log('   - products:', products);
-      console.log('   - customer:', customer);
-
-      // Verificar se há pelo menos um item ou produto
-      if ((!items || items.length === 0) && (!products || products.length === 0)) {
-        console.log('❌ Nenhum item ou produto fornecido');
-        return res.status(400).json({ 
-          error: 'É necessário pelo menos um item ou produto',
-          details: 'Adicione pelo menos um ingresso ou produto da loja' 
-        });
-      }
-
-      console.log('✅ Validação de itens/produtos passou');
-
-      // Tratamento especial para produtos da loja apenas (event_id 999)
-      const isStoreOnly = event_id === 999;
-      console.log('🔍 É compra apenas de produtos da loja:', isStoreOnly);
-
-      const registrationCode = await generateRegistrationCode();
-      console.log('🎫 Registration code gerado:', registrationCode);
-
-      // Criar inscrição usando Knex diretamente
-      console.log('📝 Criando inscrição...');
-      console.log('🔍 event_id recebido:', event_id, 'tipo:', typeof event_id);
-      console.log('🔍 lot_id recebido:', lot_id, 'tipo:', typeof lot_id);
-      
-      const [registration] = await db('registrations').insert({
-        event_id: isStoreOnly ? null : (event_id ? parseInt(event_id) : null),
-        lot_id: lot_id ? parseInt(lot_id) : null,
-        name: finalName,
-        email: finalEmail,
-        phone: finalPhone,
-        cpf: finalCpf || null,
         address: finalAddress ? JSON.stringify(finalAddress) : null,
         form_data: form_data ? JSON.stringify(form_data) : null,
         registration_code: registrationCode,
@@ -146,14 +69,13 @@ class RegistrationController {
 
       console.log('✅ Inscrição criada:', registration.id);
 
-             // Calcular valor total
-       let totalAmount = 0;
-       console.log('💰 Iniciando cálculo do valor total...');
+      // Calcular valor total
+      let totalAmount = 0;
+      console.log('💰 Iniciando cálculo do valor total...');
 
-             // Processar itens se houver
-       if (items && items.length > 0) {
-         console.log('🛍️ Processando itens:', items);
-         console.log('💰 TotalAmount antes dos itens:', totalAmount);
+      // Processar itens (tickets e produtos do evento)
+      if (items && items.length > 0) {
+        console.log('🛍️ Processando itens:', items);
         
         for (const item of items) {
           if (item.type === 'EVENT_PRODUCT') {
@@ -181,15 +103,15 @@ class RegistrationController {
                 updated_at: new Date()
               });
 
-                         // Adicionar produto à inscrição
-             await db('registration_products').insert({
-               registration_id: registration.id,
-               product_id: item.id,
-               quantity: item.quantity,
-               unit_price: eventProduct.price,
-               created_at: new Date(),
-               updated_at: new Date()
-             });
+            // Adicionar produto à inscrição
+            await db('registration_products').insert({
+              registration_id: registration.id,
+              product_id: item.id,
+              quantity: item.quantity,
+              unit_price: eventProduct.price,
+              created_at: new Date(),
+              updated_at: new Date()
+            });
 
             totalAmount += eventProduct.price * item.quantity;
             console.log(`✅ Produto ${eventProduct.name} adicionado`);
@@ -202,161 +124,112 @@ class RegistrationController {
                 .first();
               
               if (lot) {
-               totalAmount += lot.price * item.quantity;
-               console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
-               console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
-             } else {
-               console.log('⚠️ Lote não encontrado, usando preço do item');
-               totalAmount += item.price * item.quantity;
-               console.log(`✅ Ingresso adicionado usando preço do item - R$ ${item.price}`);
-               console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
-             }
-         } else {
-           // Se não tem lot_id, usar o preço do item
-           totalAmount += item.price * item.quantity;
-           console.log(`✅ Ingresso adicionado - R$ ${item.price}`);
-           console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
-         }
-       }
-     }
-   }
-   
-   console.log('💰 TotalAmount após processar itens:', totalAmount);
+                totalAmount += lot.price * item.quantity;
+                console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
+                console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
+              } else {
+                console.log('⚠️ Lote não encontrado, usando preço do item');
+                totalAmount += item.price * item.quantity;
+                console.log(`✅ Ingresso adicionado usando preço do item - R$ ${item.price}`);
+                console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
+              }
+            } else {
+              // Se não tem lot_id, usar o preço do item
+              totalAmount += item.price * item.quantity;
+              console.log(`✅ Ingresso adicionado - R$ ${item.price}`);
+              console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
+            }
+          }
+        }
+      }
+      
+      console.log('💰 TotalAmount após processar itens:', totalAmount);
 
-             // Processar produtos da loja se houver
-       if (products && products.length > 0) {
-         console.log('🏪 Processando produtos da loja:', products);
-         console.log('🔍 Verificando tabelas necessárias...');
-         
-         try {
-           // Verificar se a tabela store_products existe
-           const storeProductsExists = await db.schema.hasTable('store_products');
-           console.log('✅ Tabela store_products existe:', storeProductsExists);
-           
-           if (!storeProductsExists) {
-             console.log('⚠️ Tabela store_products não existe, criando automaticamente...');
-             
-             // Criar a tabela store_products automaticamente
-             await db.schema.createTable('store_products', (table) => {
-               table.increments('id').primary();
-               table.string('name', 255).notNullable();
-               table.text('description');
-               table.decimal('price', 10, 2).notNullable();
-               table.integer('stock').notNullable().defaultTo(0);
-               table.string('image_url', 500);
-               table.string('category', 100);
-               table.boolean('active').notNullable().defaultTo(true);
-               table.timestamps(true, true);
-               
-               // Índices
-               table.index('active');
-               table.index('category');
-             });
-             
-             console.log('✅ Tabela store_products criada com sucesso!');
-           }
-           
-           // Verificar se a tabela registration_store_products existe
-           const registrationStoreProductsExists = await db.schema.hasTable('registration_store_products');
-           console.log('✅ Tabela registration_store_products existe:', registrationStoreProductsExists);
-           
-           if (!registrationStoreProductsExists) {
-             console.log('⚠️ Tabela registration_store_products não existe, criando automaticamente...');
-             
-             // Criar a tabela registration_store_products automaticamente
-             await db.schema.createTable('registration_store_products', (table) => {
-               table.increments('id').primary();
-               table.integer('registration_id').unsigned().references('id').inTable('registrations').onDelete('CASCADE');
-               table.integer('product_id').unsigned().references('id').inTable('store_products').onDelete('CASCADE');
-               table.integer('quantity').notNullable();
-               table.decimal('unit_price', 10, 2).notNullable();
-               table.timestamps(true, true);
-             });
-             
-             console.log('✅ Tabela registration_store_products criada com sucesso!');
-           }
-         } catch (error) {
-           console.error('❌ Erro ao verificar/criar tabelas:', error);
-           throw error;
-         }
+      // Processar produtos da loja geral
+      if (products && products.length > 0) {
+        console.log('🛍️ Processando produtos da loja geral...');
+        console.log('🛍️ Produtos recebidos:', products);
         
         for (const product of products) {
-          console.log('🔍 Buscando produto da loja:', product.product_id);
-          console.log('🔍 Dados do produto:', JSON.stringify(product, null, 2));
+          console.log(`🛍️ Processando produto:`, product);
+          console.log(`🛍️ product_id: ${product.product_id} (tipo: ${typeof product.product_id})`);
           
-          // Log da query que será executada
-          console.log('🔍 Query que será executada: SELECT * FROM store_products WHERE id =', product.product_id);
+          // Buscar produto na loja geral (store_products)
+          console.log('🔍 Buscando na loja geral (store_products)...');
+          let storeProduct = null;
           
-          // Converter para número se necessário
-          const productId = parseInt(product.product_id);
-          console.log('🔍 ID convertido para número:', productId);
-          
-          const storeProduct = await db('store_products')
-            .where('id', productId)
-            .first();
-          
-          console.log('🔍 Produto encontrado:', storeProduct);
-          console.log('🔍 Tipo do ID buscado:', typeof product.product_id);
-          console.log('🔍 ID buscado:', product.product_id);
-          
-          // Debug adicional - verificar se há algum problema com a query
-          console.log('🔍 Executando query de debug...');
-          const allProducts = await db('store_products').select('*');
-          console.log('🔍 Todos os produtos no banco:', allProducts);
-          
-          // Verificar se o produto existe com uma query mais específica
-          const debugProduct = await db('store_products')
-            .where('id', '=', productId)
-            .first();
-          console.log('🔍 Produto encontrado com query específica:', debugProduct);
+          try {
+            // Tentar com diferentes tipos de ID
+            const productId = parseInt(product.product_id) || product.product_id;
+            storeProduct = await db('store_products')
+              .where('id', productId)
+              .where('active', true)
+              .first();
+            
+            console.log('🔍 Produto encontrado na loja geral:', !!storeProduct);
+            if (storeProduct) {
+              console.log('🔍 Dados do produto encontrado:', {
+                id: storeProduct.id,
+                name: storeProduct.name,
+                price: storeProduct.price,
+                stock: storeProduct.stock
+              });
+            }
+          } catch (error) {
+            console.log('❌ Erro ao buscar na loja geral:', error.message);
+          }
           
           if (!storeProduct) {
-            console.error(`❌ Produto da loja ${product.product_id} não encontrado`);
+            console.error(`❌ Produto ${product.product_id} não encontrado na loja geral`);
             console.log('🔍 Tentando buscar todos os produtos para debug...');
-            const allProducts = await db('store_products').select('*');
-            console.log('🔍 Todos os produtos no banco:', allProducts);
+            try {
+              const allProducts = await db('store_products').select('*');
+              console.log('🔍 Todos os produtos na loja geral:', allProducts);
+            } catch (error) {
+              console.log('❌ Erro ao buscar todos os produtos:', error.message);
+            }
             continue;
           }
-
-          if (storeProduct.stock < product.quantity) {
-            console.error(`❌ Estoque insuficiente para ${storeProduct.name}`);
-            continue;
-          }
-
-          console.log('📝 Atualizando estoque...');
-          // Atualizar estoque
-          await db('store_products')
-            .where('id', productId)
-            .update({ 
-              stock: storeProduct.stock - product.quantity,
-              updated_at: new Date()
-            });
-
-          console.log('📝 Inserindo na tabela registration_store_products...');
-          console.log('🔍 Dados para inserção:', {
-            registration_id: registration.id,
-            product_id: productId,
-            quantity: product.quantity,
-            unit_price: product.unit_price
-          });
           
-          // Adicionar produto da loja à inscrição (usando registration_store_products)
+          if (storeProduct.stock < product.quantity) {
+            console.error(`❌ Estoque insuficiente para produto ${storeProduct.name}`);
+            continue;
+          }
+          
+          // Calcular valor do produto
+          const productValue = parseFloat(storeProduct.price) * product.quantity;
+          totalAmount += productValue;
+          console.log(`💰 Produto ${storeProduct.name}: R$ ${storeProduct.price} x ${product.quantity} = R$ ${productValue}`);
+          console.log(`💰 TotalAmount atualizado: R$ ${totalAmount}`);
+          
+          // Inserir na tabela de produtos da loja da inscrição
           await db('registration_store_products').insert({
             registration_id: registration.id,
-            product_id: productId,
+            product_id: storeProduct.id,
             quantity: product.quantity,
-            unit_price: product.unit_price,
-            created_at: new Date(),
-            updated_at: new Date()
+            unit_price: storeProduct.price,
+            total_price: productValue
           });
-
-          totalAmount += product.unit_price * product.quantity;
-          console.log(`✅ Produto da loja ${storeProduct.name} adicionado`);
-          console.log(`💰 TotalAmount após produto da loja: R$ ${totalAmount}`);
+          
+          // Atualizar estoque
+          await db('store_products')
+            .where('id', storeProduct.id)
+            .decrement('stock', product.quantity);
         }
       }
       
       console.log('💰 TotalAmount final após todos os itens:', totalAmount);
+
+      // Verificar se o totalAmount é válido
+      console.log('🔍 Verificando totalAmount:', totalAmount);
+      if (totalAmount <= 0) {
+        console.log('⚠️ TotalAmount é inválido:', totalAmount);
+        return res.status(400).json({ 
+          error: 'Valor total inválido',
+          details: 'O valor total deve ser maior que zero' 
+        });
+      }
+      console.log('✅ TotalAmount válido:', totalAmount);
 
       // Criar pagamento real se necessário
       let paymentInfo = null;
@@ -375,17 +248,6 @@ class RegistrationController {
         console.log('🎫 Lot ID:', registration.lot_id);
         console.log('🏪 Produtos:', products);
         
-               // Verificar se o totalAmount é válido
-       console.log('🔍 Verificando totalAmount:', totalAmount);
-       if (totalAmount <= 0) {
-         console.log('⚠️ TotalAmount é inválido:', totalAmount);
-         return res.status(400).json({ 
-           error: 'Valor total inválido',
-           details: 'O valor total deve ser maior que zero' 
-         });
-       }
-       console.log('✅ TotalAmount válido:', totalAmount);
-        
         try {
           const paymentData = {
             amount: totalAmount,
@@ -402,99 +264,114 @@ class RegistrationController {
             products: products
           };
 
-          console.log('📦 Dados do pagamento:', JSON.stringify(paymentData, null, 2));
-          console.log('🔧 PaymentGateway disponível:', !!this.paymentGateway);
-          console.log('🔧 Métodos do PaymentGateway:', Object.keys(this.paymentGateway));
+          console.log('💳 Dados para pagamento:', JSON.stringify(paymentData, null, 2));
           
-          // Verificar se o PaymentGateway está disponível
-          if (!this.paymentGateway) {
-            throw new Error('PaymentGateway não está disponível');
-          }
+          paymentInfo = await PaymentGateway.createPayment(paymentData);
+          console.log('✅ Pagamento criado:', paymentInfo);
           
-          console.log('🔧 PaymentGateway disponível, chamando createPayment...');
-          console.log('🔧 PaymentData:', JSON.stringify(paymentData, null, 2));
-          console.log('🔧 PaymentGateway object:', this.paymentGateway);
-          console.log('🔧 PaymentGateway methods:', Object.keys(this.paymentGateway));
-          
-          let paymentResult;
-          try {
-            console.log('🔧 Iniciando chamada para PaymentGateway.createPayment...');
-            paymentResult = await this.paymentGateway.createPayment(paymentData);
-            console.log('✅ PaymentGateway.createPayment executado com sucesso');
-            console.log('✅ Resultado:', JSON.stringify(paymentResult, null, 2));
-          } catch (paymentError) {
-            console.error('❌ Erro ao chamar PaymentGateway.createPayment:', paymentError);
-            console.error('❌ Stack trace:', paymentError.stack);
-            console.error('❌ Error message:', paymentError.message);
-            if (paymentError.response) {
-              console.error('❌ Response status:', paymentError.response.status);
-              console.error('❌ Response data:', JSON.stringify(paymentError.response.data, null, 2));
-            }
-            throw paymentError;
-          }
-          
-          console.log('✅ Resultado do PaymentGateway:', JSON.stringify(paymentResult, null, 2));
-          
-          paymentInfo = {
-            payment_url: paymentResult.payment_url,
-            payment_id: paymentResult.id
-          };
-          
-          console.log('✅ Payment info criada:', paymentInfo);
         } catch (paymentError) {
           console.error('❌ Erro ao criar pagamento:', paymentError);
-          console.error('❌ Stack trace:', paymentError.stack);
-          // Continuar mesmo se o pagamento falhar
-          paymentInfo = {
-            payment_url: null,
-            payment_id: null
-          };
+          return res.status(500).json({
+            error: 'Erro ao processar pagamento',
+            details: paymentError.message
+          });
         }
-      } else {
-        console.log('❌ Condições não atendidas - não criando pagamento');
-        paymentInfo = {
-          payment_url: null,
-          payment_id: null
-        };
       }
 
-      console.log('✅ Inscrição processada com sucesso');
+      // Retornar resposta
+      const response = {
+        success: true,
+        registration: {
+          id: registration.id,
+          registration_code: registrationCode,
+          status: registration.status,
+          payment_status: registration.payment_status
+        },
+        payment: paymentInfo ? {
+          payment_url: paymentInfo.payment_url,
+          preference_id: paymentInfo.preference_id
+        } : null,
+        totalAmount: totalAmount
+      };
 
-      return res.status(201).json({
-        order_id: registration.id,
-        registration_code: registration.registration_code,
-        payment_url: paymentInfo?.payment_url,
-        payment_id: paymentInfo?.payment_id,
-        status: 'pending'
-      });
+      console.log('✅ Resposta final:', JSON.stringify(response, null, 2));
+      return res.status(201).json(response);
 
     } catch (error) {
-      console.error('❌ Erro ao criar inscrição:', error);
-      return res.status(500).json({ 
+      console.error('❌ Erro na criação da inscrição:', error);
+      console.error('❌ Stack:', error.stack);
+      
+      return res.status(500).json({
         error: 'Erro interno do servidor',
-        details: error.message 
+        details: error.message
       });
     }
   }
 
   async list(req, res) {
-    // Retorna uma lista vazia por enquanto
-    return res.json([]);
+    try {
+      const registrations = await db('registrations').select('*').orderBy('created_at', 'desc');
+      res.json(registrations);
+    } catch (error) {
+      console.error('Erro ao listar inscrições:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
   }
 
   async getById(req, res) {
-    // Retorna um objeto vazio por enquanto
-    return res.json({});
+    try {
+      const { id } = req.params;
+      const registration = await db('registrations').where('id', id).first();
+      
+      if (!registration) {
+        return res.status(404).json({ error: 'Inscrição não encontrada' });
+      }
+      
+      res.json(registration);
+    } catch (error) {
+      console.error('Erro ao buscar inscrição:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
   }
 
   async update(req, res) {
-    // Retorna mensagem de update por enquanto
-    return res.json({ message: 'update' });
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      const updated = await db('registrations')
+        .where('id', id)
+        .update({
+          ...updateData,
+          updated_at: new Date()
+        });
+      
+      if (updated === 0) {
+        return res.status(404).json({ error: 'Inscrição não encontrada' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Erro ao atualizar inscrição:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
   }
 
   async delete(req, res) {
-    // Retorna mensagem de delete por enquanto
-    return res.json({ message: 'delete' });
+    try {
+      const { id } = req.params;
+      
+      const deleted = await db('registrations').where('id', id).del();
+      
+      if (deleted === 0) {
+        return res.status(404).json({ error: 'Inscrição não encontrada' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Erro ao deletar inscrição:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
   }
 }
 
