@@ -11,7 +11,7 @@ class RegistrationController {
       console.log('🔄 Iniciando criação de inscrição...');
       console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
 
-      const { event_id, customer, items, products, totalAmount } = req.body;
+      const { event_id, customer, items, products } = req.body;
 
       // Validar dados obrigatórios
       if (!event_id || !customer || !items || !Array.isArray(items)) {
