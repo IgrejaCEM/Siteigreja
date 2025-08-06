@@ -34,6 +34,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('🔍 Buscando evento com ID/slug:', id);
     
     // Buscar evento
     const event = await db('events')
@@ -42,14 +43,33 @@ router.get('/:id', async (req, res) => {
       .first();
 
     if (!event) {
+      console.log('❌ Evento não encontrado para ID/slug:', id);
       return res.status(404).json({ error: 'Evento não encontrado' });
     }
 
+    console.log('✅ Evento encontrado:', event.title);
+
     // Buscar lotes do evento
-    const lots = await db('lots')
-      .where('event_id', event.id)
-      .where('active', true)
-      .orderBy('created_at', 'asc');
+    console.log('🔍 Buscando lotes para evento ID:', event.id);
+    
+    // Verificar se a coluna active existe na tabela lots
+    const hasLotsActiveColumn = await db.schema.hasColumn('lots', 'active');
+    console.log('🔍 Coluna active existe na tabela lots:', hasLotsActiveColumn);
+    
+    let lots;
+    if (hasLotsActiveColumn) {
+      lots = await db('lots')
+        .where('event_id', event.id)
+        .where('active', true)
+        .orderBy('created_at', 'asc');
+    } else {
+      // Fallback: buscar todos os lotes se a coluna não existir
+      lots = await db('lots')
+        .where('event_id', event.id)
+        .orderBy('created_at', 'asc');
+    }
+    
+    console.log('📊 Lotes encontrados:', lots.length);
 
     // Buscar produtos do evento (event_products)
     console.log('🔍 Buscando produtos para evento ID:', event.id);
@@ -68,10 +88,11 @@ router.get('/:id', async (req, res) => {
       banner_evento: event.banner_evento || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento'
     };
 
+    console.log('✅ Retornando evento com detalhes');
     res.json(eventWithDetails);
   } catch (error) {
-    console.error('Erro ao buscar evento:', error);
-    res.status(500).json({ error: 'Erro ao buscar evento' });
+    console.error('❌ Erro ao buscar evento:', error);
+    res.status(500).json({ error: 'Erro ao buscar evento', details: error.message });
   }
 });
 
