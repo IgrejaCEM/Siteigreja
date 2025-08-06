@@ -113,6 +113,15 @@ class RegistrationController {
         console.log('🛍️ Processando produtos da loja geral...');
         console.log('🛍️ Produtos recebidos:', products);
         
+        // Verificar conexão com banco
+        console.log('🔍 Verificando conexão com banco...');
+        try {
+          const dbTest = await db('store_products').count('* as total');
+          console.log('🔍 Teste de conexão com banco:', dbTest);
+        } catch (dbError) {
+          console.log('❌ Erro na conexão com banco:', dbError.message);
+        }
+        
         for (const product of products) {
           console.log(`🛍️ Processando produto:`, product);
           console.log(`🛍️ product_id: ${product.product_id} (tipo: ${typeof product.product_id})`);
@@ -124,10 +133,42 @@ class RegistrationController {
           try {
             // Tentar com diferentes tipos de ID
             const productId = parseInt(product.product_id) || product.product_id;
+            console.log('🔍 Product ID para busca:', productId, '(tipo:', typeof productId, ')');
+            
+            // Teste 1: Buscar sem filtro active
+            console.log('🔍 Teste 1: Buscar sem filtro active...');
             storeProduct = await db('store_products')
               .where('id', productId)
-              .where('active', true)
               .first();
+            
+            console.log('🔍 Resultado teste 1:', !!storeProduct);
+            
+            if (!storeProduct) {
+              // Teste 2: Buscar com filtro active
+              console.log('🔍 Teste 2: Buscar com filtro active...');
+              storeProduct = await db('store_products')
+                .where('id', productId)
+                .where('active', true)
+                .first();
+              
+              console.log('🔍 Resultado teste 2:', !!storeProduct);
+            }
+            
+            if (!storeProduct) {
+              // Teste 3: Buscar todos os produtos
+              console.log('🔍 Teste 3: Buscar todos os produtos...');
+              const allProducts = await db('store_products').select('*');
+              console.log('🔍 Total de produtos encontrados:', allProducts.length);
+              console.log('🔍 IDs dos produtos:', allProducts.map(p => p.id));
+              
+              // Teste 4: Buscar por string
+              console.log('🔍 Teste 4: Buscar por string...');
+              storeProduct = await db('store_products')
+                .where('id', productId.toString())
+                .first();
+              
+              console.log('🔍 Resultado teste 4:', !!storeProduct);
+            }
             
             console.log('🔍 Produto encontrado na loja geral:', !!storeProduct);
             if (storeProduct) {
@@ -140,6 +181,7 @@ class RegistrationController {
             }
           } catch (error) {
             console.log('❌ Erro ao buscar na loja geral:', error.message);
+            console.log('❌ Stack:', error.stack);
           }
           
           if (!storeProduct) {
