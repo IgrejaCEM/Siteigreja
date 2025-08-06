@@ -12,7 +12,8 @@ import {
   CircularProgress,
   useMediaQuery,
   useTheme,
-  Container
+  Container,
+  CardMedia
 } from '@mui/material';
 import {
   Event as EventIcon,
@@ -353,39 +354,72 @@ const EventoCompleto = ({ event }) => {
               {eventDetails.products && eventDetails.products.length > 0 && (
                 <Card sx={{ mb: 3 }}>
                   <CardContent>
-                    <Typography variant="h5" gutterBottom>
-                      Produtos do Evento
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                      <ShoppingCartIcon sx={{ color: 'primary.main' }} />
+                      <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                        Produtos do Evento
+                      </Typography>
+                    </Box>
+                    
+                    <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                      Produtos especiais disponíveis para este evento
                     </Typography>
                     
-                    <Grid container spacing={2}>
+                    <Grid container spacing={3}>
                       {eventDetails.products.map((product) => (
                         <Grid item xs={12} sm={6} md={4} key={product.id}>
-                          <Card>
-                            <CardContent>
-                              <Typography variant="h6" gutterBottom>
+                          <Card 
+                            sx={{ 
+                              height: '100%', 
+                              display: 'flex', 
+                              flexDirection: 'column',
+                              transition: 'transform 0.2s, box-shadow 0.2s',
+                              '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                              }
+                            }}
+                          >
+                            {/* Imagem do Produto */}
+                            <CardMedia
+                              component="img"
+                              height="200"
+                              image={product.image_url || 'https://via.placeholder.com/300x200?text=Produto'}
+                              alt={product.name}
+                              sx={{ objectFit: 'cover' }}
+                            />
+                            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
                                 {product.name}
                               </Typography>
                               {product.description && (
-                                <Typography variant="body2" sx={{ mb: 2, opacity: 0.8 }}>
+                                <Typography variant="body2" sx={{ mb: 2, opacity: 0.8, flexGrow: 1 }}>
                                   {product.description}
                                 </Typography>
                               )}
-                              <Typography variant="h6" color="primary" gutterBottom>
-                                {formatPrice(product.price)}
-                              </Typography>
-                              <Chip 
-                                label={`Estoque: ${product.stock}`} 
-                                color={product.stock > 0 ? 'success' : 'error'}
-                                size="small"
-                                sx={{ mb: 1 }}
-                              />
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+                                  {formatPrice(product.price)}
+                                </Typography>
+                                <Chip 
+                                  label={`Estoque: ${product.stock}`} 
+                                  color={product.stock > 0 ? 'success' : 'error'}
+                                  size="small"
+                                />
+                              </Box>
                               <Button
                                 fullWidth
                                 variant="contained"
                                 onClick={() => handleAddProduct(product)}
                                 disabled={product.stock <= 0}
+                                sx={{ 
+                                  mt: 'auto',
+                                  py: 1.5,
+                                  fontWeight: 'bold',
+                                  textTransform: 'none'
+                                }}
                               >
-                                Adicionar
+                                {product.stock > 0 ? 'Adicionar ao Carrinho' : 'Esgotado'}
                               </Button>
                             </CardContent>
                           </Card>
