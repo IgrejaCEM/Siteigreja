@@ -1,21 +1,9 @@
 const { db } = require('../database/db');
 const PaymentGateway = require('../services/PaymentGateway');
-const StoreProduct = require('../models/StoreProduct');
 
 class RegistrationController {
   constructor() {
-    this.generateRegistrationCode = this.generateRegistrationCode.bind(this);
     this.create = this.create.bind(this);
-    this.list = this.list.bind(this);
-    this.getById = this.getById.bind(this);
-    this.update = this.update.bind(this);
-    this.delete = this.delete.bind(this);
-  }
-
-  generateRegistrationCode() {
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substring(2, 8);
-    return `REG-${timestamp}-${random}`.toUpperCase();
   }
 
   async create(req, res) {
@@ -23,44 +11,29 @@ class RegistrationController {
       console.log('🔄 Iniciando criação de inscrição...');
       console.log('📦 Dados recebidos:', JSON.stringify(req.body, null, 2));
 
-      const {
-        event_id,
-        customer,
-        items = [],
-        products = [],
-        totalAmount: clientTotalAmount
-      } = req.body;
+      const { event_id, customer, items, products, totalAmount } = req.body;
 
-      // Validações básicas
-      if (!customer || !customer.name || !customer.email || !customer.phone) {
+      // Validar dados obrigatórios
+      if (!event_id || !customer || !items || !Array.isArray(items)) {
         return res.status(400).json({
-          error: 'Dados do cliente incompletos',
-          details: 'Nome, email e telefone são obrigatórios'
+          error: 'Dados inválidos',
+          details: 'event_id, customer e items são obrigatórios'
         });
       }
 
-      // Processar dados do cliente
-      const finalName = customer.name.trim();
-      const finalEmail = customer.email.trim().toLowerCase();
-      const finalPhone = customer.phone.trim();
-      const finalCpf = customer.cpf && customer.cpf.trim() !== '' ? customer.cpf.trim() : null;
-      const finalAddress = customer.address || null;
-      const form_data = customer.form_data || null;
-
-      // Gerar código de inscrição
+      // Gerar código de inscrição único
       const registrationCode = this.generateRegistrationCode();
       console.log('🎫 Código de inscrição gerado:', registrationCode);
 
-      // Criar inscrição no banco
+      // Criar inscrição
       const [registration] = await db('registrations').insert({
-        event_id: event_id === 999 ? null : event_id, // Para event_id 999, usar null
-        name: finalName,
-        email: finalEmail,
-        phone: finalPhone,
-        cpf: finalCpf,
-        address: finalAddress ? JSON.stringify(finalAddress) : null,
-        form_data: form_data ? JSON.stringify(form_data) : null,
+        event_id: event_id === 999 ? null : event_id,
         registration_code: registrationCode,
+        customer_name: customer.name,
+        customer_email: customer.email,
+        customer_phone: customer.phone,
+        customer_cpf: customer.cpf || null,
+        customer_address: customer.address ? JSON.stringify(customer.address) : null,
         status: 'pending',
         payment_status: 'pending',
         created_at: new Date(),
@@ -73,215 +46,176 @@ class RegistrationController {
       let totalAmount = 0;
       console.log('💰 Iniciando cálculo do valor total...');
 
-      // Processar itens (tickets do evento)
-      if (items && items.length > 0) {
-        console.log('🛍️ Processando itens (tickets):', items);
-        
-        for (const item of items) {
-          if (item.type === 'EVENT_TICKET' || item.type === 'event_ticket') {
-            // Ingresso do evento - calcular valor do lote
-            if (item.lot_id) {
-              console.log('🔍 Buscando lote:', item.lot_id);
-              const lot = await db('lots')
-                .where('id', item.lot_id)
-                .first();
-              
-              if (lot) {
-                totalAmount += lot.price * item.quantity;
-                console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
-                console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
-              } else {
-                console.log('⚠️ Lote não encontrado, usando preço do item');
-                totalAmount += item.price * item.quantity;
-                console.log(`✅ Ingresso adicionado usando preço do item - R$ ${item.price}`);
-                console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
-              }
-            } else {
-              // Se não tem lot_id, usar o preço do item
-              totalAmount += item.price * item.quantity;
-              console.log(`✅ Ingresso adicionado - R$ ${item.price}`);
-              console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
-            }
+      // Processar itens (tickets)
+      console.log('🛍️ Processando itens (tickets):', items);
+      for (const item of items) {
+        if (item.type === 'EVENT_TICKET' || item.type === 'event_ticket') {
+          console.log(`🔍 Buscando lote: ${item.lot_id}`);
+          
+          // Buscar lote no banco
+          const lot = await db('lots')
+            .where('id', item.lot_id)
+            .where('event_id', event_id)
+            .first();
+
+          if (lot) {
+            const ticketValue = parseFloat(lot.price) * item.quantity;
+            totalAmount += ticketValue;
+            console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
+            console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
+
+            // Inserir na tabela de ingressos da inscrição
+            await db('registration_tickets').insert({
+              registration_id: registration.id,
+              lot_id: lot.id,
+              quantity: item.quantity,
+              unit_price: lot.price,
+              total_price: ticketValue
+            });
+          } else {
+            // Fallback: usar o preço fornecido no item
+            const ticketValue = parseFloat(item.price) * item.quantity;
+            totalAmount += ticketValue;
+            console.log(`⚠️ Lote não encontrado, usando preço do item: R$ ${item.price}`);
+            console.log(`💰 TotalAmount após ingresso (fallback): R$ ${totalAmount}`);
           }
         }
       }
-      
-      console.log('💰 TotalAmount após processar itens (tickets):', totalAmount);
 
-      // Processar produtos da loja geral (store_products)
+      console.log(`💰 TotalAmount após processar itens (tickets): ${totalAmount}`);
+
+      // Processar produtos do evento (event_products)
       if (products && products.length > 0) {
-        console.log('🛍️ Processando produtos da loja geral...');
+        console.log('🛍️ Processando produtos do evento...');
         console.log('🛍️ Produtos recebidos:', products);
-        
-        // Verificar conexão com banco
-        console.log('🔍 Verificando conexão com banco...');
-        try {
-          const dbTest = await db('store_products').count('* as total');
-          console.log('🔍 Teste de conexão com banco:', dbTest);
-        } catch (dbError) {
-          console.log('❌ Erro na conexão com banco:', dbError.message);
-        }
         
         for (const product of products) {
           console.log(`🛍️ Processando produto:`, product);
           console.log(`🛍️ product_id: ${product.product_id} (tipo: ${typeof product.product_id})`);
           
-          // Buscar produto na loja geral (store_products)
-          console.log('🔍 Buscando na loja geral (store_products)...');
-          let storeProduct = null;
+          // Buscar produto no evento (event_products)
+          console.log('🔍 Buscando na loja do evento (event_products)...');
+          let eventProduct = null;
           
           try {
-            // Tentar com diferentes tipos de ID
             const productId = parseInt(product.product_id) || product.product_id;
             console.log('🔍 Product ID para busca:', productId, '(tipo:', typeof productId, ')');
             
-            // Teste 1: Buscar sem filtro active
-            console.log('🔍 Teste 1: Buscar sem filtro active...');
-            storeProduct = await db('store_products')
+            // Buscar produto do evento
+            eventProduct = await db('event_products')
               .where('id', productId)
+              .where('event_id', event_id)
+              .where('is_active', true)
               .first();
             
-            console.log('🔍 Resultado teste 1:', !!storeProduct);
-            
-            if (!storeProduct) {
-              // Teste 2: Buscar com filtro active
-              console.log('🔍 Teste 2: Buscar com filtro active...');
-              storeProduct = await db('store_products')
-                .where('id', productId)
-                .where('active', true)
-                .first();
-              
-              console.log('🔍 Resultado teste 2:', !!storeProduct);
-            }
-            
-            if (!storeProduct) {
-              // Teste 3: Buscar todos os produtos
-              console.log('🔍 Teste 3: Buscar todos os produtos...');
-              const allProducts = await db('store_products').select('*');
-              console.log('🔍 Total de produtos encontrados:', allProducts.length);
-              console.log('🔍 IDs dos produtos:', allProducts.map(p => p.id));
-              
-              // Teste 4: Buscar por string
-              console.log('🔍 Teste 4: Buscar por string...');
-              storeProduct = await db('store_products')
-                .where('id', productId.toString())
-                .first();
-              
-              console.log('🔍 Resultado teste 4:', !!storeProduct);
-            }
-            
-            console.log('🔍 Produto encontrado na loja geral:', !!storeProduct);
-            if (storeProduct) {
+            console.log('🔍 Produto encontrado na loja do evento:', !!eventProduct);
+            if (eventProduct) {
               console.log('🔍 Dados do produto encontrado:', {
-                id: storeProduct.id,
-                name: storeProduct.name,
-                price: storeProduct.price,
-                stock: storeProduct.stock
+                id: eventProduct.id,
+                name: eventProduct.name,
+                price: eventProduct.price,
+                stock: eventProduct.stock
               });
             }
           } catch (error) {
-            console.log('❌ Erro ao buscar na loja geral:', error.message);
-            console.log('❌ Stack:', error.stack);
+            console.log('❌ Erro ao buscar na loja do evento:', error.message);
           }
           
-          if (!storeProduct) {
-            console.error(`❌ Produto ${product.product_id} não encontrado na loja geral`);
-            console.log('🔍 Tentando buscar todos os produtos para debug...');
-            try {
-              const allProducts = await db('store_products').select('*');
-              console.log('🔍 Todos os produtos na loja geral:', allProducts);
-            } catch (error) {
-              console.log('❌ Erro ao buscar todos os produtos:', error.message);
-            }
+          if (!eventProduct) {
+            console.error(`❌ Produto ${product.product_id} não encontrado na loja do evento`);
             continue;
           }
           
-          if (storeProduct.stock < product.quantity) {
-            console.error(`❌ Estoque insuficiente para produto ${storeProduct.name}`);
+          if (eventProduct.stock < product.quantity) {
+            console.error(`❌ Estoque insuficiente para produto ${eventProduct.name}`);
             continue;
           }
           
           // Calcular valor do produto
-          const productValue = parseFloat(storeProduct.price) * product.quantity;
+          const productValue = parseFloat(eventProduct.price) * product.quantity;
           totalAmount += productValue;
-          console.log(`💰 Produto ${storeProduct.name}: R$ ${storeProduct.price} x ${product.quantity} = R$ ${productValue}`);
+          console.log(`💰 Produto ${eventProduct.name}: R$ ${eventProduct.price} x ${product.quantity} = R$ ${productValue}`);
           console.log(`💰 TotalAmount atualizado: R$ ${totalAmount}`);
           
-          // Inserir na tabela de produtos da loja da inscrição
-          await db('registration_store_products').insert({
+          // Inserir na tabela de produtos do evento da inscrição
+          await db('registration_products').insert({
             registration_id: registration.id,
-            product_id: storeProduct.id,
+            product_id: eventProduct.id,
             quantity: product.quantity,
-            unit_price: storeProduct.price,
+            unit_price: eventProduct.price,
             total_price: productValue
           });
           
           // Atualizar estoque
-          await db('store_products')
-            .where('id', storeProduct.id)
+          await db('event_products')
+            .where('id', eventProduct.id)
             .decrement('stock', product.quantity);
         }
       }
-      
-      console.log('💰 TotalAmount final após todos os itens:', totalAmount);
 
-      // Verificar se o totalAmount é válido
-      console.log('🔍 Verificando totalAmount:', totalAmount);
+      console.log(`💰 TotalAmount final após todos os itens: ${totalAmount}`);
+      console.log(`🔍 Verificando totalAmount: ${totalAmount}`);
+
       if (totalAmount <= 0) {
-        console.log('⚠️ TotalAmount é inválido:', totalAmount);
-        return res.status(400).json({ 
+        console.log(`⚠️ TotalAmount é inválido: ${totalAmount}`);
+        return res.status(400).json({
           error: 'Valor total inválido',
-          details: 'O valor total deve ser maior que zero' 
+          details: 'O valor total deve ser maior que zero'
         });
       }
-      console.log('✅ TotalAmount válido:', totalAmount);
 
-      // Criar pagamento real se necessário
-      let paymentInfo = null;
-      
-      // Sempre gerar payment_url se houver itens ou produtos
+      console.log(`✅ TotalAmount válido: ${totalAmount}`);
+
+      // Verificar se há itens para processar
       console.log('🔍 Verificando condições para pagamento:');
       console.log('   - items:', items);
       console.log('   - products:', products);
-      console.log('   - items.length:', items ? items.length : 0);
+      console.log('   - items.length:', items.length);
       console.log('   - products.length:', products ? products.length : 0);
       console.log('   - totalAmount:', totalAmount);
-      
-      if ((items && items.length > 0) || (products && products.length > 0)) {
-        console.log('✅ Condições atendidas - criando pagamento real no MercadoPago...');
-        console.log('💰 Valor total:', totalAmount);
-        console.log('🎫 Lot ID:', registration.lot_id);
-        console.log('🏪 Produtos:', products);
-        
-        try {
-          const paymentData = {
-            amount: totalAmount,
-            description: `Inscrição ${registrationCode}`,
-            customer: {
-              name: finalName,
-              email: finalEmail,
-              phone: finalPhone,
-              registration_code: registrationCode,
-              id: registration.id,
-              event_id: event_id
-            },
-            items: items,
-            products: products
-          };
 
-          console.log('💳 Dados para pagamento:', JSON.stringify(paymentData, null, 2));
-          
-          paymentInfo = await PaymentGateway.createPayment(paymentData);
-          console.log('✅ Pagamento criado:', paymentInfo);
-          
-        } catch (paymentError) {
-          console.error('❌ Erro ao criar pagamento:', paymentError);
-          return res.status(500).json({
-            error: 'Erro ao processar pagamento',
-            details: paymentError.message
-          });
-        }
+      if (items.length === 0 && (!products || products.length === 0)) {
+        console.log('❌ Nenhum item para processar');
+        return res.status(400).json({
+          error: 'Carrinho vazio',
+          details: 'Adicione pelo menos um item ao carrinho'
+        });
       }
+
+      console.log('✅ Condições atendidas - criando pagamento real no MercadoPago...');
+
+      // Criar pagamento no MercadoPago
+      const paymentData = {
+        amount: totalAmount,
+        description: `Inscrição ${registrationCode}`,
+        customer: {
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          registration_code: registrationCode,
+          id: registration.id,
+          event_id: event_id
+        },
+        items: items,
+        products: products || []
+      };
+
+      console.log('💰 Valor total:', totalAmount);
+      console.log('🎫 Lot ID:', null);
+      console.log('🏪 Produtos:', products || []);
+      console.log('💳 Dados para pagamento:', JSON.stringify(paymentData, null, 2));
+
+      const payment = await PaymentGateway.createPayment(paymentData);
+
+      if (!payment || !payment.payment_url) {
+        console.log('❌ Erro ao criar pagamento no MercadoPago');
+        return res.status(500).json({
+          error: 'Erro ao processar pagamento',
+          details: 'Não foi possível criar o pagamento'
+        });
+      }
+
+      console.log('✅ Pagamento criado:', payment);
 
       // Retornar resposta
       const response = {
@@ -289,13 +223,12 @@ class RegistrationController {
         registration: {
           id: registration.id,
           registration_code: registrationCode,
-          status: registration.status,
-          payment_status: registration.payment_status
+          status: 'pending',
+          payment_status: 'pending'
         },
-        payment: paymentInfo ? {
-          payment_url: paymentInfo.payment_url,
-          preference_id: paymentInfo.preference_id
-        } : null,
+        payment: {
+          payment_url: payment.payment_url
+        },
         totalAmount: totalAmount
       };
 
@@ -303,7 +236,7 @@ class RegistrationController {
       return res.status(201).json(response);
 
     } catch (error) {
-      console.error('❌ Erro na criação de inscrição:', error);
+      console.error('❌ Erro ao criar inscrição:', error);
       return res.status(500).json({
         error: 'Erro interno do servidor',
         details: error.message
@@ -311,70 +244,23 @@ class RegistrationController {
     }
   }
 
-  async list(req, res) {
-    try {
-      const registrations = await db('registrations').select('*').orderBy('created_at', 'desc');
-      res.json(registrations);
-    } catch (error) {
-      console.error('Erro ao listar inscrições:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+  generateRegistrationCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const prefix = 'REG-';
+    const suffix = '-';
+    const codeLength = 8;
+    
+    let code = prefix;
+    for (let i = 0; i < codeLength; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-  }
-
-  async getById(req, res) {
-    try {
-      const { id } = req.params;
-      const registration = await db('registrations').where('id', id).first();
-      
-      if (!registration) {
-        return res.status(404).json({ error: 'Inscrição não encontrada' });
-      }
-      
-      res.json(registration);
-    } catch (error) {
-      console.error('Erro ao buscar inscrição:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+    code += suffix;
+    
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-  }
-
-  async update(req, res) {
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-      
-      const updated = await db('registrations')
-        .where('id', id)
-        .update({
-          ...updateData,
-          updated_at: new Date()
-        });
-      
-      if (updated === 0) {
-        return res.status(404).json({ error: 'Inscrição não encontrada' });
-      }
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Erro ao atualizar inscrição:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  }
-
-  async delete(req, res) {
-    try {
-      const { id } = req.params;
-      
-      const deleted = await db('registrations').where('id', id).del();
-      
-      if (deleted === 0) {
-        return res.status(404).json({ error: 'Inscrição não encontrada' });
-      }
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Erro ao deletar inscrição:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
+    
+    return code;
   }
 }
 
