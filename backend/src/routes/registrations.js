@@ -29,17 +29,11 @@ router.post('/', (req, res, next) => {
 // Rotas protegidas (apenas para admin)
 router.use(authMiddleware);
 
-// Listar inscrições
-router.get('/', RegistrationController.list);
-
-// Buscar inscrição por ID
-router.get('/:id', RegistrationController.getById);
-
-// Atualizar inscrição
-router.put('/:id', RegistrationController.update);
-
-// Deletar inscrição
-router.delete('/:id', RegistrationController.delete);
+// TODO: Implementar métodos CRUD quando necessário
+// router.get('/', RegistrationController.list);
+// router.get('/:id', RegistrationController.getById);
+// router.put('/:id', RegistrationController.update);
+// router.delete('/:id', RegistrationController.delete);
 
 // Verificar status do pagamento
 router.get('/:orderId/status', async (req, res) => {
