@@ -73,49 +73,12 @@ class RegistrationController {
       let totalAmount = 0;
       console.log('💰 Iniciando cálculo do valor total...');
 
-      // Processar itens (tickets e produtos do evento)
+      // Processar itens (tickets do evento)
       if (items && items.length > 0) {
-        console.log('🛍️ Processando itens:', items);
+        console.log('🛍️ Processando itens (tickets):', items);
         
         for (const item of items) {
-          if (item.type === 'EVENT_PRODUCT') {
-            // Produto do evento
-            console.log('🔍 Buscando produto do evento:', item.id);
-            const eventProduct = await db('event_products')
-              .where('id', item.id)
-              .first();
-            
-            if (!eventProduct) {
-              console.error(`❌ Produto ${item.id} não encontrado`);
-              continue;
-            }
-
-            if (eventProduct.stock < item.quantity) {
-              console.error(`❌ Estoque insuficiente para ${eventProduct.name}`);
-              continue;
-            }
-
-            // Atualizar estoque
-            await db('event_products')
-              .where('id', item.id)
-              .update({ 
-                stock: eventProduct.stock - item.quantity,
-                updated_at: new Date()
-              });
-
-            // Adicionar produto à inscrição
-            await db('registration_products').insert({
-              registration_id: registration.id,
-              product_id: item.id,
-              quantity: item.quantity,
-              unit_price: eventProduct.price,
-              created_at: new Date(),
-              updated_at: new Date()
-            });
-
-            totalAmount += eventProduct.price * item.quantity;
-            console.log(`✅ Produto ${eventProduct.name} adicionado`);
-          } else if (item.type === 'EVENT_TICKET' || item.type === 'event_ticket') {
+          if (item.type === 'EVENT_TICKET' || item.type === 'event_ticket') {
             // Ingresso do evento - calcular valor do lote
             if (item.lot_id) {
               console.log('🔍 Buscando lote:', item.lot_id);
@@ -143,9 +106,9 @@ class RegistrationController {
         }
       }
       
-      console.log('💰 TotalAmount após processar itens:', totalAmount);
+      console.log('💰 TotalAmount após processar itens (tickets):', totalAmount);
 
-      // Processar produtos da loja geral
+      // Processar produtos da loja geral (store_products)
       if (products && products.length > 0) {
         console.log('🛍️ Processando produtos da loja geral...');
         console.log('🛍️ Produtos recebidos:', products);
@@ -298,9 +261,7 @@ class RegistrationController {
       return res.status(201).json(response);
 
     } catch (error) {
-      console.error('❌ Erro na criação da inscrição:', error);
-      console.error('❌ Stack:', error.stack);
-      
+      console.error('❌ Erro na criação de inscrição:', error);
       return res.status(500).json({
         error: 'Erro interno do servidor',
         details: error.message

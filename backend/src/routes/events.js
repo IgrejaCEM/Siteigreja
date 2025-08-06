@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../database/db');
+const EventStoreController = require('../controllers/EventStoreController');
 
 // Listar todos os eventos públicos
 router.get('/', async (req, res) => {
@@ -49,18 +50,17 @@ router.get('/:id', async (req, res) => {
       .where('status', 'active')
       .orderBy('created_at', 'asc');
     
-    // Buscar produtos do evento
-    console.log('🔍 Buscando produtos para evento ID:', event.id);
-    const products = await db('event_products')
-      .where('event_id', event.id)
-      .where('is_active', true)
-      .orderBy('created_at', 'desc');
-    console.log('📊 Produtos encontrados:', products.length);
+    // Buscar produtos da loja geral (todos os produtos estão disponíveis para todos os eventos)
+    console.log('🔍 Buscando produtos da loja geral para evento ID:', event.id);
+    const storeProducts = await db('store_products')
+      .where('active', true)
+      .orderBy('name', 'asc');
+    console.log('📊 Produtos da loja geral encontrados:', storeProducts.length);
     
     const eventWithDetails = {
       ...event,
       lots: lots,
-      products: products,
+      store_products: storeProducts, // Produtos da loja geral
       banner: event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento',
       banner_home: event.banner_home || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento',
       banner_evento: event.banner_evento || event.banner || 'https://via.placeholder.com/1200x400?text=Imagem+do+Evento'
@@ -72,6 +72,11 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar evento' });
   }
 });
+
+// Rotas para integração da loja geral com eventos
+router.get('/:event_id/store-products', EventStoreController.getEventProducts);
+router.post('/:event_id/store-products', EventStoreController.addProductToEvent);
+router.delete('/:event_id/store-products/:product_id', EventStoreController.removeProductFromEvent);
 
 // Endpoint unificado para inscrição e pagamento
 router.post('/:id/inscricao-unificada', async (req, res) => {

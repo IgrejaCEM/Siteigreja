@@ -1,102 +1,246 @@
-const { db } = require('./src/database/db');
+const axios = require('axios');
 
 async function testProductionConnectionSpecific() {
-  console.log('🧪 Testando conexão específica com banco de produção...');
+  console.log('🧪 Testando problema específico no ambiente de produção...');
   
   try {
-    // Teste 1: Verificar configuração específica
-    console.log('🧪 Teste 1: Verificar configuração específica');
-    console.log('🔍 DATABASE_URL:', process.env.DATABASE_URL ? 'CONFIGURADO' : 'NÃO CONFIGURADO');
-    console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
-    console.log('🔍 Client do banco:', db.client.config.client);
-    console.log('🔍 Host:', db.client.config.connection.host);
-    console.log('🔍 Database:', db.client.config.connection.database);
-    console.log('🔍 User:', db.client.config.connection.user);
+    // Teste 1: Verificar se o problema é específico do RegistrationController
+    console.log('🧪 Teste 1: Verificar se o problema é específico do RegistrationController');
     
-    // Teste 2: Testar query específica que está falhando
-    console.log('\n🧪 Teste 2: Testar query específica que está falhando');
+    // Primeiro, vamos testar com dados mínimos
+    const minimalData = {
+      event_id: 999,
+      customer: {
+        name: "Teste",
+        email: "teste@teste.com",
+        phone: "11999999999"
+      },
+      items: [],
+      products: [
+        {
+          product_id: 1,
+          quantity: 1,
+          unit_price: 25
+        }
+      ]
+    };
+    
+    console.log('📤 Enviando dados mínimos:', JSON.stringify(minimalData, null, 2));
+    
     try {
-      const product1 = await db('store_products')
-        .where('id', 1)
-        .where('active', true)
-        .first();
-      console.log('✅ Query específica OK:', !!product1);
-      if (product1) {
-        console.log('✅ Dados do produto:', {
-          id: product1.id,
-          name: product1.name,
-          price: product1.price,
-          stock: product1.stock
-        });
-      }
-    } catch (error) {
-      console.log('❌ Erro na query específica:', error.message);
+      const response1 = await axios.post('https://siteigreja.onrender.com/api/registrations', minimalData, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      console.log('✅ Sucesso com dados mínimos:', response1.status);
+      console.log('✅ Dados da resposta:', response1.data);
+      
+    } catch (error1) {
+      console.log('❌ Erro com dados mínimos:', error1.response?.status);
+      console.log('❌ Dados do erro:', error1.response?.data);
     }
     
-    // Teste 3: Testar query sem filtro active
-    console.log('\n🧪 Teste 3: Testar query sem filtro active');
+    // Teste 2: Verificar se o problema é com o product_id
+    console.log('\n🧪 Teste 2: Verificar se o problema é com o product_id');
+    
+    const testProductId = {
+      event_id: 999,
+      customer: {
+        name: "Teste",
+        email: "teste@teste.com",
+        phone: "11999999999"
+      },
+      items: [],
+      products: [
+        {
+          product_id: "1", // String em vez de número
+          quantity: 1,
+          unit_price: 25
+        }
+      ]
+    };
+    
+    console.log('📤 Enviando com product_id como string:', JSON.stringify(testProductId, null, 2));
+    
     try {
-      const product1NoActive = await db('store_products')
-        .where('id', 1)
-        .first();
-      console.log('✅ Query sem active OK:', !!product1NoActive);
-      if (product1NoActive) {
-        console.log('✅ Dados do produto (sem active):', {
-          id: product1NoActive.id,
-          name: product1NoActive.name,
-          price: product1NoActive.price,
-          stock: product1NoActive.stock,
-          active: product1NoActive.active
-        });
-      }
-    } catch (error) {
-      console.log('❌ Erro na query sem active:', error.message);
+      const response2 = await axios.post('https://siteigreja.onrender.com/api/registrations', testProductId, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      console.log('✅ Sucesso com product_id string:', response2.status);
+      console.log('✅ Dados da resposta:', response2.data);
+      
+    } catch (error2) {
+      console.log('❌ Erro com product_id string:', error2.response?.status);
+      console.log('❌ Dados do erro:', error2.response?.data);
     }
     
-    // Teste 4: Testar query com conversão de tipo
-    console.log('\n🧪 Teste 4: Testar query com conversão de tipo');
-    try {
-      const productIdInt = parseInt('1');
-      const product1Int = await db('store_products')
-        .where('id', productIdInt)
-        .where('active', true)
-        .first();
-      console.log('✅ Query com conversão OK:', !!product1Int);
-      if (product1Int) {
-        console.log('✅ Dados do produto (com conversão):', {
-          id: product1Int.id,
-          name: product1Int.name,
-          price: product1Int.price,
-          stock: product1Int.stock
-        });
-      }
-    } catch (error) {
-      console.log('❌ Erro na query com conversão:', error.message);
-    }
+    // Teste 3: Verificar se o problema é com o event_id
+    console.log('\n🧪 Teste 3: Verificar se o problema é com o event_id');
     
-    // Teste 5: Testar query com string
-    console.log('\n🧪 Teste 5: Testar query com string');
+    const testEventId = {
+      event_id: 14, // Evento real em vez de 999
+      customer: {
+        name: "Teste",
+        email: "teste@teste.com",
+        phone: "11999999999"
+      },
+      items: [],
+      products: [
+        {
+          product_id: 1,
+          quantity: 1,
+          unit_price: 25
+        }
+      ]
+    };
+    
+    console.log('📤 Enviando com event_id 14:', JSON.stringify(testEventId, null, 2));
+    
     try {
-      const product1String = await db('store_products')
-        .where('id', '1')
-        .where('active', true)
-        .first();
-      console.log('✅ Query com string OK:', !!product1String);
-      if (product1String) {
-        console.log('✅ Dados do produto (com string):', {
-          id: product1String.id,
-          name: product1String.name,
-          price: product1String.price,
-          stock: product1String.stock
-        });
-      }
-    } catch (error) {
-      console.log('❌ Erro na query com string:', error.message);
+      const response3 = await axios.post('https://siteigreja.onrender.com/api/registrations', testEventId, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      console.log('✅ Sucesso com event_id 14:', response3.status);
+      console.log('✅ Dados da resposta:', response3.data);
+      
+    } catch (error3) {
+      console.log('❌ Erro com event_id 14:', error3.response?.status);
+      console.log('❌ Dados do erro:', error3.response?.data);
     }
     
   } catch (error) {
-    console.error('❌ Erro:', error.message);
-    console.error('❌ Stack:', error.stack);
+    console.log('❌ Erro geral:', error.message);
+  }
+}
+
+testProductionConnectionSpecific(); 
+    console.log('📤 Enviando com event_id 14:', JSON.stringify(testEventId, null, 2));
+    
+    try {
+      const response3 = await axios.post('https://siteigreja.onrender.com/api/registrations', testEventId, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      console.log('✅ Sucesso com event_id 14:', response3.status);
+      console.log('✅ Dados da resposta:', response3.data);
+      
+    } catch (error3) {
+      console.log('❌ Erro com event_id 14:', error3.response?.status);
+      console.log('❌ Dados do erro:', error3.response?.data);
+    }
+    
+  } catch (error) {
+    console.log('❌ Erro geral:', error.message);
+  }
+}
+
+testProductionConnectionSpecific(); 
+    console.log('📤 Enviando com event_id 14:', JSON.stringify(testEventId, null, 2));
+    
+    try {
+      const response3 = await axios.post('https://siteigreja.onrender.com/api/registrations', testEventId, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      console.log('✅ Sucesso com event_id 14:', response3.status);
+      console.log('✅ Dados da resposta:', response3.data);
+      
+    } catch (error3) {
+      console.log('❌ Erro com event_id 14:', error3.response?.status);
+      console.log('❌ Dados do erro:', error3.response?.data);
+    }
+    
+  } catch (error) {
+    console.log('❌ Erro geral:', error.message);
+  }
+}
+
+testProductionConnectionSpecific(); 
+    console.log('📤 Enviando com event_id 14:', JSON.stringify(testEventId, null, 2));
+    
+    try {
+      const response3 = await axios.post('https://siteigreja.onrender.com/api/registrations', testEventId, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      console.log('✅ Sucesso com event_id 14:', response3.status);
+      console.log('✅ Dados da resposta:', response3.data);
+      
+    } catch (error3) {
+      console.log('❌ Erro com event_id 14:', error3.response?.status);
+      console.log('❌ Dados do erro:', error3.response?.data);
+    }
+    
+  } catch (error) {
+    console.log('❌ Erro geral:', error.message);
+  }
+}
+
+testProductionConnectionSpecific(); 
+    console.log('📤 Enviando com event_id 14:', JSON.stringify(testEventId, null, 2));
+    
+    try {
+      const response3 = await axios.post('https://siteigreja.onrender.com/api/registrations', testEventId, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      console.log('✅ Sucesso com event_id 14:', response3.status);
+      console.log('✅ Dados da resposta:', response3.data);
+      
+    } catch (error3) {
+      console.log('❌ Erro com event_id 14:', error3.response?.status);
+      console.log('❌ Dados do erro:', error3.response?.data);
+    }
+    
+  } catch (error) {
+    console.log('❌ Erro geral:', error.message);
+  }
+}
+
+testProductionConnectionSpecific(); 
+    console.log('📤 Enviando com event_id 14:', JSON.stringify(testEventId, null, 2));
+    
+    try {
+      const response3 = await axios.post('https://siteigreja.onrender.com/api/registrations', testEventId, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      console.log('✅ Sucesso com event_id 14:', response3.status);
+      console.log('✅ Dados da resposta:', response3.data);
+      
+    } catch (error3) {
+      console.log('❌ Erro com event_id 14:', error3.response?.status);
+      console.log('❌ Dados do erro:', error3.response?.data);
+    }
+    
+  } catch (error) {
+    console.log('❌ Erro geral:', error.message);
   }
 }
 

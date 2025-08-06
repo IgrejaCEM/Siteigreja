@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 async function testProductionDebugDetailed() {
-  console.log('🧪 Testando debug detalhado do problema no ambiente de produção...');
+  console.log('🧪 Testando debug detalhado do ambiente de produção...');
   
   try {
     // Teste 1: Verificar se o problema é específico do RegistrationController

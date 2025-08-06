@@ -3,11 +3,12 @@ const axios = require('axios');
 async function testRegistrationControllerDeployed() {
   console.log('🧪 Testando RegistrationController no backend deployado...');
   
+  // Teste com dados que sabemos que funcionam localmente
   const testData = {
-    event_id: 999, // Store-only purchase
+    event_id: 999,
     customer: {
       name: "Teste Usuário",
-      email: "teste@teste.com", 
+      email: "teste@teste.com",
       phone: "11999999999",
       cpf: null
     },
@@ -16,16 +17,16 @@ async function testRegistrationControllerDeployed() {
       {
         product_id: 1,
         quantity: 1,
-        unit_price: 25
+        unit_price: 45 // Usando o preço real do produto 1 (Bíblia Sagrada)
       }
     ],
-    totalAmount: 25
+    totalAmount: 45
   };
   
+  console.log('📤 Enviando dados para backend deployado...');
+  console.log('📤 Dados:', JSON.stringify(testData, null, 2));
+  
   try {
-    console.log('📤 Enviando dados para backend deployado...');
-    console.log('📤 Dados:', JSON.stringify(testData, null, 2));
-    
     const response = await axios.post('https://siteigreja.onrender.com/api/registrations', testData, {
       headers: {
         'Content-Type': 'application/json'
@@ -33,7 +34,7 @@ async function testRegistrationControllerDeployed() {
       timeout: 30000
     });
     
-    console.log('✅ Resposta do backend:', response.status);
+    console.log('✅ Sucesso na requisição:', response.status);
     console.log('✅ Dados da resposta:', response.data);
     
   } catch (error) {
