@@ -739,7 +739,7 @@ const Checkout = () => {
   return (
     <Box sx={{ minHeight: '100vh', background: '#f5f5f5' }}>
       <ModernHeader />
-      <Container maxWidth="lg" sx={{ py: 4, mt: 8 }}>
+      <Container maxWidth="lg" sx={{ py: 4, mt: 12, pt: 6 }}>
         <Card sx={{ p: 4 }}>
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
             {steps.map((label) => (

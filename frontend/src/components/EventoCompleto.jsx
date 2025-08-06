@@ -35,10 +35,8 @@ const EventoCompleto = ({ event }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLot, setSelectedLot] = useState(null);
-  const [storeProducts, setStoreProducts] = useState([]);
-  const [loadingStore, setLoadingStore] = useState(false);
   
-  const { addItem, getEventItems, removeItem, updateQuantity, getStoreItems } = useCart();
+  const { addItem, getEventItems, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
   
   const theme = useTheme();
@@ -47,7 +45,6 @@ const EventoCompleto = ({ event }) => {
 
   // Obter produtos do carrinho para este evento
   const cartProducts = getEventItems(event?.id);
-  const cartStoreProducts = getStoreItems();
 
   useEffect(() => {
     const loadEventDetails = async () => {
@@ -71,21 +68,8 @@ const EventoCompleto = ({ event }) => {
       }
     };
 
-    const loadStoreProducts = async () => {
-      try {
-        setLoadingStore(true);
-        const response = await api.get('/store-products');
-        setStoreProducts(response.data);
-      } catch (error) {
-        console.error('❌ Erro ao carregar produtos da loja:', error);
-      } finally {
-        setLoadingStore(false);
-      }
-    };
-
     if (event) {
       loadEventDetails();
-      loadStoreProducts();
     }
   }, [event]);
 
@@ -121,27 +105,6 @@ const EventoCompleto = ({ event }) => {
     }
   };
 
-  const handleAddStoreProduct = (product, quantity = 1) => {
-    try {
-      console.log('🛒 Adicionando produto da loja ao carrinho:', product, 'quantidade:', quantity);
-      
-      const cartItem = {
-        id: product.id,
-        name: product.name,
-        price: parseFloat(product.price),
-        quantity: quantity,
-        type: ITEM_TYPES.STORE_PRODUCT,
-        image: product.image_url,
-        description: product.description,
-        stock: product.stock
-      };
-
-      addItem(cartItem);
-    } catch (error) {
-      console.error('❌ Erro ao adicionar produto da loja:', error);
-    }
-  };
-
   const handleRemoveProduct = (product) => {
     try {
       console.log('🗑️ Removendo produto do carrinho:', product);
@@ -172,11 +135,6 @@ const EventoCompleto = ({ event }) => {
       
       // Adicionar preços dos produtos do evento
       cartProducts.forEach(product => {
-        total += parseFloat(product.price) * product.quantity;
-      });
-      
-      // Adicionar preços dos produtos da loja
-      cartStoreProducts.forEach(product => {
         total += parseFloat(product.price) * product.quantity;
       });
       
@@ -437,56 +395,6 @@ const EventoCompleto = ({ event }) => {
                   </CardContent>
                 </Card>
               )}
-
-              {/* Produtos da Loja */}
-              {storeProducts.length > 0 && (
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                      <StoreIcon />
-                      <Typography variant="h5">
-                        Produtos da Loja
-                      </Typography>
-                    </Box>
-                    
-                    <Grid container spacing={2}>
-                      {storeProducts.map((product) => (
-                        <Grid item xs={12} sm={6} md={4} key={product.id}>
-                          <Card>
-                            <CardContent>
-                              <Typography variant="h6" gutterBottom>
-                                {product.name}
-                              </Typography>
-                              {product.description && (
-                                <Typography variant="body2" sx={{ mb: 2, opacity: 0.8 }}>
-                                  {product.description}
-                                </Typography>
-                              )}
-                              <Typography variant="h6" color="primary" gutterBottom>
-                                {formatPrice(product.price)}
-                              </Typography>
-                              <Chip 
-                                label={`Estoque: ${product.stock}`} 
-                                color={product.stock > 0 ? 'success' : 'error'}
-                                size="small"
-                                sx={{ mb: 1 }}
-                              />
-                              <Button
-                                fullWidth
-                                variant="contained"
-                                onClick={() => handleAddStoreProduct(product)}
-                                disabled={product.stock <= 0}
-                              >
-                                Adicionar
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </CardContent>
-                </Card>
-              )}
             </Grid>
 
             {/* Coluna Direita - Carrinho */}
@@ -556,52 +464,6 @@ const EventoCompleto = ({ event }) => {
                     </Box>
                   )}
 
-                  {/* Produtos da Loja no Carrinho */}
-                  {cartStoreProducts.length > 0 && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="h6" gutterBottom>
-                        Produtos da Loja:
-                      </Typography>
-                      {cartStoreProducts.map((product) => (
-                        <Box key={product.id} sx={{ mb: 1, p: 1, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography variant="body2">
-                              {product.name} x{product.quantity}
-                            </Typography>
-                            <Typography variant="body2" color="primary">
-                              {formatPrice(product.price * product.quantity)}
-                            </Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => handleQuantityChange(product, -1)}
-                              disabled={product.quantity <= 1}
-                            >
-                              -
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => handleQuantityChange(product, 1)}
-                            >
-                              +
-                            </Button>
-                            <Button
-                              size="small"
-                              color="error"
-                              variant="outlined"
-                              onClick={() => handleRemoveProduct(product)}
-                            >
-                              Remover
-                            </Button>
-                          </Box>
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
-
                   <Divider sx={{ my: 2 }} />
 
                   {/* Total */}
@@ -617,7 +479,7 @@ const EventoCompleto = ({ event }) => {
                     variant="contained"
                     size="large"
                     onClick={handleProceedToRegistration}
-                    disabled={!selectedLot && cartProducts.length === 0 && cartStoreProducts.length === 0}
+                    disabled={!selectedLot && cartProducts.length === 0}
                     sx={{ py: 1.5 }}
                   >
                     Finalizar Compra

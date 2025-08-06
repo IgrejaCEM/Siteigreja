@@ -40,10 +40,13 @@ const Store = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
+      console.log('🛍️ Buscando produtos da loja...');
       const response = await api.get('/store-products');
+      console.log('📦 Produtos retornados pela API:', response.data);
+      console.log('📊 Quantidade de produtos:', response.data.length);
       setProducts(response.data);
     } catch (error) {
-      console.error('Erro ao buscar produtos:', error);
+      console.error('❌ Erro ao buscar produtos:', error);
       setError('Erro ao carregar produtos');
     } finally {
       setLoading(false);
