@@ -5,14 +5,28 @@ const { db } = require('../database/db');
 // Buscar todos os eventos
 router.get('/', async (req, res) => {
   try {
-    const events = await db('events')
-      .where('active', true)
-      .orderBy('created_at', 'desc');
+    console.log('🔍 Buscando todos os eventos...');
     
+    // Verificar se a coluna active existe
+    const hasActiveColumn = await db.schema.hasColumn('events', 'active');
+    console.log('🔍 Coluna active existe:', hasActiveColumn);
+    
+    let events;
+    if (hasActiveColumn) {
+      events = await db('events')
+        .where('active', true)
+        .orderBy('created_at', 'desc');
+    } else {
+      // Fallback: buscar todos os eventos se a coluna não existir
+      events = await db('events')
+        .orderBy('created_at', 'desc');
+    }
+    
+    console.log('📊 Eventos encontrados:', events.length);
     res.json(events);
   } catch (error) {
-    console.error('Erro ao buscar eventos:', error);
-    res.status(500).json({ error: 'Erro ao buscar eventos' });
+    console.error('❌ Erro ao buscar eventos:', error);
+    res.status(500).json({ error: 'Erro ao buscar eventos', details: error.message });
   }
 });
 
