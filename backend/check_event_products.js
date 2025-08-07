@@ -1,53 +1,49 @@
 const { db } = require('./src/database/db');
 
 async function checkEventProducts() {
-  console.log('🧪 Verificando produtos do evento...');
-  
   try {
-    // Teste 1: Verificar tabela event_products
-    console.log('🧪 Teste 1: Verificar tabela event_products');
-    const tableExists = await db.schema.hasTable('event_products');
-    console.log('✅ Tabela event_products existe:', tableExists);
+    console.log('🔍 Verificando produtos do evento...');
     
-    if (tableExists) {
-      // Teste 2: Contar produtos
-      console.log('\n🧪 Teste 2: Contar produtos');
-      const count = await db('event_products').count('* as total');
-      console.log('✅ Total de produtos:', count[0].total);
-      
-      // Teste 3: Listar todos os produtos
-      console.log('\n🧪 Teste 3: Listar todos os produtos');
-      const allProducts = await db('event_products').select('*');
-      console.log('✅ Produtos encontrados:', allProducts.length);
-      allProducts.forEach(p => {
-        console.log(`   - ID: ${p.id}, Event ID: ${p.event_id}, Nome: ${p.name}, Preço: ${p.price}`);
-      });
-      
-      // Teste 4: Buscar produtos do evento 14
-      console.log('\n🧪 Teste 4: Buscar produtos do evento 14');
-      const event14Products = await db('event_products')
-        .where('event_id', 14)
-        .select('*');
-      console.log('✅ Produtos do evento 14:', event14Products.length);
-      event14Products.forEach(p => {
-        console.log(`   - ID: ${p.id}, Nome: ${p.name}, Preço: ${p.price}`);
-      });
-      
-      // Teste 5: Buscar produtos do evento 999 (loja geral)
-      console.log('\n🧪 Teste 5: Buscar produtos do evento 999 (loja geral)');
-      const event999Products = await db('event_products')
-        .where('event_id', 999)
-        .select('*');
-      console.log('✅ Produtos do evento 999:', event999Products.length);
-      event999Products.forEach(p => {
-        console.log(`   - ID: ${p.id}, Nome: ${p.name}, Preço: ${p.price}`);
+    // Verificar se a tabela event_products existe
+    const hasEventProductsTable = await db.schema.hasTable('event_products');
+    console.log('📋 Tabela event_products existe:', hasEventProductsTable);
+    
+    if (!hasEventProductsTable) {
+      console.log('❌ Tabela event_products não existe!');
+      return;
+    }
+    
+    // Verificar produtos cadastrados
+    const allProducts = await db('event_products').select('*');
+    console.log('📊 Total de produtos cadastrados:', allProducts.length);
+    
+    if (allProducts.length > 0) {
+      console.log('📋 Produtos encontrados:');
+      allProducts.forEach(product => {
+        console.log(`  - ID: ${product.id}, Nome: ${product.name}, Evento: ${product.event_id}, Ativo: ${product.is_active}, Preço: R$ ${product.price}`);
       });
     }
     
+    // Verificar produtos para o evento específico (ID 14)
+    const eventProducts = await db('event_products')
+      .where('event_id', 14)
+      .where('is_active', true);
+    console.log('📊 Produtos do evento 14:', eventProducts.length);
+    
+    if (eventProducts.length > 0) {
+      console.log('📋 Produtos do evento 14:');
+      eventProducts.forEach(product => {
+        console.log(`  - ${product.name}: R$ ${product.price} (Estoque: ${product.stock})`);
+      });
+    } else {
+      console.log('❌ Nenhum produto ativo encontrado para o evento 14');
+    }
+    
   } catch (error) {
-    console.error('❌ Erro:', error.message);
-    console.error('❌ Stack:', error.stack);
+    console.error('❌ Erro ao verificar produtos:', error.message);
+  } finally {
+    process.exit(0);
   }
 }
 
-checkEventProducts(); 
+checkEventProducts();
