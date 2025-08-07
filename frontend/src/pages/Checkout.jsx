@@ -361,8 +361,8 @@ const Checkout = () => {
 
       return {
         success: true,
-        orderId: response.data.order_id,
-        paymentUrl: response.data.payment_url
+        orderId: response.data.registration?.id || response.data.order_id,
+        paymentUrl: response.data.payment?.payment_url || response.data.payment_url
       };
     } catch (error) {
       console.error('Erro ao processar pedido do evento:', error);

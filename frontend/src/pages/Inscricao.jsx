@@ -452,15 +452,15 @@ const Inscricao = () => {
         setActiveStep(2);
         setLoading(false);
         return; // IMPORTANTE: Sair da função aqui!
-      } else if (response.data.payment_info && response.data.payment_info.payment_url) {
+      } else if (response.data.payment && response.data.payment.payment_url) {
         // Para lotes pagos, verificar se há link de pagamento
-        if (response.data.payment_info && response.data.payment_info.payment_url) {
-          setPaymentUrl(response.data.payment_info.payment_url);
+        if (response.data.payment && response.data.payment.payment_url) {
+          setPaymentUrl(response.data.payment.payment_url);
           setPaymentPending(true);
           
           // Abrir checkout automaticamente
           console.log('🔗 Abrindo checkout do Mercado Pago...');
-          console.log('📦 URL do checkout:', response.data.payment_info.payment_url);
+          console.log('📦 URL do checkout:', response.data.payment.payment_url);
           
           // Detectar se é iPhone/Safari
           const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -474,7 +474,7 @@ const Inscricao = () => {
             
             // Estratégia 1: Tentar window.open primeiro
             try {
-              const popup = window.open(response.data.payment_info.payment_url, '_blank');
+              const popup = window.open(response.data.payment.payment_url, '_blank');
               if (popup) {
                 console.log('✅ Checkout aberto em popup no iPhone!');
                 return;
@@ -486,7 +486,7 @@ const Inscricao = () => {
             // Estratégia 2: Criar link e clicar automaticamente
             try {
               const link = document.createElement('a');
-              link.href = response.data.payment_info.payment_url;
+              link.href = response.data.payment.payment_url;
               link.target = '_blank';
               link.rel = 'noopener noreferrer';
               document.body.appendChild(link);
@@ -501,23 +501,23 @@ const Inscricao = () => {
             // Estratégia 3: Redirecionamento direto
             console.log('📱 Redirecionando diretamente no iPhone...');
             setTimeout(() => {
-              window.location.href = response.data.payment_info.payment_url;
+              window.location.href = response.data.payment.payment_url;
             }, 100);
             
           } else {
             // Para outros dispositivos, tentar popup primeiro
             try {
-              const popup = window.open(response.data.payment_info.payment_url, '_blank', 'width=800,height=600');
+              const popup = window.open(response.data.payment.payment_url, '_blank', 'width=800,height=600');
               if (!popup) {
                 console.log('⚠️ Popup bloqueado, redirecionando na mesma aba');
-                window.location.href = response.data.payment_info.payment_url;
+                window.location.href = response.data.payment.payment_url;
               } else {
                 console.log('✅ Checkout aberto em popup!');
               }
-            } catch (error) {
-              console.error('❌ Erro ao abrir checkout:', error);
-              window.location.href = response.data.payment_info.payment_url;
-            }
+                          } catch (error) {
+                console.error('❌ Erro ao abrir checkout:', error);
+                window.location.href = response.data.payment.payment_url;
+              }
           }
         } else {
           setPaymentUrl('');
