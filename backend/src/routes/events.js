@@ -37,10 +37,24 @@ router.get('/:id', async (req, res) => {
     console.log('🔍 Buscando evento com ID/slug:', id);
     
     // Buscar evento
-    const event = await db('events')
-      .where('id', id)
-      .orWhere('slug', id)
-      .first();
+    let event;
+    
+    // Verificar se o parâmetro é um número (ID) ou string (slug)
+    const isNumeric = !isNaN(id) && !isNaN(parseFloat(id));
+    
+    if (isNumeric) {
+      // Se for número, buscar por ID
+      console.log('🔍 Buscando por ID numérico:', parseInt(id));
+      event = await db('events')
+        .where('id', parseInt(id))
+        .first();
+    } else {
+      // Se for string, buscar por slug
+      console.log('🔍 Buscando por slug:', id);
+      event = await db('events')
+        .where('slug', id)
+        .first();
+    }
 
     if (!event) {
       console.log('❌ Evento não encontrado para ID/slug:', id);

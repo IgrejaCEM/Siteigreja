@@ -1,4 +1,9 @@
-# Deploy trigger - Frontend - Updated at 2025-01-04 01:52:00
-# This file forces a new deployment on Vercel
-# Last update: 2025-01-04 01:52:00 - Force frontend deploy to apply layout fixes
-# Layout fix: Container mt: 12, pt: 6 to prevent header overlap 
+# Deploy trigger - Forçar novo deploy
+# Última atualização: 2025-08-06T22:20:00Z
+# Motivo: Corrigir problema de carregamento de eventos na home page
+# Backend está funcionando, problema pode ser cache do frontend
+
+# Cache busting para forçar reload
+# API_BASE_URL: https://siteigreja.onrender.com/api
+# Status: Backend funcionando perfeitamente
+# Problema: Frontend não carrega eventos (possível cache) 
