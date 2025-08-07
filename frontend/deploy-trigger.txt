@@ -1,9 +1,7 @@
-# Deploy trigger - Forçar novo deploy
-# Última atualização: 2025-08-06T22:20:00Z
-# Motivo: Corrigir problema de carregamento de eventos na home page
-# Backend está funcionando, problema pode ser cache do frontend
+# Deploy trigger - Forçar novo deploy do frontend
+# Última atualização: 2025-08-07T01:30:00Z
+# Motivo: Backend está funcionando, mas frontend não está processando payment_url
+# Status: Backend retorna payment_url corretamente, mas frontend não a recebe
 
-# Cache busting para forçar reload
-# API_BASE_URL: https://siteigreja.onrender.com/api
-# Status: Backend funcionando perfeitamente
-# Problema: Frontend não carrega eventos (possível cache) 
+# Problema: Frontend mostra "Payment URL não foi gerada" mesmo com backend funcionando
+# Solução: Forçar novo deploy do frontend para limpar cache e atualizar código 
