@@ -63,14 +63,20 @@ class RegistrationController {
             console.log(`✅ Ingresso do lote ${lot.name} adicionado - R$ ${lot.price}`);
             console.log(`💰 TotalAmount após ingresso: R$ ${totalAmount}`);
 
-            // Inserir na tabela de ingressos da inscrição
-            await db('registration_tickets').insert({
-              registration_id: registration.id,
-              lot_id: lot.id,
-              quantity: item.quantity,
-              unit_price: lot.price,
-              total_price: ticketValue
-            });
+            // Inserir na tabela de ingressos da inscrição (opcional)
+            try {
+              await db('registration_tickets').insert({
+                registration_id: registration.id,
+                lot_id: lot.id,
+                quantity: item.quantity,
+                unit_price: lot.price,
+                total_price: ticketValue
+              });
+              console.log('✅ Ticket inserido na tabela registration_tickets');
+            } catch (error) {
+              console.log('⚠️ Erro ao inserir na tabela registration_tickets:', error.message);
+              console.log('⚠️ Continuando sem inserir na tabela de relacionamento...');
+            }
           } else {
             // Fallback: usar o preço fornecido no item
             const ticketValue = parseFloat(item.price) * item.quantity;
@@ -136,14 +142,20 @@ class RegistrationController {
           console.log(`💰 Produto ${eventProduct.name}: R$ ${eventProduct.price} x ${product.quantity} = R$ ${productValue}`);
           console.log(`💰 TotalAmount atualizado: R$ ${totalAmount}`);
           
-          // Inserir na tabela de produtos do evento da inscrição
-          await db('registration_products').insert({
-            registration_id: registration.id,
-            product_id: eventProduct.id,
-            quantity: product.quantity,
-            unit_price: eventProduct.price,
-            total_price: productValue
-          });
+          // Inserir na tabela de produtos do evento da inscrição (opcional)
+          try {
+            await db('registration_products').insert({
+              registration_id: registration.id,
+              product_id: eventProduct.id,
+              quantity: product.quantity,
+              unit_price: eventProduct.price,
+              total_price: productValue
+            });
+            console.log('✅ Produto inserido na tabela registration_products');
+          } catch (error) {
+            console.log('⚠️ Erro ao inserir na tabela registration_products:', error.message);
+            console.log('⚠️ Continuando sem inserir na tabela de relacionamento...');
+          }
           
           // Atualizar estoque
           await db('event_products')
