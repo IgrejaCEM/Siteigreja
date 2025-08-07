@@ -29,13 +29,12 @@ class RegistrationController {
       const [registration] = await db('registrations').insert({
         event_id: event_id === 999 ? null : event_id,
         registration_code: registrationCode,
-        customer_name: customer.name,
-        customer_email: customer.email,
-        customer_phone: customer.phone,
-        customer_cpf: customer.cpf || null,
-        customer_address: customer.address ? JSON.stringify(customer.address) : null,
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        cpf: customer.cpf || null,
+        address: customer.address ? JSON.stringify(customer.address) : null,
         status: 'pending',
-        payment_status: 'pending',
         created_at: new Date(),
         updated_at: new Date()
       }).returning('*');
