@@ -355,29 +355,7 @@ const Home = () => {
         </Box>
       </Box>
 
-      {/* Seção da Loja */}
-      <Box sx={{ py: 6, bgcolor: 'grey.50' }}>
-        <Container maxWidth="lg">
-          <Typography variant="h4" component="h2" align="center" gutterBottom>
-            Loja da Igreja
-          </Typography>
-          <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 4 }}>
-            Produtos especiais para sua fé e devoção
-          </Typography>
-          
-          <Box sx={{ textAlign: 'center' }}>
-            <Button
-              variant="contained"
-              size="large"
-              component={Link}
-              to="/loja"
-              sx={{ px: 4, py: 1.5 }}
-            >
-              Visitar Loja
-            </Button>
-          </Box>
-        </Container>
-      </Box>
+      {/* Seção da Loja removida a pedido: não exibir na home */}
       <style>{css}</style>
       <style>{`
         @keyframes pulse {
