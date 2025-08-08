@@ -36,6 +36,7 @@ const EventoCompleto = ({ event }) => {
   const SHOW_GENERAL_STORE_ON_EVENT = false;
   const [eventDetails, setEventDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLot, setSelectedLot] = useState(null);
   const [storeProducts, setStoreProducts] = useState([]);
@@ -67,6 +68,10 @@ const EventoCompleto = ({ event }) => {
         const response = await api.get(`/events/${event.slug || event.id}`);
         console.log('✅ Detalhes do evento carregados:', response.data);
         setEventDetails(response.data);
+        // Pré-selecionar primeiro lote para reduzir toques no iPhone
+        if (!selectedLot && response.data?.lots?.length > 0) {
+          setSelectedLot(response.data.lots[0]);
+        }
       } catch (error) {
         console.error('❌ Erro ao carregar detalhes do evento:', error);
         setError(error.response?.data?.error || 'Erro ao carregar evento');
@@ -76,7 +81,7 @@ const EventoCompleto = ({ event }) => {
     };
 
     if (event) {
-      loadEventDetails();
+      loadEventDetails().finally(() => setInitializing(false));
     }
   }, [event]);
 
@@ -108,6 +113,13 @@ const EventoCompleto = ({ event }) => {
     try {
       console.log('🎯 Lote selecionado:', lot);
       setSelectedLot(lot);
+      // Scroll suave até o resumo ao selecionar (melhor UX no iPhone)
+      try {
+        const summary = document.getElementById('order-summary');
+        if (summary) {
+          summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (_) {}
     } catch (error) {
       console.error('❌ Erro ao selecionar lote:', error);
     }
@@ -374,9 +386,14 @@ const EventoCompleto = ({ event }) => {
               {eventDetails.lots && eventDetails.lots.length > 0 && (
                 <Card sx={{ mb: 3 }}>
                   <CardContent>
-                    <Typography variant="h5" gutterBottom>
-                      Ingressos Disponíveis
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="h5" gutterBottom>
+                        Ingressos Disponíveis
+                      </Typography>
+                      {initializing && (
+                        <CircularProgress size={18} />
+                      )}
+                    </Box>
                     
                     <Grid container spacing={2}>
                       {eventDetails.lots.map((lot) => (
@@ -385,7 +402,9 @@ const EventoCompleto = ({ event }) => {
                             sx={{ 
                               cursor: 'pointer',
                               border: selectedLot?.id === lot.id ? '2px solid #ff6b35' : '1px solid rgba(255,255,255,0.2)',
-                              background: selectedLot?.id === lot.id ? 'rgba(255,107,53,0.1)' : 'rgba(255,255,255,0.05)'
+                              background: selectedLot?.id === lot.id ? 'rgba(255,107,53,0.1)' : 'rgba(255,255,255,0.05)',
+                              transition: 'transform .15s ease-out, background .15s ease-out',
+                              '&:active': { transform: 'scale(0.98)' }
                             }}
                             onClick={() => handleLotSelect(lot)}
                           >
@@ -396,11 +415,16 @@ const EventoCompleto = ({ event }) => {
                               <Typography variant="h5" color="primary" gutterBottom>
                                 {formatPrice(lot.price)}
                               </Typography>
-                              <Chip 
-                                label={`${lot.available_spots} vagas`} 
-                                color="primary" 
-                                size="small"
-                              />
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                <Chip 
+                                  label={`${lot.available_spots ?? '∞'} vagas`} 
+                                  color="primary" 
+                                  size="small"
+                                />
+                                {selectedLot?.id === lot.id && (
+                                  <Chip label="Selecionado" color="success" size="small" />
+                                )}
+                              </Box>
                             </CardContent>
                           </Card>
                         </Grid>
@@ -575,7 +599,7 @@ const EventoCompleto = ({ event }) => {
 
             {/* Coluna Direita - Carrinho */}
             <Grid item xs={12} md={4}>
-              <Card sx={{ position: 'sticky', top: 20 }}>
+              <Card id="order-summary" sx={{ position: 'sticky', top: 20 }}>
                 <CardContent>
                   <Typography variant="h5" gutterBottom>
                     <ShoppingCartIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
