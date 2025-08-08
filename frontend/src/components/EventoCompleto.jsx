@@ -40,15 +40,16 @@ const EventoCompleto = ({ event }) => {
   const [storeLoading, setStoreLoading] = useState(true);
   const [storeError, setStoreError] = useState(null);
   
-  const { addItem, getEventItems, removeItem, updateQuantity } = useCart();
+  const { addItem, getEventItems, getStoreItems, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmallMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Obter produtos do carrinho para este evento
+  // Obter produtos do carrinho
   const cartProducts = getEventItems(event?.id);
+  const cartStoreItems = getStoreItems();
 
   useEffect(() => {
     const loadEventDetails = async () => {
@@ -179,6 +180,11 @@ const EventoCompleto = ({ event }) => {
       
       // Adicionar preços dos produtos do evento
       cartProducts.forEach(product => {
+        total += parseFloat(product.price) * product.quantity;
+      });
+
+      // Adicionar preços dos produtos da loja geral
+      cartStoreItems.forEach(product => {
         total += parseFloat(product.price) * product.quantity;
       });
       
@@ -575,7 +581,7 @@ const EventoCompleto = ({ event }) => {
                     </Box>
                   )}
 
-                  {/* Produtos do Evento no Carrinho */}
+                  {/* Produtos adicionados ao carrinho */}
                   {cartProducts.length > 0 && (
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="h6" gutterBottom>
@@ -583,6 +589,51 @@ const EventoCompleto = ({ event }) => {
                       </Typography>
                       {cartProducts.map((product) => (
                         <Box key={product.id} sx={{ mb: 1, p: 1, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography variant="body2">
+                              {product.name} x{product.quantity}
+                            </Typography>
+                            <Typography variant="body2" color="primary">
+                              {formatPrice(product.price * product.quantity)}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => handleQuantityChange(product, -1)}
+                              disabled={product.quantity <= 1}
+                            >
+                              -
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => handleQuantityChange(product, 1)}
+                            >
+                              +
+                            </Button>
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              onClick={() => handleRemoveProduct(product)}
+                            >
+                              Remover
+                            </Button>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+
+                  {cartStoreItems.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Produtos da Loja:
+                      </Typography>
+                      {cartStoreItems.map((product) => (
+                        <Box key={`store-${product.id}`} sx={{ mb: 1, p: 1, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Typography variant="body2">
                               {product.name} x{product.quantity}
