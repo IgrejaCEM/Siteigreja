@@ -13,7 +13,9 @@ import {
   useMediaQuery,
   useTheme,
   Container,
-  CardMedia
+  CardMedia,
+  Skeleton,
+  ButtonBase
 } from '@mui/material';
 import {
   Event as EventIcon,
@@ -396,36 +398,50 @@ const EventoCompleto = ({ event }) => {
                     </Box>
                     
                     <Grid container spacing={2}>
-                      {eventDetails.lots.map((lot) => (
+                      {loading && (
+                        <>
+                          {[1,2].map((i) => (
+                            <Grid item xs={12} sm={6} key={`sk-${i}`}>
+                              <Card sx={{ p: 2, bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2 }}>
+                                <Skeleton variant="text" height={28} />
+                                <Skeleton variant="text" height={36} width="40%" />
+                                <Skeleton variant="rectangular" height={32} sx={{ mt: 1, borderRadius: 1 }} />
+                              </Card>
+                            </Grid>
+                          ))}
+                        </>
+                      )}
+                      {!loading && eventDetails.lots.map((lot) => (
                         <Grid item xs={12} sm={6} key={lot.id}>
-                          <Card 
-                            sx={{ 
-                              cursor: 'pointer',
-                              border: selectedLot?.id === lot.id ? '2px solid #ff6b35' : '1px solid rgba(255,255,255,0.2)',
-                              background: selectedLot?.id === lot.id ? 'rgba(255,107,53,0.1)' : 'rgba(255,255,255,0.05)',
-                              transition: 'transform .15s ease-out, background .15s ease-out',
-                              '&:active': { transform: 'scale(0.98)' }
-                            }}
-                            onClick={() => handleLotSelect(lot)}
-                          >
-                            <CardContent>
-                              <Typography variant="h6" gutterBottom>
-                                {lot.name}
-                              </Typography>
-                              <Typography variant="h5" color="primary" gutterBottom>
-                                {formatPrice(lot.price)}
-                              </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                                <Chip 
-                                  label={`${lot.available_spots ?? '∞'} vagas`} 
-                                  color="primary" 
-                                  size="small"
-                                />
-                                {selectedLot?.id === lot.id && (
-                                  <Chip label="Selecionado" color="success" size="small" />
-                                )}
-                              </Box>
-                            </CardContent>
+                          <Card sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, border: '1px solid rgba(255,255,255,0.12)' }}>
+                            <ButtonBase
+                              onClick={() => handleLotSelect(lot)}
+                              sx={{ display: 'block', width: '100%', textAlign: 'left', borderRadius: 2 }}
+                            >
+                              <CardContent sx={{ p: 2 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
+                                  {lot.name}
+                                </Typography>
+                                <Typography variant="h6" color="primary" sx={{ fontWeight: 800, mb: 1 }}>
+                                  {Number(lot.price) === 0 ? 'Gratuito' : formatPrice(lot.price)}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                  <Chip 
+                                    label={`${lot.available_spots ?? '∞'} vagas`} 
+                                    color="primary" 
+                                    size="small"
+                                  />
+                                  {selectedLot?.id === lot.id && (
+                                    <Chip label="Selecionado" color="success" size="small" />
+                                  )}
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1.5 }}>
+                                  <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
+                                    {selectedLot?.id === lot.id ? 'Selecionado' : 'Selecionar'}
+                                  </Button>
+                                </Box>
+                              </CardContent>
+                            </ButtonBase>
                           </Card>
                         </Grid>
                       ))}
