@@ -104,8 +104,8 @@ const Checkout = () => {
   // Verificar se há tickets no carrinho
   const hasEventTickets = items.some(item => item.type === ITEM_TYPES.EVENT_TICKET);
   
-  // Verificar se o evento requer endereço
-  const requiresAddress = eventData?.registration_form?.endereco || hasEventTickets;
+  // Endereço não é obrigatório (entrega presencial). Só mostrar se o evento exigir explicitamente
+  const requiresAddress = Boolean(eventData?.registration_form?.endereco);
 
   const handleNext = () => {
     console.log('🔄 handleNext chamado, step atual:', activeStep);
@@ -131,6 +131,7 @@ const Checkout = () => {
       
       // Validar endereço se necessário
       if (requiresAddress) {
+        // Caso o evento exija endereço, validar; caso contrário, não obrigar
         const addressFields = ['street', 'number', 'neighborhood', 'city', 'state', 'zipCode'];
         const missingAddressFields = addressFields.filter(field => !formData.address[field]);
         if (missingAddressFields.length > 0) {
