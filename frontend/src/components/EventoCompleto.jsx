@@ -32,6 +32,8 @@ import { useNavigate } from 'react-router-dom';
 dayjs.locale('pt-br');
 
 const EventoCompleto = ({ event }) => {
+  // Flag para controlar exibição da loja geral na página do evento
+  const SHOW_GENERAL_STORE_ON_EVENT = false;
   const [eventDetails, setEventDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -80,6 +82,9 @@ const EventoCompleto = ({ event }) => {
 
   // Carregar produtos da loja geral para exibir abaixo dos ingressos
   useEffect(() => {
+    if (!SHOW_GENERAL_STORE_ON_EVENT) {
+      return; // não buscar se não for exibir
+    }
     const loadStoreProducts = async () => {
       try {
         setStoreLoading(true);
@@ -97,7 +102,7 @@ const EventoCompleto = ({ event }) => {
     };
 
     loadStoreProducts();
-  }, []);
+  }, [SHOW_GENERAL_STORE_ON_EVENT]);
 
   const handleLotSelect = (lot) => {
     try {
@@ -485,7 +490,8 @@ const EventoCompleto = ({ event }) => {
                 </Card>
               )}
 
-              {/* Loja da Igreja (produtos gerais) */}
+              {/* Loja da Igreja (produtos gerais) - oculto por padrão */}
+              {SHOW_GENERAL_STORE_ON_EVENT && (
               <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
@@ -564,6 +570,7 @@ const EventoCompleto = ({ event }) => {
                   )}
                 </CardContent>
               </Card>
+              )}
             </Grid>
 
             {/* Coluna Direita - Carrinho */}
