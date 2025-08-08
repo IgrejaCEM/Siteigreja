@@ -422,6 +422,9 @@ const EventoCompleto = ({ event }) => {
                                 <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
                                   {lot.name}
                                 </Typography>
+                                <Typography variant="body2" sx={{ opacity: 0.85, mb: .5 }}>
+                                  {dayjs(lot.start_date).format('DD/MM')} - {dayjs(lot.end_date).format('DD/MM')}
+                                </Typography>
                                 <Typography variant="h6" color="primary" sx={{ fontWeight: 800, mb: 1 }}>
                                   {Number(lot.price) === 0 ? 'Gratuito' : formatPrice(lot.price)}
                                 </Typography>
@@ -451,7 +454,7 @@ const EventoCompleto = ({ event }) => {
               )}
 
               {/* Produtos do Evento */}
-              {eventDetails.products && eventDetails.products.length > 0 && (
+              {Array.isArray(eventDetails.products) && eventDetails.products.length > 0 && (
                 <Card sx={{ mb: 3 }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
