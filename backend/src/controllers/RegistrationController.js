@@ -143,6 +143,10 @@ class RegistrationController {
 
             if (!storeProduct) {
               console.error(`❌ Produto ${product.product_id} não encontrado nem na loja do evento nem na loja geral`);
+              // Fallback: ainda assim tentar usar unit_price enviado para não travar
+              const fallbackValue = parseFloat(product.unit_price || 0) * (product.quantity || 1);
+              totalAmount += fallbackValue;
+              console.log(`🪙 Fallback usando unit_price do payload: ${product.unit_price} x ${product.quantity} = ${fallbackValue}`);
               continue;
             }
 
@@ -152,7 +156,8 @@ class RegistrationController {
             }
 
             // Calcular valor do produto da loja
-            const storeProductValue = parseFloat(storeProduct.price) * product.quantity;
+            const storeUnitPrice = storeProduct.price ?? product.unit_price ?? 0;
+            const storeProductValue = parseFloat(storeUnitPrice) * product.quantity;
             totalAmount += storeProductValue;
             console.log(`💰 Produto (loja) ${storeProduct.name}: R$ ${storeProduct.price} x ${product.quantity} = R$ ${storeProductValue}`);
             console.log(`💰 TotalAmount atualizado: R$ ${totalAmount}`);
@@ -163,7 +168,7 @@ class RegistrationController {
                 registration_id: registration.id,
                 product_id: storeProduct.id,
                 quantity: product.quantity,
-                unit_price: storeProduct.price
+                unit_price: storeUnitPrice
               });
               console.log('✅ Produto inserido em registration_store_products');
             } catch (error) {
