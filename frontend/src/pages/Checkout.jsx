@@ -118,7 +118,11 @@ const Checkout = () => {
       }
     } else if (activeStep === 1) {
       // Validar dados pessoais
-      if (!formData.name || !formData.email || !formData.phone) {
+      const nameOk = /^[A-Za-zÀ-ÖØ-öø-ÿ'\s]{3,}$/.test(formData.name.trim());
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(formData.email.trim());
+      const phoneOk = /^\d{8,15}$/.test(String(formData.phone).replace(/\D/g, ''));
+
+      if (!nameOk || !emailOk || !phoneOk) {
         setError('Preencha todos os campos obrigatórios');
         return;
       }
@@ -512,7 +516,7 @@ const Checkout = () => {
                 fullWidth
                 label="Nome Completo"
                 value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                onChange={(e) => handleInputChange('name', e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'\s]/g, ''))}
                 required
               />
             </Grid>
@@ -531,7 +535,7 @@ const Checkout = () => {
                 fullWidth
                 label="Telefone"
                 value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
+                onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, ''))}
                 required
               />
             </Grid>
