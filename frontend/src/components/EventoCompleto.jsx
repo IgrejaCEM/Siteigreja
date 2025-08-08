@@ -216,6 +216,12 @@ const EventoCompleto = ({ event }) => {
         addItem(ticketItem);
       }
       
+      // Caso não tenha ingresso mas tenha produtos da loja, ainda assim pode prosseguir
+      if (!selectedLot && cartProducts.length === 0 && cartStoreItems.length === 0) {
+        console.log('❌ Nenhum item no carrinho para finalizar');
+        return;
+      }
+
       // Redirecionar para checkout
       navigate('/checkout');
     } catch (error) {
@@ -687,7 +693,7 @@ const EventoCompleto = ({ event }) => {
                     variant="contained"
                     size="large"
                     onClick={handleProceedToRegistration}
-                    disabled={!selectedLot && cartProducts.length === 0}
+                    disabled={!selectedLot && cartProducts.length === 0 && cartStoreItems.length === 0}
                     sx={{ py: 1.5 }}
                   >
                     Finalizar Compra
