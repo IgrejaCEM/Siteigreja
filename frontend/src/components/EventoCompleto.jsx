@@ -36,6 +36,9 @@ const EventoCompleto = ({ event }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLot, setSelectedLot] = useState(null);
+  const [storeProducts, setStoreProducts] = useState([]);
+  const [storeLoading, setStoreLoading] = useState(true);
+  const [storeError, setStoreError] = useState(null);
   
   const { addItem, getEventItems, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
@@ -74,6 +77,27 @@ const EventoCompleto = ({ event }) => {
     }
   }, [event]);
 
+  // Carregar produtos da loja geral para exibir abaixo dos ingressos
+  useEffect(() => {
+    const loadStoreProducts = async () => {
+      try {
+        setStoreLoading(true);
+        setStoreError(null);
+        console.log('🛍️ Buscando produtos da loja geral...');
+        const response = await api.get('/store-products');
+        console.log('📦 Produtos da loja:', response.data?.length);
+        setStoreProducts(Array.isArray(response.data) ? response.data : []);
+      } catch (err) {
+        console.error('❌ Erro ao buscar produtos da loja:', err);
+        setStoreError('Não foi possível carregar os produtos da loja.');
+      } finally {
+        setStoreLoading(false);
+      }
+    };
+
+    loadStoreProducts();
+  }, []);
+
   const handleLotSelect = (lot) => {
     try {
       console.log('🎯 Lote selecionado:', lot);
@@ -103,6 +127,25 @@ const EventoCompleto = ({ event }) => {
       addItem(cartItem);
     } catch (error) {
       console.error('❌ Erro ao adicionar produto:', error);
+    }
+  };
+
+  const handleAddStoreProduct = (product, quantity = 1) => {
+    try {
+      console.log('🏪 Adicionando produto da LOJA ao carrinho:', product, 'quantidade:', quantity);
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        price: parseFloat(product.price),
+        quantity: quantity,
+        type: ITEM_TYPES.STORE_PRODUCT,
+        image: product.image_url,
+        description: product.description,
+        stock: product.stock
+      };
+      addItem(cartItem);
+    } catch (error) {
+      console.error('❌ Erro ao adicionar produto da loja:', error);
     }
   };
 
@@ -429,6 +472,86 @@ const EventoCompleto = ({ event }) => {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Loja da Igreja (produtos gerais) */}
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                    <StoreIcon sx={{ color: 'primary.main' }} />
+                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                      Loja da Igreja
+                    </Typography>
+                  </Box>
+
+                  {storeLoading && (
+                    <Box display="flex" justifyContent="center" alignItems="center" minHeight={120}>
+                      <CircularProgress size={28} />
+                    </Box>
+                  )}
+
+                  {storeError && (
+                    <Alert severity="warning">{storeError}</Alert>
+                  )}
+
+                  {!storeLoading && !storeError && (
+                    <Grid container spacing={3}>
+                      {storeProducts.map((product) => (
+                        <Grid item xs={12} sm={6} md={4} key={`store-${product.id}`}>
+                          <Card
+                            sx={{
+                              height: '100%',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              transition: 'transform 0.2s, box-shadow 0.2s',
+                              '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                              }
+                            }}
+                          >
+                            <CardMedia
+                              component="img"
+                              height="200"
+                              image={product.image_url || 'https://via.placeholder.com/300x200?text=Produto'}
+                              alt={product.name}
+                              sx={{ objectFit: 'cover' }}
+                            />
+                            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                {product.name}
+                              </Typography>
+                              {product.description && (
+                                <Typography variant="body2" sx={{ mb: 2, opacity: 0.8, flexGrow: 1 }}>
+                                  {product.description}
+                                </Typography>
+                              )}
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+                                  {formatPrice(product.price)}
+                                </Typography>
+                                <Chip
+                                  label={`Estoque: ${product.stock}`}
+                                  color={product.stock > 0 ? 'success' : 'error'}
+                                  size="small"
+                                />
+                              </Box>
+                              <Button
+                                fullWidth
+                                variant="outlined"
+                                onClick={() => handleAddStoreProduct(product)}
+                                disabled={product.stock <= 0}
+                                sx={{ mt: 'auto', py: 1.5, fontWeight: 'bold', textTransform: 'none' }}
+                              >
+                                {product.stock > 0 ? 'Adicionar ao Carrinho' : 'Esgotado'}
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </CardContent>
+              </Card>
             </Grid>
 
             {/* Coluna Direita - Carrinho */}
