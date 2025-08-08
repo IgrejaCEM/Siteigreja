@@ -89,7 +89,7 @@ class RegistrationController {
 
       console.log(`💰 TotalAmount após processar itens (tickets): ${totalAmount}`);
 
-      // Processar produtos do evento (event_products)
+      // Processar produtos (event_products OU store_products)
       if (products && products.length > 0) {
         console.log('🛍️ Processando produtos do evento...');
         console.log('🛍️ Produtos recebidos:', products);
@@ -98,20 +98,23 @@ class RegistrationController {
           console.log(`🛍️ Processando produto:`, product);
           console.log(`🛍️ product_id: ${product.product_id} (tipo: ${typeof product.product_id})`);
           
-          // Buscar produto no evento (event_products)
+          // Buscar produto no evento (event_products) ou na loja geral (store_products)
           console.log('🔍 Buscando na loja do evento (event_products)...');
           let eventProduct = null;
+          let storeProduct = null;
           
           try {
             const productId = parseInt(product.product_id) || product.product_id;
             console.log('🔍 Product ID para busca:', productId, '(tipo:', typeof productId, ')');
             
             // Buscar produto do evento
-            eventProduct = await db('event_products')
-              .where('id', productId)
-              .where('event_id', event_id)
-              .where('is_active', true)
-              .first();
+            if (event_id) {
+              eventProduct = await db('event_products')
+                .where('id', productId)
+                .where('event_id', event_id)
+                .where('is_active', true)
+                .first();
+            }
             
             console.log('🔍 Produto encontrado na loja do evento:', !!eventProduct);
             if (eventProduct) {
@@ -127,40 +130,85 @@ class RegistrationController {
           }
           
           if (!eventProduct) {
-            console.error(`❌ Produto ${product.product_id} não encontrado na loja do evento`);
-            continue;
+            // Tentar na loja geral
+            console.log('🔎 Produto não encontrado no event_products. Buscando na loja geral (store_products)...');
+            try {
+              storeProduct = await db('store_products')
+                .where('id', parseInt(product.product_id))
+                .where('active', true)
+                .first();
+            } catch (e) {
+              console.log('❌ Erro ao buscar store_products:', e.message);
+            }
+
+            if (!storeProduct) {
+              console.error(`❌ Produto ${product.product_id} não encontrado nem na loja do evento nem na loja geral`);
+              continue;
+            }
+
+            if (storeProduct.stock < product.quantity) {
+              console.error(`❌ Estoque insuficiente para produto da loja ${storeProduct.name}`);
+              continue;
+            }
+
+            // Calcular valor do produto da loja
+            const storeProductValue = parseFloat(storeProduct.price) * product.quantity;
+            totalAmount += storeProductValue;
+            console.log(`💰 Produto (loja) ${storeProduct.name}: R$ ${storeProduct.price} x ${product.quantity} = R$ ${storeProductValue}`);
+            console.log(`💰 TotalAmount atualizado: R$ ${totalAmount}`);
+
+            // Registrar em registration_store_products, se existir
+            try {
+              await db('registration_store_products').insert({
+                registration_id: registration.id,
+                product_id: storeProduct.id,
+                quantity: product.quantity,
+                unit_price: storeProduct.price
+              });
+              console.log('✅ Produto inserido em registration_store_products');
+            } catch (error) {
+              console.log('⚠️ Erro ao inserir em registration_store_products:', error.message);
+            }
+
+            // Atualizar estoque na loja
+            try {
+              await db('store_products')
+                .where('id', storeProduct.id)
+                .decrement('stock', product.quantity);
+            } catch (error) {
+              console.log('⚠️ Erro ao decrementar estoque store_products:', error.message);
+            }
+          } else {
+            // Fluxo normal: produto do evento
+            if (eventProduct.stock < product.quantity) {
+              console.error(`❌ Estoque insuficiente para produto ${eventProduct.name}`);
+              continue;
+            }
+
+            const productValue = parseFloat(eventProduct.price) * product.quantity;
+            totalAmount += productValue;
+            console.log(`💰 Produto ${eventProduct.name}: R$ ${eventProduct.price} x ${product.quantity} = R$ ${productValue}`);
+            console.log(`💰 TotalAmount atualizado: R$ ${totalAmount}`);
+
+            try {
+              await db('registration_products').insert({
+                registration_id: registration.id,
+                product_id: eventProduct.id,
+                quantity: product.quantity,
+                unit_price: eventProduct.price,
+                total_price: productValue
+              });
+              console.log('✅ Produto inserido na tabela registration_products');
+            } catch (error) {
+              console.log('⚠️ Erro ao inserir na tabela registration_products:', error.message);
+              console.log('⚠️ Continuando sem inserir na tabela de relacionamento...');
+            }
+
+            // Atualizar estoque do produto do evento
+            await db('event_products')
+              .where('id', eventProduct.id)
+              .decrement('stock', product.quantity);
           }
-          
-          if (eventProduct.stock < product.quantity) {
-            console.error(`❌ Estoque insuficiente para produto ${eventProduct.name}`);
-            continue;
-          }
-          
-          // Calcular valor do produto
-          const productValue = parseFloat(eventProduct.price) * product.quantity;
-          totalAmount += productValue;
-          console.log(`💰 Produto ${eventProduct.name}: R$ ${eventProduct.price} x ${product.quantity} = R$ ${productValue}`);
-          console.log(`💰 TotalAmount atualizado: R$ ${totalAmount}`);
-          
-          // Inserir na tabela de produtos do evento da inscrição (opcional)
-          try {
-            await db('registration_products').insert({
-              registration_id: registration.id,
-              product_id: eventProduct.id,
-              quantity: product.quantity,
-              unit_price: eventProduct.price,
-              total_price: productValue
-            });
-            console.log('✅ Produto inserido na tabela registration_products');
-          } catch (error) {
-            console.log('⚠️ Erro ao inserir na tabela registration_products:', error.message);
-            console.log('⚠️ Continuando sem inserir na tabela de relacionamento...');
-          }
-          
-          // Atualizar estoque
-          await db('event_products')
-            .where('id', eventProduct.id)
-            .decrement('stock', product.quantity);
         }
       }
 
