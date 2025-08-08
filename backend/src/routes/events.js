@@ -110,4 +110,30 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Produtos do evento (endpoint dedicado)
+router.get('/:id/products', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const eventId = parseInt(id) || id;
+    console.log('🔍 Listando produtos do evento:', eventId);
+    
+    // Garantir que evento existe
+    const event = await db('events')
+      .where(isNaN(eventId) ? { slug: eventId } : { id: eventId })
+      .first();
+    if (!event) {
+      return res.status(404).json([]);
+    }
+    
+    const products = await db('event_products')
+      .where('event_id', event.id)
+      .where('is_active', true)
+      .orderBy('created_at', 'desc');
+    res.json(products);
+  } catch (error) {
+    console.error('❌ Erro ao listar produtos do evento:', error.message);
+    res.status(200).json([]);
+  }
+});
+
 module.exports = router; 
