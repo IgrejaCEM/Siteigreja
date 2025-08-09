@@ -297,6 +297,28 @@ const Checkout = () => {
     }, 100);
   };
 
+  const handleDownloadTicket = async () => {
+    try {
+      let code = registrationCode;
+      if (!code && orderId) {
+        try {
+          const status = await api.get(`/registrations/${orderId}/status`);
+          code = status.data?.registration_code;
+          if (code) setRegistrationCode(code);
+        } catch {}
+      }
+      if (!code) return;
+      const downloadUrl = `https://siteigreja-1.onrender.com/api/tickets/${code}/download`;
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.target = '_blank';
+      link.download = `ticket-${code}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {}
+  };
+
   const handleInputChange = (field, value) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
@@ -419,6 +441,9 @@ const Checkout = () => {
           if (response.data.status === 'paid') {
             console.log('✅ Pagamento confirmado!');
             setPaymentConfirmed(true);
+            if (response.data?.registration_code) {
+              setRegistrationCode(response.data.registration_code);
+            }
             setActiveStep(3); // Ir para finalização
           }
         } catch (error) {
@@ -723,6 +748,14 @@ const Checkout = () => {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               O download do ticket foi iniciado automaticamente.
             </Typography>
+
+            <Button
+              variant="outlined"
+              onClick={handleDownloadTicket}
+              sx={{ mr: 2 }}
+            >
+              Baixar Ticket (PDF)
+            </Button>
             
             <Button
               variant="contained"
