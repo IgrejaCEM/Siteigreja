@@ -301,6 +301,8 @@ const Checkout = () => {
 
   const handleDownloadTicket = async () => {
     try {
+      // Abre a aba imediatamente para evitar bloqueio de pop-up
+      const preWin = window.open('', '_blank');
       let code = registrationCode;
       if (!code && orderId) {
         try {
@@ -326,20 +328,24 @@ const Checkout = () => {
           if (resp.ok && contentType.includes('application/pdf')) {
             const blob = await resp.blob();
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ticket-${code}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            if (preWin) {
+              preWin.location = url;
+            } else {
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `ticket-${code}.pdf`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }
             URL.revokeObjectURL(url);
             return;
           }
         } catch {}
         await sleep(3000);
       }
-      // Fallback: abrir em nova aba (deixará o Render acordar e usuário pode atualizar)
-      window.open(downloadUrl, '_blank');
+      // Fallback: usar a janela pré-aberta ou a própria aba
+      if (preWin) preWin.location = downloadUrl; else window.location.href = downloadUrl;
     } catch {}
   };
 
