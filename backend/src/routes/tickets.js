@@ -57,7 +57,25 @@ router.get(['/:registrationCode/download', '/tickets/:registrationCode/download'
     // Texto branco
     doc.fillColor('#FFFFFF');
 
-    // Cabeçalho
+    // Cabeçalho com logo (se houver)
+    const logoUrl = event?.logo || event?.banner_evento || event?.banner || null;
+    if (logoUrl && logoUrl.startsWith('http')) {
+      try {
+        const fetch = require('node-fetch');
+        const resp = await fetch(logoUrl);
+        const buf = Buffer.from(await resp.arrayBuffer());
+        const img = doc.openImage(buf);
+        const maxWidth = 180;
+        const ratio = Math.min(1, maxWidth / img.width);
+        const w = img.width * ratio;
+        const h = img.height * ratio;
+        const x = (pageWidth - w) / 2;
+        doc.image(img, x, 36, { width: w, height: h });
+        doc.moveDown(2);
+      } catch (e) {
+        // Se falhar, segue sem logo
+      }
+    }
     doc.fontSize(24).text('TICKET DE INSCRIÇÃO', { align: 'center' }).moveDown(1.2);
     
     // Informações do evento/participante
