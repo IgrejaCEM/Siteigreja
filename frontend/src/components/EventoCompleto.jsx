@@ -67,7 +67,8 @@ const EventoCompleto = ({ event }) => {
           throw new Error('Evento inválido');
         }
         
-        const response = await api.get(`/events/${event.slug || event.id}`);
+        // Usar sempre o ID para garantir que os produtos do evento venham corretamente
+        const response = await api.get(`/events/${event.id}`);
         console.log('✅ Detalhes do evento carregados:', response.data);
         setEventDetails(response.data);
         // Pré-selecionar primeiro lote para reduzir toques no iPhone
