@@ -51,6 +51,7 @@ const Checkout = () => {
   const [success, setSuccess] = useState('');
   const [paymentUrl, setPaymentUrl] = useState('');
   const [orderId, setOrderId] = useState('');
+  const [registrationCode, setRegistrationCode] = useState('');
   const [eventData, setEventData] = useState(null);
   const [paymentAttempted, setPaymentAttempted] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -256,6 +257,13 @@ const Checkout = () => {
         } else {
           // Caso gratuito, pular para finalização
           console.log('🆓 Pedido gratuito - avançando para finalização');
+          // Buscar registration_code para baixar o ticket corretamente
+          try {
+            const status = await api.get(`/registrations/${orderId}/status`);
+            if (status.data?.registration_code) {
+              setRegistrationCode(status.data.registration_code);
+            }
+          } catch {}
           setActiveStep(3);
         }
       } else {
@@ -425,11 +433,12 @@ const Checkout = () => {
 
   // Efeito para download automático do ticket na finalização
   useEffect(() => {
-    if (activeStep === 3 && orderId) {
+    if (activeStep === 3 && (registrationCode || orderId)) {
       console.log('🎫 Fazendo download automático do ticket...');
       
       setTimeout(() => {
-        const downloadUrl = `https://siteigreja-1.onrender.com/api/tickets/${orderId}/download`;
+        const code = registrationCode || orderId;
+        const downloadUrl = `https://siteigreja-1.onrender.com/api/tickets/${code}/download`;
         console.log('🎫 Tentando baixar ticket:', downloadUrl);
         
         // Criar um link temporário para forçar o download
@@ -442,7 +451,7 @@ const Checkout = () => {
         document.body.removeChild(link);
       }, 2000); // Delay de 2 segundos para garantir que a página carregou
     }
-  }, [activeStep, orderId]);
+  }, [activeStep, orderId, registrationCode]);
 
   const renderCartStep = () => (
     <Box>
