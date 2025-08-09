@@ -5,8 +5,8 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
-// Rota para download de ticket
-router.get('/tickets/:registrationCode/download', async (req, res) => {
+// Quando montado em /api/tickets, a rota correta deve ser apenas '/:registrationCode/download'
+router.get(['/:registrationCode/download', '/tickets/:registrationCode/download'], async (req, res) => {
   try {
     const { registrationCode } = req.params;
     
