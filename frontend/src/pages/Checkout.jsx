@@ -220,6 +220,7 @@ const Checkout = () => {
           if (result.success) {
             paymentUrl = result.paymentUrl;
             orderId = result.orderId;
+            if (result.registrationCode) setRegistrationCode(result.registrationCode);
             console.log('🔗 Payment URL definida:', paymentUrl);
           } else {
             throw new Error(result.error);
@@ -238,6 +239,7 @@ const Checkout = () => {
         if (result.success) {
           paymentUrl = result.paymentUrl;
           orderId = result.orderId;
+          if (result.registrationCode) setRegistrationCode(result.registrationCode);
           console.log('🔗 Payment URL definida:', paymentUrl);
         } else {
           throw new Error(result.error);
@@ -432,6 +434,7 @@ const Checkout = () => {
       return {
         success: true,
         orderId: response.data.registration?.id || response.data.order_id,
+        registrationCode: response.data.registration?.registration_code,
         paymentUrl: response.data.payment?.payment_url || response.data.payment_url
       };
     } catch (error) {
