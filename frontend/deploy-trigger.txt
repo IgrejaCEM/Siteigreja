@@ -1,7 +1,3 @@
-# Deploy trigger - Forçar novo deploy do frontend
-# Última atualização: 2025-08-07T01:45:00Z
-# Motivo: Corrigido problema de payment_url - backend retorna payment.payment_url mas frontend esperava payment_url
-# Status: Backend funcionando, frontend corrigido para processar payment.payment_url
-
-# Problema: Frontend não estava recebendo payment_url porque estava procurando em response.data.payment_url
-# Solução: Corrigido para usar response.data.payment.payment_url conforme retornado pelo backend 
+# Frontend deploy trigger
+# Atualizado em: 2025-08-09T03:05:00Z
+# Motivo: Forçar redeploy do frontend após ajustes visuais no evento e seção de produtos 
