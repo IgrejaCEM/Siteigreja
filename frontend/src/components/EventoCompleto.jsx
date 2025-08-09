@@ -70,7 +70,20 @@ const EventoCompleto = ({ event }) => {
         // Usar sempre o ID para garantir que os produtos do evento venham corretamente
         const response = await api.get(`/events/${event.id}`);
         console.log('✅ Detalhes do evento carregados:', response.data);
-        setEventDetails(response.data);
+        let details = response.data;
+        // Fallback: se a API de detalhes vier sem products, buscar via endpoint dedicado
+        try {
+          if (!Array.isArray(details.products) || details.products.length === 0) {
+            const prods = await api.get(`/events/${event.id}/products`);
+            if (Array.isArray(prods.data)) {
+              details = { ...details, products: prods.data };
+              console.log('🧩 Produtos carregados via fallback /events/:id/products:', prods.data.length);
+            }
+          }
+        } catch (e) {
+          console.log('⚠️ Falha ao carregar produtos via fallback:', e?.message);
+        }
+        setEventDetails(details);
         // Pré-selecionar primeiro lote para reduzir toques no iPhone
         if (!selectedLot && response.data?.lots?.length > 0) {
           setSelectedLot(response.data.lots[0]);
