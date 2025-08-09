@@ -247,12 +247,17 @@ const Checkout = () => {
       console.log('🔗 Payment URL final:', paymentUrl);
       console.log('🆔 Order ID final:', orderId);
 
-      if (paymentUrl) {
+      if (paymentUrl || total === 0) {
         console.log('✅ Definindo paymentUrl no estado...');
         setOrderId(orderId);
-        setPaymentUrl(paymentUrl);
-        // NÃO ir para finalização ainda - aguardar pagamento
-        console.log('🌐 Payment URL gerada, aguardando pagamento...');
+        if (paymentUrl) {
+          setPaymentUrl(paymentUrl);
+          console.log('🌐 Payment URL gerada, aguardando pagamento...');
+        } else {
+          // Caso gratuito, pular para finalização
+          console.log('🆓 Pedido gratuito - avançando para finalização');
+          setActiveStep(3);
+        }
       } else {
         console.error('❌ Payment URL não foi gerada');
         throw new Error('URL de pagamento não foi gerada');
