@@ -220,7 +220,10 @@ class RegistrationController {
       console.log(`💰 TotalAmount final após todos os itens: ${totalAmount}`);
       console.log(`🔍 Verificando totalAmount: ${totalAmount}`);
 
-      if (totalAmount <= 0) {
+      // Permitir total 0 quando há ingressos gratuitos (finalização sem pagamento)
+      const hasFreeTickets = Array.isArray(items) && items.some(i => (i.type === 'EVENT_TICKET' || i.type === 'event_ticket'));
+      // Permitir total 0 (gratuito). Só bloquear se for negativo ou carrinho vazio
+      if (totalAmount < 0 && !hasFreeTickets && (!products || products.length === 0)) {
         console.log(`⚠️ TotalAmount é inválido: ${totalAmount}`);
         return res.status(400).json({
           error: 'Valor total inválido',
@@ -244,6 +247,27 @@ class RegistrationController {
           error: 'Carrinho vazio',
           details: 'Adicione pelo menos um item ao carrinho'
         });
+      }
+
+      if (totalAmount === 0 && hasFreeTickets) {
+        // Marcar como pago automaticamente e retornar sem criar pagamento
+        await db('registrations')
+          .where('id', registration.id)
+          .update({ status: 'completed', payment_status: 'paid', updated_at: new Date() });
+
+        const response = {
+          success: true,
+          registration: {
+            id: registration.id,
+            registration_code: registrationCode,
+            status: 'completed',
+            payment_status: 'paid'
+          },
+          payment: { payment_url: null },
+          totalAmount: 0
+        };
+        console.log('✅ Inscrição gratuita concluída:', JSON.stringify(response, null, 2));
+        return res.status(201).json(response);
       }
 
       console.log('✅ Condições atendidas - criando pagamento real no MercadoPago...');
