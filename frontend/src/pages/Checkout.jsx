@@ -297,6 +297,8 @@ const Checkout = () => {
     }, 100);
   };
 
+  const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
   const handleDownloadTicket = async () => {
     try {
       let code = registrationCode;
@@ -308,14 +310,36 @@ const Checkout = () => {
         } catch {}
       }
       if (!code) return;
-      const downloadUrl = `https://siteigreja-1.onrender.com/api/tickets/${code}/download`;
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.target = '_blank';
-      link.download = `ticket-${code}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const downloadUrl = `https://siteigreja-1.onrender.com/api/tickets/${code}/download?t=${Date.now()}`;
+
+      // WARM-UP: chamar um endpoint leve para acordar o Render
+      try { await api.get('/events'); } catch {}
+
+      // Tentar baixar com retries enquanto o serviço acorda
+      let attempts = 0;
+      const maxAttempts = 6; // ~18s
+      while (attempts < maxAttempts) {
+        attempts += 1;
+        try {
+          const resp = await fetch(downloadUrl, { credentials: 'omit' });
+          const contentType = resp.headers.get('content-type') || '';
+          if (resp.ok && contentType.includes('application/pdf')) {
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ticket-${code}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            return;
+          }
+        } catch {}
+        await sleep(3000);
+      }
+      // Fallback: abrir em nova aba (deixará o Render acordar e usuário pode atualizar)
+      window.open(downloadUrl, '_blank');
     } catch {}
   };
 
@@ -460,21 +484,7 @@ const Checkout = () => {
   useEffect(() => {
     if (activeStep === 3 && (registrationCode || orderId)) {
       console.log('🎫 Fazendo download automático do ticket...');
-      
-      setTimeout(() => {
-        const code = registrationCode || orderId;
-        const downloadUrl = `https://siteigreja-1.onrender.com/api/tickets/${code}/download`;
-        console.log('🎫 Tentando baixar ticket:', downloadUrl);
-        
-        // Criar um link temporário para forçar o download
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.target = '_blank';
-        link.download = `ticket-${orderId}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, 2000); // Delay de 2 segundos para garantir que a página carregou
+      handleDownloadTicket();
     }
   }, [activeStep, orderId, registrationCode]);
 
