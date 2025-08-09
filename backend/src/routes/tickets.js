@@ -99,10 +99,39 @@ router.get(['/:registrationCode/download', '/tickets/:registrationCode/download'
     
     if (eventLocation) doc.text(`Local: ${eventLocation}`).moveDown(1.2);
     
-    // "QR Code" textual (se desejar, podemos gerar imagem futuramente)
-    doc.fontSize(12).text('QR Code para validação:', { align: 'center' }).moveDown(0.4);
-    
-    doc.fontSize(10).text(registration.registration_code, { align: 'center' }).moveDown(0.8);
+    // QR Code real
+    doc.fontSize(12).text('QR Code para validação:', { align: 'center' }).moveDown(0.6);
+
+    try {
+      const QRCode = require('qrcode');
+      const qrSize = 220;
+      const qrBuffer = await QRCode.toBuffer(registration.registration_code, {
+        errorCorrectionLevel: 'H',
+        width: qrSize,
+        color: { dark: '#000000', light: '#FFFFFF' }
+      });
+
+      // Painel branco centralizado para o QR no fundo preto
+      const panelPadding = 16;
+      const panelW = qrSize + panelPadding * 2;
+      const panelH = qrSize + panelPadding * 2;
+      const panelX = (pageWidth - panelW) / 2;
+      const currentY = doc.y;
+      const panelY = currentY;
+
+      doc.save();
+      doc.rect(panelX, panelY, panelW, panelH).fill('#FFFFFF');
+      doc.restore();
+      // Inserir QR dentro do painel
+      const qrX = panelX + panelPadding;
+      const qrY = panelY + panelPadding;
+      const img = doc.openImage(qrBuffer);
+      doc.image(img, qrX, qrY, { width: qrSize, height: qrSize });
+      doc.moveDown( (panelH / 12) );
+    } catch (e) {
+      console.log('⚠️ Falha ao gerar QR Code, usando código textual:', e.message);
+      doc.fontSize(10).text(registration.registration_code, { align: 'center' }).moveDown(0.8);
+    }
     
     doc.fontSize(10).text('Este ticket deve ser apresentado na entrada do evento.', { align: 'center' }).moveDown(0.8);
     
