@@ -672,6 +672,28 @@ const EventoCompleto = ({ event }) => {
                       <Typography variant="h6" color="primary">
                         {formatPrice(selectedLot.price)}
                       </Typography>
+                       {(() => {
+                         // Exibir itens do kit gratuitamente (apenas informativo)
+                         let kit = [];
+                         try {
+                           const k = selectedLot.kit_includes;
+                           if (Array.isArray(k)) kit = k; 
+                           else if (typeof k === 'string') {
+                             const s = k.trim();
+                             kit = s.startsWith('[') ? JSON.parse(s) : s.split(',').map(v => v.trim()).filter(Boolean);
+                           }
+                         } catch (_) { kit = []; }
+                         return kit.length > 0 ? (
+                           <Box sx={{ mt: 1 }}>
+                             <Typography variant="body2" sx={{ opacity: 0.9, mb: .5 }}>Você ganha:</Typography>
+                             <Box sx={{ display: 'flex', gap: .5, flexWrap: 'wrap' }}>
+                               {kit.map((item, i) => (
+                                 <Chip key={`kit-${i}`} size="small" label={String(item)} />
+                               ))}
+                             </Box>
+                           </Box>
+                         ) : null;
+                       })()}
                     </Box>
                   )}
 

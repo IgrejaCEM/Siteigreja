@@ -213,6 +213,9 @@ const Checkout = () => {
             console.log('🏪 Adicionando produtos da loja ao pedido...');
             allItems.push(...storeItems);
           }
+
+          // NUNCA adicionar itens do kit do lote como itens a cobrar.
+          // O kit é apenas informativo e gratuito, então não impacta no payload de cobrança.
           
           const result = await processEventOrder(eventId, allItems);
           console.log('✅ Resultado do evento:', result);
