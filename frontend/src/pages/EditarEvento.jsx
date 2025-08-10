@@ -207,12 +207,28 @@ export default function EditarEvento() {
 
   const handleEditLot = (index) => {
     const lot = form.lots[index];
+    // Normalizar kit_includes (pode vir como string JSON do backend)
+    let kitIncludes = [];
+    try {
+      if (Array.isArray(lot.kit_includes)) {
+        kitIncludes = lot.kit_includes;
+      } else if (typeof lot.kit_includes === 'string') {
+        // pode ser "a,b,c" ou JSON
+        const s = lot.kit_includes.trim();
+        if (s.startsWith('[')) {
+          kitIncludes = JSON.parse(s);
+        } else if (s.length > 0) {
+          kitIncludes = s.split(',').map(v => v.trim()).filter(Boolean);
+        }
+      }
+    } catch (_) { kitIncludes = []; }
     setNewLot({
       ...lot,
       price: lot.price.toString(),
       quantity: lot.quantity.toString(),
       start_date: dayjs(lot.start_date).format('YYYY-MM-DD'),
-      end_date: dayjs(lot.end_date).format('YYYY-MM-DD')
+      end_date: dayjs(lot.end_date).format('YYYY-MM-DD'),
+      kit_includes: kitIncludes
     });
     setEditingLotIndex(index);
     setOpenLotDialog(true);
@@ -771,6 +787,27 @@ export default function EditarEvento() {
                       <Typography color="textSecondary">
                         Período: {dayjs(lot.start_date).format('DD/MM/YYYY HH:mm')} até {dayjs(lot.end_date).format('DD/MM/YYYY HH:mm')}
                       </Typography>
+                      {/* Itens inclusos no lote (kit) */}
+                      {(() => {
+                        let kit = [];
+                        try {
+                          if (Array.isArray(lot.kit_includes)) kit = lot.kit_includes;
+                          else if (typeof lot.kit_includes === 'string') {
+                            const s = lot.kit_includes.trim();
+                            kit = s.startsWith('[') ? JSON.parse(s) : s.split(',').map(v => v.trim()).filter(Boolean);
+                          }
+                        } catch (_) { kit = []; }
+                        return kit.length > 0 ? (
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="body2" sx={{ mb: .5 }}>Inclui:</Typography>
+                            <Box sx={{ display: 'flex', gap: .5, flexWrap: 'wrap' }}>
+                              {kit.map((item, i) => (
+                                <Chip key={i} size="small" label={String(item)} />
+                              ))}
+                            </Box>
+                          </Box>
+                        ) : null;
+                      })()}
                       <Chip 
                         label={lot.status === 'active' ? 'Ativo' : 'Inativo'} 
                         color={lot.status === 'active' ? 'success' : 'default'}
