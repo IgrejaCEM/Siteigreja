@@ -292,6 +292,7 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
           start_date: startDate,
           end_date: endDate,
           status: lot.status || 'active',
+          kit_includes: JSON.stringify(lot.kit_includes || lot.kitIncludes || []),
           is_free: price === 0,
           created_at: trx.fn.now(),
           updated_at: trx.fn.now()
@@ -426,6 +427,7 @@ router.put('/events/:id', authenticateToken, requireAdmin, async (req, res) => {
               start_date: lot.start_date,
               end_date: lot.end_date,
               status: lot.status || 'active',
+              kit_includes: JSON.stringify(lot.kit_includes || lot.kitIncludes || []),
               updated_at: trx.fn.now()
             });
         } else {
@@ -438,6 +440,7 @@ router.put('/events/:id', authenticateToken, requireAdmin, async (req, res) => {
             start_date: lot.start_date,
             end_date: lot.end_date,
             status: lot.status || 'active',
+            kit_includes: JSON.stringify(lot.kit_includes || lot.kitIncludes || []),
             created_at: trx.fn.now(),
             updated_at: trx.fn.now()
           });

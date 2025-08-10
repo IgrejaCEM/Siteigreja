@@ -69,7 +69,8 @@ export default function EditarEvento() {
     quantity: '',
     start_date: '',
     end_date: '',
-    status: 'active'
+    status: 'active',
+    kit_includes: []
   });
   const [openCustomFieldDialog, setOpenCustomFieldDialog] = useState(false);
   const [newCustomField, setNewCustomField] = useState({
@@ -191,13 +192,14 @@ export default function EditarEvento() {
         }]
       }));
     }
-    setNewLot({
+      setNewLot({
       name: '',
       price: '',
       quantity: '',
       start_date: '',
       end_date: '',
-      status: 'active'
+        status: 'active',
+        kit_includes: []
     });
     setEditingLotIndex(null);
     setOpenLotDialog(false);
@@ -294,7 +296,8 @@ export default function EditarEvento() {
         quantity: parseInt(lot.quantity) || 0,
         start_date: lot.start_date ? dayjs(lot.start_date).format('YYYY-MM-DD HH:mm:ss') : null,
         end_date: lot.end_date ? dayjs(lot.end_date).format('YYYY-MM-DD HH:mm:ss') : null,
-        status: lot.status || 'active'
+        status: lot.status || 'active',
+        kit_includes: Array.isArray(lot.kit_includes) ? lot.kit_includes : (typeof lot.kit_includes === 'string' ? lot.kit_includes.split(',').map(v => v.trim()).filter(Boolean) : [])
       }));
 
       const response = await api.put(`/admin/events/${id}`, {
@@ -728,7 +731,8 @@ export default function EditarEvento() {
                         quantity: '',
                         start_date: '',
                         end_date: '',
-                        status: 'active'
+                        status: 'active',
+                        kit_includes: []
                       });
                       setOpenLotDialog(true);
                     }}
@@ -873,6 +877,15 @@ export default function EditarEvento() {
                 value={newLot.end_date || ''}
                 onChange={(e) => setNewLot({ ...newLot, end_date: e.target.value })}
                 InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Itens inclusos (separados por vírgula)"
+                value={(newLot.kit_includes || []).join(', ')}
+                onChange={(e) => setNewLot({ ...newLot, kit_includes: e.target.value.split(',').map(v => v.trim()).filter(Boolean) })}
+                helperText="Ex.: Camiseta, Pulseira, Caneca"
               />
             </Grid>
             <Grid item xs={12}>
