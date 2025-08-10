@@ -35,7 +35,7 @@ dayjs.locale('pt-br');
 
 const EventoCompleto = ({ event }) => {
   // Flag para controlar exibição da loja geral na página do evento
-  const SHOW_GENERAL_STORE_ON_EVENT = false;
+  const SHOW_GENERAL_STORE_ON_EVENT = true;
   const [eventDetails, setEventDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(true);
