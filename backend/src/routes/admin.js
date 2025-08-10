@@ -284,7 +284,7 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
         startDate = formatDate(startDate);
         endDate = formatDate(endDate);
         const price = parseFloat(lot.price) || 0;
-        return {
+          return {
           event_id: event.id,
           name: lot.name || '',
           price,
@@ -293,6 +293,8 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
           end_date: endDate,
           status: lot.status || 'active',
           kit_includes: JSON.stringify(lot.kit_includes || lot.kitIncludes || []),
+            kit_images: JSON.stringify(lot.kit_images || lot.kitImages || []),
+            ticket_image: lot.ticket_image || null,
           is_free: price === 0,
           created_at: trx.fn.now(),
           updated_at: trx.fn.now()
@@ -428,6 +430,8 @@ router.put('/events/:id', authenticateToken, requireAdmin, async (req, res) => {
               end_date: lot.end_date,
               status: lot.status || 'active',
               kit_includes: JSON.stringify(lot.kit_includes || lot.kitIncludes || []),
+              kit_images: JSON.stringify(lot.kit_images || lot.kitImages || []),
+              ticket_image: lot.ticket_image || null,
               updated_at: trx.fn.now()
             });
         } else {
@@ -441,6 +445,8 @@ router.put('/events/:id', authenticateToken, requireAdmin, async (req, res) => {
             end_date: lot.end_date,
             status: lot.status || 'active',
             kit_includes: JSON.stringify(lot.kit_includes || lot.kitIncludes || []),
+            kit_images: JSON.stringify(lot.kit_images || lot.kitImages || []),
+            ticket_image: lot.ticket_image || null,
             created_at: trx.fn.now(),
             updated_at: trx.fn.now()
           });

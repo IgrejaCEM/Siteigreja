@@ -70,7 +70,9 @@ export default function EditarEvento() {
     start_date: '',
     end_date: '',
     status: 'active',
-    kit_includes: []
+    kit_includes: [],
+    kit_images: [],
+    ticket_image: ''
   });
   const [openCustomFieldDialog, setOpenCustomFieldDialog] = useState(false);
   const [newCustomField, setNewCustomField] = useState({
@@ -199,7 +201,9 @@ export default function EditarEvento() {
       start_date: '',
       end_date: '',
         status: 'active',
-        kit_includes: []
+        kit_includes: [],
+        kit_images: [],
+        ticket_image: ''
     });
     setEditingLotIndex(null);
     setOpenLotDialog(false);
@@ -209,6 +213,7 @@ export default function EditarEvento() {
     const lot = form.lots[index];
     // Normalizar kit_includes (pode vir como string JSON do backend)
     let kitIncludes = [];
+    let kitImages = [];
     try {
       if (Array.isArray(lot.kit_includes)) {
         kitIncludes = lot.kit_includes;
@@ -221,6 +226,12 @@ export default function EditarEvento() {
           kitIncludes = s.split(',').map(v => v.trim()).filter(Boolean);
         }
       }
+      if (Array.isArray(lot.kit_images)) {
+        kitImages = lot.kit_images;
+      } else if (typeof lot.kit_images === 'string') {
+        const s = lot.kit_images.trim();
+        kitImages = s.startsWith('[') ? JSON.parse(s) : s.split(',').map(v => v.trim()).filter(Boolean);
+      }
     } catch (_) { kitIncludes = []; }
     setNewLot({
       ...lot,
@@ -228,7 +239,9 @@ export default function EditarEvento() {
       quantity: lot.quantity.toString(),
       start_date: dayjs(lot.start_date).format('YYYY-MM-DD'),
       end_date: dayjs(lot.end_date).format('YYYY-MM-DD'),
-      kit_includes: kitIncludes
+      kit_includes: kitIncludes,
+      kit_images: kitImages,
+      ticket_image: lot.ticket_image || ''
     });
     setEditingLotIndex(index);
     setOpenLotDialog(true);
@@ -748,7 +761,9 @@ export default function EditarEvento() {
                         start_date: '',
                         end_date: '',
                         status: 'active',
-                        kit_includes: []
+                        kit_includes: [],
+                        kit_images: [],
+                        ticket_image: ''
                       });
                       setOpenLotDialog(true);
                     }}
@@ -923,6 +938,24 @@ export default function EditarEvento() {
                 value={(newLot.kit_includes || []).join(', ')}
                 onChange={(e) => setNewLot({ ...newLot, kit_includes: e.target.value.split(',').map(v => v.trim()).filter(Boolean) })}
                 helperText="Ex.: Camiseta, Pulseira, Caneca"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="URLs das imagens do kit (separadas por vírgula)"
+                value={(newLot.kit_images || []).join(', ')}
+                onChange={(e) => setNewLot({ ...newLot, kit_images: e.target.value.split(',').map(v => v.trim()).filter(Boolean) })}
+                helperText="Cole links das imagens (https://...) na ordem que deseja mostrar"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Imagem do botão do ticket (URL)"
+                value={newLot.ticket_image || ''}
+                onChange={(e) => setNewLot({ ...newLot, ticket_image: e.target.value })}
+                helperText="Opcional. Uma imagem pequena (ex.: 120x120) para ilustrar o ticket"
               />
             </Grid>
             <Grid item xs={12}>

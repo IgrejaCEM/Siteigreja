@@ -30,6 +30,11 @@ import 'dayjs/locale/pt-br';
 import api from '../services/api';
 import { useCart, ITEM_TYPES } from '../contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import ImageList from '@mui/material/ImageList';
+import ImageListItem from '@mui/material/ImageListItem';
 
 dayjs.locale('pt-br');
 
@@ -44,6 +49,7 @@ const EventoCompleto = ({ event }) => {
   const [storeProducts, setStoreProducts] = useState([]);
   const [storeLoading, setStoreLoading] = useState(true);
   const [storeError, setStoreError] = useState(null);
+  const [kitModal, setKitModal] = useState({ open: false, title: '', items: [], images: [] });
   
   const { addItem, getEventItems, getStoreItems, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
@@ -269,6 +275,16 @@ const EventoCompleto = ({ event }) => {
     }).format(price);
   };
 
+  // Ouvir abertura do modal de kit
+  useEffect(() => {
+    const handler = (e) => {
+      const { title, items, images } = e.detail || {};
+      setKitModal({ open: true, title: `Incluso no ingresso: ${title || ''}`.trim(), items: items || [], images: images || [] });
+    };
+    window.addEventListener('openKitModal', handler);
+    return () => window.removeEventListener('openKitModal', handler);
+  }, []);
+
   // Mostrar erro se houver
   if (error) {
     return (
@@ -477,9 +493,31 @@ const EventoCompleto = ({ event }) => {
                                   )}
                                 </Box>
                                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1.5 }}>
-                                  <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
-                                    {selectedLot?.id === lot.id ? 'Selecionado' : 'Selecionar'}
-                                  </Button>
+                                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
+                                      {selectedLot?.id === lot.id ? 'Selecionado' : 'Selecionar'}
+                                    </Button>
+                                    {/* Ver o que está incluso */}
+                                    {(() => {
+                                      let hasVisual = false;
+                                      try {
+                                        const imgs = typeof lot.kit_images === 'string' ? JSON.parse(lot.kit_images || '[]') : (lot.kit_images || []);
+                                        const txt = typeof lot.kit_includes === 'string' ? JSON.parse(lot.kit_includes || '[]') : (lot.kit_includes || []);
+                                        hasVisual = (Array.isArray(imgs) && imgs.length > 0) || (Array.isArray(txt) && txt.length > 0);
+                                      } catch (_) {}
+                                      return hasVisual ? (
+                                        <Button size="small" variant="text" onClick={(e) => {
+                                          e.stopPropagation();
+                                          try {
+                                            const imgs = typeof lot.kit_images === 'string' ? JSON.parse(lot.kit_images || '[]') : (lot.kit_images || []);
+                                            const txt = typeof lot.kit_includes === 'string' ? JSON.parse(lot.kit_includes || '[]') : (lot.kit_includes || []);
+                                            const data = { images: imgs || [], items: txt || [], title: lot.name };
+                                            window.dispatchEvent(new CustomEvent('openKitModal', { detail: data }));
+                                          } catch (_) {}
+                                        }}>Ver o que está incluso</Button>
+                                      ) : null;
+                                    })()}
+                                  </Box>
                                 </Box>
                               </CardContent>
                             </ButtonBase>
@@ -814,8 +852,31 @@ const EventoCompleto = ({ event }) => {
           </Grid>
         </Container>
       </Box>
+      {/* Modal de visualização do kit */}
+      <Dialog open={kitModal.open} onClose={() => setKitModal({ ...kitModal, open: false })} maxWidth="md" fullWidth>
+        <DialogTitle>{kitModal.title || 'Incluso no ingresso'}</DialogTitle>
+        <DialogContent>
+          {kitModal.images?.length > 0 && (
+            <ImageList cols={3} gap={8} sx={{ mb: 2 }}>
+              {kitModal.images.map((src, idx) => (
+                <ImageListItem key={idx}>
+                  <img src={src} alt={`kit-${idx}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </ImageListItem>
+              ))}
+            </ImageList>
+          )}
+          {kitModal.items?.length > 0 && (
+            <Box sx={{ display: 'flex', gap: .5, flexWrap: 'wrap' }}>
+              {kitModal.items.map((it, i) => (
+                <Chip key={`modal-kit-${i}`} label={String(it)} />
+              ))}
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
 
 export default EventoCompleto; 
+// Modal de Kit (render no final do componente)
