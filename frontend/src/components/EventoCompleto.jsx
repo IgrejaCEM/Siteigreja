@@ -442,6 +442,30 @@ const EventoCompleto = ({ event }) => {
                                 <Typography variant="h6" color="primary" sx={{ fontWeight: 800, mb: 1 }}>
                                   {Number(lot.price) === 0 ? 'Gratuito' : formatPrice(lot.price)}
                                 </Typography>
+                                {/* Itens inclusos no kit do ingresso */}
+                                {(() => {
+                                  let kit = [];
+                                  try {
+                                    if (typeof lot.kit_includes === 'string') {
+                                      kit = JSON.parse(lot.kit_includes || '[]');
+                                    } else if (Array.isArray(lot.kit_includes)) {
+                                      kit = lot.kit_includes;
+                                    }
+                                  } catch (_) { kit = []; }
+                                  return kit.length > 0 ? (
+                                    <Box sx={{ mb: 1 }}>
+                                      <Typography variant="caption" sx={{ opacity: 0.85 }}>Inclui:</Typography>
+                                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                                        {kit.slice(0, 5).map((item, idx) => (
+                                          <Chip key={idx} label={String(item)} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.18)' }} />
+                                        ))}
+                                        {kit.length > 5 && (
+                                          <Chip size="small" label={`+${kit.length - 5}`} sx={{ bgcolor: 'rgba(255,255,255,0.18)' }} />
+                                        )}
+                                      </Box>
+                                    </Box>
+                                  ) : null;
+                                })()}
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                   <Chip 
                                     label={`${lot.available_spots ?? '∞'} vagas`} 
