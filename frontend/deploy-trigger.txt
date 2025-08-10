@@ -1,3 +1,3 @@
 # Frontend deploy trigger
-# Atualizado em: 2025-08-09T03:05:00Z
-# Motivo: Forçar redeploy do frontend após ajustes visuais no evento e seção de produtos 
+# Atualizado em: 2025-08-10T21:31:00Z
+# Motivo: Forçar redeploy do frontend após inclusão do modal do kit e melhorias
