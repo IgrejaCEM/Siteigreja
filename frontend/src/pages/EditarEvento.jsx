@@ -72,7 +72,8 @@ export default function EditarEvento() {
     status: 'active',
     kit_includes: [],
     kit_images: [],
-    ticket_image: ''
+    ticket_image: '',
+    kitItems: []
   });
   const [openCustomFieldDialog, setOpenCustomFieldDialog] = useState(false);
   const [newCustomField, setNewCustomField] = useState({
@@ -175,23 +176,42 @@ export default function EditarEvento() {
       // Editando lote existente
       setForm(prev => ({
         ...prev,
-        lots: prev.lots.map((lot, index) => 
-          index === editingLotIndex ? {
+        lots: prev.lots.map((lot, index) => {
+          if (index !== editingLotIndex) return lot;
+          const kit_includes = (newLot.kitItems && newLot.kitItems.length > 0)
+            ? newLot.kitItems.map(i => (i?.name || '').trim()).filter(Boolean)
+            : (newLot.kit_includes || []);
+          const kit_images = (newLot.kitItems && newLot.kitItems.length > 0)
+            ? newLot.kitItems.map(i => (i?.image || '').trim()).filter(Boolean)
+            : (newLot.kit_images || []);
+          return {
             ...newLot,
+            kit_includes,
+            kit_images,
             price: parseFloat(newLot.price),
             quantity: parseInt(newLot.quantity)
-          } : lot
-        )
+          };
+        })
       }));
     } else {
       // Adicionando novo lote
       setForm(prev => ({
         ...prev,
-        lots: [...prev.lots, {
-          ...newLot,
-          price: parseFloat(newLot.price),
-          quantity: parseInt(newLot.quantity)
-        }]
+        lots: [...prev.lots, (() => {
+          const kit_includes = (newLot.kitItems && newLot.kitItems.length > 0)
+            ? newLot.kitItems.map(i => (i?.name || '').trim()).filter(Boolean)
+            : (newLot.kit_includes || []);
+          const kit_images = (newLot.kitItems && newLot.kitItems.length > 0)
+            ? newLot.kitItems.map(i => (i?.image || '').trim()).filter(Boolean)
+            : (newLot.kit_images || []);
+          return {
+            ...newLot,
+            kit_includes,
+            kit_images,
+            price: parseFloat(newLot.price),
+            quantity: parseInt(newLot.quantity)
+          };
+        })()]
       }));
     }
       setNewLot({
@@ -203,7 +223,8 @@ export default function EditarEvento() {
         status: 'active',
         kit_includes: [],
         kit_images: [],
-        ticket_image: ''
+        ticket_image: '',
+        kitItems: []
     });
     setEditingLotIndex(null);
     setOpenLotDialog(false);
@@ -233,6 +254,13 @@ export default function EditarEvento() {
         kitImages = s.startsWith('[') ? JSON.parse(s) : s.split(',').map(v => v.trim()).filter(Boolean);
       }
     } catch (_) { kitIncludes = []; }
+    // Construir pares nome/imagem para edição mais simples
+    const maxLen = Math.max(kitIncludes.length, kitImages.length);
+    const kitItems = Array.from({ length: maxLen }).map((_, i) => ({
+      name: kitIncludes[i] || '',
+      image: kitImages[i] || ''
+    }));
+
     setNewLot({
       ...lot,
       price: lot.price.toString(),
@@ -241,7 +269,8 @@ export default function EditarEvento() {
       end_date: dayjs(lot.end_date).format('YYYY-MM-DD'),
       kit_includes: kitIncludes,
       kit_images: kitImages,
-      ticket_image: lot.ticket_image || ''
+      ticket_image: lot.ticket_image || '',
+      kitItems
     });
     setEditingLotIndex(index);
     setOpenLotDialog(true);
@@ -319,15 +348,22 @@ export default function EditarEvento() {
       }
 
       // Formatar datas para o formato esperado pelo backend
-      const formattedLots = form.lots.map(lot => ({
-        ...lot,
-        price: parseFloat(lot.price) || 0,
-        quantity: parseInt(lot.quantity) || 0,
-        start_date: lot.start_date ? dayjs(lot.start_date).format('YYYY-MM-DD HH:mm:ss') : null,
-        end_date: lot.end_date ? dayjs(lot.end_date).format('YYYY-MM-DD HH:mm:ss') : null,
-        status: lot.status || 'active',
-        kit_includes: Array.isArray(lot.kit_includes) ? lot.kit_includes : (typeof lot.kit_includes === 'string' ? lot.kit_includes.split(',').map(v => v.trim()).filter(Boolean) : [])
-      }));
+      const formattedLots = form.lots.map(lot => {
+        // Se veio com pares editáveis, converter para arrays paralelos
+        const hasKitItems = Array.isArray(lot.kitItems) && lot.kitItems.length > 0;
+        const kit_includes = hasKitItems ? lot.kitItems.map(i => (i?.name || '').trim()).filter(Boolean) : (Array.isArray(lot.kit_includes) ? lot.kit_includes : []);
+        const kit_images = hasKitItems ? lot.kitItems.map(i => (i?.image || '').trim()).filter(Boolean) : (Array.isArray(lot.kit_images) ? lot.kit_images : []);
+        return ({
+          ...lot,
+          price: parseFloat(lot.price) || 0,
+          quantity: parseInt(lot.quantity) || 0,
+          start_date: lot.start_date ? dayjs(lot.start_date).format('YYYY-MM-DD HH:mm:ss') : null,
+          end_date: lot.end_date ? dayjs(lot.end_date).format('YYYY-MM-DD HH:mm:ss') : null,
+          status: lot.status || 'active',
+          kit_includes,
+          kit_images
+        });
+      });
 
       const response = await api.put(`/admin/events/${id}`, {
         ...form,
@@ -932,36 +968,45 @@ export default function EditarEvento() {
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Itens inclusos (separados por vírgula ou ;)"
-                value={(newLot.kit_includes || []).join(', ')}
-                onChange={(e) => {
-                  const raw = e.target.value || '';
-                  const list = raw
-                    .split(/[;,\n]/)
-                    .map(v => v.trim())
-                    .filter(Boolean);
-                  setNewLot({ ...newLot, kit_includes: list });
-                }}
-                helperText="Ex.: Camiseta, Pulseira, Caneca (pode usar vírgula, ; ou Enter)"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="URLs das imagens do kit (separadas por vírgula ou ;)"
-                value={(newLot.kit_images || []).join(', ')}
-                onChange={(e) => {
-                  const raw = e.target.value || '';
-                  const list = raw
-                    .split(/[;,\n]/)
-                    .map(v => v.trim())
-                    .filter(Boolean);
-                  setNewLot({ ...newLot, kit_images: list });
-                }}
-                helperText="Cole links (https://...) – pode separar por vírgula, ; ou Enter"
-              />
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Itens inclusos</Typography>
+              {(newLot.kitItems && newLot.kitItems.length > 0 ? newLot.kitItems : [{ name: '', image: '' }]).map((item, idx) => (
+                <Box key={idx} sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'center' }}>
+                  <TextField
+                    label={`Nome do item #${idx + 1}`}
+                    value={item.name}
+                    onChange={(e) => {
+                      const next = [...(newLot.kitItems || [])];
+                      next[idx] = { ...next[idx], name: e.target.value };
+                      setNewLot({ ...newLot, kitItems: next });
+                    }}
+                    size="small"
+                    sx={{ flex: 1 }}
+                  />
+                  <TextField
+                    label="Imagem (URL)"
+                    value={item.image}
+                    onChange={(e) => {
+                      const next = [...(newLot.kitItems || [])];
+                      next[idx] = { ...next[idx], image: e.target.value };
+                      setNewLot({ ...newLot, kitItems: next });
+                    }}
+                    size="small"
+                    sx={{ flex: 2 }}
+                  />
+                  <IconButton color="error" onClick={() => {
+                    const next = [...(newLot.kitItems || [])];
+                    next.splice(idx, 1);
+                    setNewLot({ ...newLot, kitItems: next });
+                  }}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              ))}
+              <Button variant="outlined" startIcon={<AddIcon />} onClick={() => {
+                setNewLot({ ...newLot, kitItems: [...(newLot.kitItems || []), { name: '', image: '' }] });
+              }}>
+                Adicionar item
+              </Button>
             </Grid>
             <Grid item xs={12}>
               <TextField
