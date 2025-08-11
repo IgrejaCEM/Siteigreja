@@ -934,19 +934,33 @@ export default function EditarEvento() {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Itens inclusos (separados por vírgula)"
+                label="Itens inclusos (separados por vírgula ou ;)"
                 value={(newLot.kit_includes || []).join(', ')}
-                onChange={(e) => setNewLot({ ...newLot, kit_includes: e.target.value.split(',').map(v => v.trim()).filter(Boolean) })}
-                helperText="Ex.: Camiseta, Pulseira, Caneca"
+                onChange={(e) => {
+                  const raw = e.target.value || '';
+                  const list = raw
+                    .split(/[;,\n]/)
+                    .map(v => v.trim())
+                    .filter(Boolean);
+                  setNewLot({ ...newLot, kit_includes: list });
+                }}
+                helperText="Ex.: Camiseta, Pulseira, Caneca (pode usar vírgula, ; ou Enter)"
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="URLs das imagens do kit (separadas por vírgula)"
+                label="URLs das imagens do kit (separadas por vírgula ou ;)"
                 value={(newLot.kit_images || []).join(', ')}
-                onChange={(e) => setNewLot({ ...newLot, kit_images: e.target.value.split(',').map(v => v.trim()).filter(Boolean) })}
-                helperText="Cole links das imagens (https://...) na ordem que deseja mostrar"
+                onChange={(e) => {
+                  const raw = e.target.value || '';
+                  const list = raw
+                    .split(/[;,\n]/)
+                    .map(v => v.trim())
+                    .filter(Boolean);
+                  setNewLot({ ...newLot, kit_images: list });
+                }}
+                helperText="Cole links (https://...) – pode separar por vírgula, ; ou Enter"
               />
             </Grid>
             <Grid item xs={12}>
