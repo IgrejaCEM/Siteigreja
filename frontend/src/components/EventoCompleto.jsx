@@ -143,13 +143,25 @@ const EventoCompleto = ({ event }) => {
         }
       } catch (_) {}
       // Abrir visual do kit automaticamente ao selecionar o ticket, se existir
-      try {
-        const images = typeof lot.kit_images === 'string' ? JSON.parse(lot.kit_images || '[]') : (lot.kit_images || []);
-        const items = typeof lot.kit_includes === 'string' ? JSON.parse(lot.kit_includes || '[]') : (lot.kit_includes || []);
-        if ((Array.isArray(images) && images.length > 0) || (Array.isArray(items) && items.length > 0)) {
-          setKitModal({ open: true, title: `Incluso no ingresso: ${lot.name}`, images, items });
-        }
-      } catch (_) {}
+      const normalize = (val) => {
+        try {
+          if (Array.isArray(val)) return val;
+          if (typeof val === 'string') {
+            const s = val.trim();
+            if (!s) return [];
+            if (s.startsWith('[')) {
+              return JSON.parse(s);
+            }
+            return s.split(/[;,\n]/).map(v => v.trim()).filter(Boolean);
+          }
+        } catch (_) {}
+        return [];
+      };
+      const images = normalize(lot.kit_images);
+      const items = normalize(lot.kit_includes);
+      if ((images?.length || 0) > 0 || (items?.length || 0) > 0) {
+        setKitModal({ open: true, title: `Incluso no ingresso: ${lot.name}`, images, items });
+      }
     } catch (error) {
       console.error('❌ Erro ao selecionar lote:', error);
     }
