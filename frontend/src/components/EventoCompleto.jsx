@@ -399,6 +399,54 @@ const EventoCompleto = ({ event }) => {
           .evento-completo .MuiButton-root:hover {
             background: #e55a2b !important;
           }
+          /* Ticket visual */
+          .ticket-card {
+            position: relative;
+            display: grid;
+            grid-template-columns: 110px 1fr;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.18);
+            overflow: hidden;
+          }
+          .ticket-card:before, .ticket-card:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 22px;
+            height: 22px;
+            background: #000;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+          }
+          .ticket-card:before { left: -12px; }
+          .ticket-card:after { right: -12px; }
+          .ticket-divider {
+            position: absolute;
+            left: 110px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            border-left: 1px dashed rgba(255,255,255,0.25);
+            z-index: 1;
+          }
+          .ticket-thumb {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.18);
+          }
+          .ticket-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+          }
         `}
       </style>
 
