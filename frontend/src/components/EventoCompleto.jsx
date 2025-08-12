@@ -480,6 +480,34 @@ const EventoCompleto = ({ event }) => {
                                 <Typography variant="h6" color="primary" sx={{ fontWeight: 800, mb: 1 }}>
                                   {Number(lot.price) === 0 ? 'Gratuito' : formatPrice(lot.price)}
                                 </Typography>
+                                {/* Pré-visualização estética do ticket */}
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1.5,
+                                    p: 1,
+                                    mb: 1,
+                                    borderRadius: 1,
+                                    bgcolor: 'rgba(255,255,255,0.06)',
+                                    border: '1px dashed rgba(255,255,255,0.18)'
+                                  }}
+                                >
+                                  <Box
+                                    component="img"
+                                    src={lot.ticket_image || 'https://via.placeholder.com/120x80?text=Ticket'}
+                                    alt={`Ticket ${lot.name}`}
+                                    sx={{ width: 90, height: 60, objectFit: 'cover', borderRadius: 0.5 }}
+                                  />
+                                  <Box sx={{ minWidth: 0 }}>
+                                    <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
+                                      Ingresso • {eventDetails.title}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block', opacity: 0.85 }} noWrap>
+                                      {lot.name} • {dayjs(lot.start_date).format('DD/MM')}–{dayjs(lot.end_date).format('DD/MM')}
+                                    </Typography>
+                                  </Box>
+                                </Box>
                                 {/* Itens inclusos no kit do ingresso */}
                                 {(() => {
                                   let kit = [];
@@ -726,9 +754,22 @@ const EventoCompleto = ({ event }) => {
                   {/* Ingresso Selecionado */}
                   {selectedLot && (
                     <Box sx={{ mb: 2, p: 2, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1 }}>
-                      <Typography variant="h6" gutterBottom>
-                        Ingresso - {selectedLot.name}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                        <Box
+                          component="img"
+                          src={selectedLot.ticket_image || 'https://via.placeholder.com/120x80?text=Ticket'}
+                          alt={`Ticket ${selectedLot.name}`}
+                          sx={{ width: 90, height: 60, objectFit: 'cover', borderRadius: 0.5 }}
+                        />
+                        <Box>
+                          <Typography variant="h6" gutterBottom sx={{ m: 0 }}>
+                            Ingresso - {selectedLot.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ opacity: 0.85 }}>
+                            {dayjs(selectedLot.start_date).format('DD/MM')}–{dayjs(selectedLot.end_date).format('DD/MM')}
+                          </Typography>
+                        </Box>
+                      </Box>
                       <Typography variant="h6" color="primary">
                         {formatPrice(selectedLot.price)}
                       </Typography>
