@@ -1,6 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../database/db');
+// Garante que as colunas do kit existam em 'lots' (idempotente)
+async function ensureLotKitColumns(knexOrTrx) {
+  try {
+    const hasKitIncludes = await knexOrTrx.schema.hasColumn('lots', 'kit_includes');
+    const hasKitImages = await knexOrTrx.schema.hasColumn('lots', 'kit_images');
+    const hasTicketImage = await knexOrTrx.schema.hasColumn('lots', 'ticket_image');
+    if (!hasKitIncludes || !hasKitImages || !hasTicketImage) {
+      await knexOrTrx.schema.alterTable('lots', (table) => {
+        if (!hasKitIncludes) table.text('kit_includes').defaultTo('[]');
+        if (!hasKitImages) table.text('kit_images').defaultTo('[]');
+        if (!hasTicketImage) table.string('ticket_image');
+      });
+    }
+  } catch (e) {
+    console.log('⚠️ Falha ao garantir colunas do kit em lots:', e.message);
+  }
+}
 const { authenticateToken, requireAdmin } = require('../middleware');
 
 // Middleware CORS específico para rotas admin
@@ -248,6 +265,8 @@ router.post('/events', authenticateToken, requireAdmin, async (req, res) => {
     // Inserir lotes se existirem
     if (lots && Array.isArray(lots) && lots.length > 0) {
       console.log('📦 Criando lotes:', lots.length);
+      // Garantir colunas do kit
+      await ensureLotKitColumns(trx);
       const lotsToInsert = lots.map(lot => {
         let startDate = lot.start_date;
         let endDate = lot.end_date;
@@ -385,8 +404,10 @@ router.put('/events/:id', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Evento não encontrado' });
     }
 
-    // Atualizar lotes
+      // Atualizar lotes
     if (lots && Array.isArray(lots)) {
+        // Garantir colunas do kit
+        await ensureLotKitColumns(trx);
       // Verificar lotes que serão removidos
       const currentLots = await trx('lots')
         .where('event_id', id)
