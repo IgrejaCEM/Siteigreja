@@ -518,42 +518,58 @@ const EventoCompleto = ({ event }) => {
                               onClick={() => handleLotSelect(lot)}
                               sx={{ display: 'block', width: '100%', textAlign: 'left', borderRadius: 2 }}
                             >
-                              <CardContent sx={{ p: 2 }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                                  {lot.name}
-                                </Typography>
-                                <Typography variant="body2" sx={{ opacity: 0.85, mb: .5 }}>
-                                  {dayjs(lot.start_date).format('DD/MM')} - {dayjs(lot.end_date).format('DD/MM')}
-                                </Typography>
-                                <Typography variant="h6" color="primary" sx={{ fontWeight: 800, mb: 1 }}>
-                                  {Number(lot.price) === 0 ? 'Gratuito' : formatPrice(lot.price)}
-                                </Typography>
-                                {/* Pré-visualização estética do ticket */}
+                              <CardContent sx={{ p: 0 }}>
+                                {/* Ticket com imagem de fundo (arte enviada) */}
                                 <Box
                                   sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1.5,
-                                    p: 1,
-                                    mb: 1,
-                                    borderRadius: 1,
-                                    bgcolor: 'rgba(255,255,255,0.06)',
-                                    border: '1px dashed rgba(255,255,255,0.18)'
+                                    position: 'relative',
+                                    height: 160,
+                                    borderRadius: 2,
+                                    overflow: 'hidden',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    backgroundImage: `url(${lot.ticket_image || 'https://via.placeholder.com/600x250?text=TICKET'})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
                                   }}
                                 >
-                                  <Box
-                                    component="img"
-                                    src={lot.ticket_image || 'https://via.placeholder.com/120x80?text=Ticket'}
-                                    alt={`Ticket ${lot.name}`}
-                                    sx={{ width: 90, height: 60, objectFit: 'cover', borderRadius: 0.5 }}
-                                  />
-                                  <Box sx={{ minWidth: 0 }}>
-                                    <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
-                                      Ingresso • {eventDetails.title}
+                                  {/* overlay para legibilidade */}
+                                  <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(0,0,0,.65) 0%, rgba(0,0,0,.25) 55%, rgba(0,0,0,.1) 100%)' }} />
+                                  {/* informações do ticket */}
+                                  <Box sx={{ position: 'absolute', left: 14, top: 12, right: 14 }}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 900, letterSpacing: '.02em' }}>
+                                      {lot.name}
                                     </Typography>
-                                    <Typography variant="caption" sx={{ display: 'block', opacity: 0.85 }} noWrap>
-                                      {lot.name} • {dayjs(lot.start_date).format('DD/MM')}–{dayjs(lot.end_date).format('DD/MM')}
+                                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                                      {dayjs(lot.start_date).format('DD/MM')} – {dayjs(lot.end_date).format('DD/MM')}
                                     </Typography>
+                                    <Typography variant="h6" color="primary" sx={{ fontWeight: 900, mt: .5 }}>
+                                      {Number(lot.price) === 0 ? 'Gratuito' : formatPrice(lot.price)}
+                                    </Typography>
+                                  </Box>
+                                  {/* ações */}
+                                  <Box sx={{ position: 'absolute', right: 12, bottom: 12, display: 'flex', gap: 1 }}>
+                                    <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
+                                      {selectedLot?.id === lot.id ? 'Selecionado' : 'Selecionar'}
+                                    </Button>
+                                    {(() => {
+                                      let hasVisual = false;
+                                      try {
+                                        const imgs = typeof lot.kit_images === 'string' ? JSON.parse(lot.kit_images || '[]') : (lot.kit_images || []);
+                                        const txt = typeof lot.kit_includes === 'string' ? JSON.parse(lot.kit_includes || '[]') : (lot.kit_includes || []);
+                                        hasVisual = (Array.isArray(imgs) && imgs.length > 0) || (Array.isArray(txt) && txt.length > 0);
+                                      } catch (_) {}
+                                      return hasVisual ? (
+                                        <Button size="small" variant="text" onClick={(e) => {
+                                          e.stopPropagation();
+                                          try {
+                                            const imgs = typeof lot.kit_images === 'string' ? JSON.parse(lot.kit_images || '[]') : (lot.kit_images || []);
+                                            const txt = typeof lot.kit_includes === 'string' ? JSON.parse(lot.kit_includes || '[]') : (lot.kit_includes || []);
+                                            const data = { images: imgs || [], items: txt || [], title: lot.name };
+                                            window.dispatchEvent(new CustomEvent('openKitModal', { detail: data }));
+                                          } catch (_) {}
+                                        }}>Ver o que está incluso</Button>
+                                      ) : null;
+                                    })()}
                                   </Box>
                                 </Box>
                                 {/* Itens inclusos no kit do ingresso */}
