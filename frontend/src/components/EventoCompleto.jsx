@@ -33,6 +33,8 @@ import { useNavigate } from 'react-router-dom';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 
@@ -874,7 +876,16 @@ const EventoCompleto = ({ event }) => {
       </Box>
       {/* Modal de visualização do kit */}
       <Dialog open={kitModal.open} onClose={() => setKitModal({ ...kitModal, open: false })} maxWidth="md" fullWidth>
-        <DialogTitle>{kitModal.title || 'Incluso no ingresso'}</DialogTitle>
+        <DialogTitle sx={{ m: 0, p: 2 }}>
+          {kitModal.title || 'Incluso no ingresso'}
+          <IconButton
+            aria-label="close"
+            onClick={() => setKitModal({ ...kitModal, open: false })}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
           {kitModal.images?.length > 0 && (
             <ImageList cols={3} gap={8} sx={{ mb: 2 }}>
