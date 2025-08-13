@@ -102,6 +102,15 @@ const Inscricao = () => {
           const selections = JSON.parse(savedSelections);
           setSelectedLotId(selections.selectedLotId);
           setCartProducts(selections.cartProducts || []);
+          // Criar N participantes a partir da quantidade escolhida no ticket
+          const qty = Math.max(1, parseInt(selections.ticketQuantity || 1));
+          if (qty > 1) {
+            setInscricoes(prev => {
+              const base = prev[0] || { nome: '', email: '', telefone: '', cpf: '', idade: '', genero: '', endereco: '', autorizacao_imagem: false, custom_fields: {} };
+              const arr = Array.from({ length: qty }).map((_, i) => ({ ...base, nome: i === 0 ? base.nome : '', email: i === 0 ? base.email : '' }));
+              return arr;
+            });
+          }
           console.log('🛒 Seleções carregadas:', selections);
         } catch (error) {
           console.error('Erro ao carregar seleções:', error);
@@ -426,7 +435,8 @@ const Inscricao = () => {
         participantes: participantesToSend,
         payment_method: isFree ? 'FREE' : 'CHECKOUT_PRO',
         lote_id: selectedLotId,
-        products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
+        products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity })),
+        quantity: inscricoes.length
       };
 
       console.log('📦 Dados sendo enviados para a API:', JSON.stringify(requestData, null, 2));

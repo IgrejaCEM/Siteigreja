@@ -52,6 +52,7 @@ const EventoCompleto = ({ event }) => {
   const [storeLoading, setStoreLoading] = useState(true);
   const [storeError, setStoreError] = useState(null);
   const [kitModal, setKitModal] = useState({ open: false, title: '', items: [], images: [] });
+  const [selectedQty, setSelectedQty] = useState(1);
   
   const { addItem, getEventItems, getStoreItems, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
@@ -137,6 +138,7 @@ const EventoCompleto = ({ event }) => {
     try {
       console.log('🎯 Lote selecionado:', lot);
       setSelectedLot(lot);
+      setSelectedQty(1);
       // Scroll suave até o resumo ao selecionar (melhor UX no iPhone)
       try {
         const summary = document.getElementById('order-summary');
@@ -258,7 +260,7 @@ const EventoCompleto = ({ event }) => {
       
       // Adicionar preço do ingresso selecionado
       if (selectedLot) {
-        total += parseFloat(selectedLot.price);
+        total += parseFloat(selectedLot.price) * (selectedQty || 1);
       }
       
       // Adicionar preços dos produtos do evento
@@ -288,7 +290,7 @@ const EventoCompleto = ({ event }) => {
           id: selectedLot.id,
           name: `Ingresso - ${selectedLot.name}`,
           price: parseFloat(selectedLot.price),
-          quantity: 1,
+          quantity: selectedQty || 1,
           type: ITEM_TYPES.EVENT_TICKET,
           eventId: event.id,
           eventName: event.name,
@@ -297,6 +299,17 @@ const EventoCompleto = ({ event }) => {
         };
         
         addItem(ticketItem);
+        // Persistir seleção para a tela de inscrição (lot e quantidade)
+        try {
+          const previous = localStorage.getItem('eventSelections');
+          const prevJson = previous ? JSON.parse(previous) : {};
+          const toSave = {
+            ...prevJson,
+            selectedLotId: selectedLot.id,
+            ticketQuantity: selectedQty || 1
+          };
+          localStorage.setItem('eventSelections', JSON.stringify(toSave));
+        } catch (_) {}
       }
       
       // Caso não tenha ingresso mas tenha produtos da loja, ainda assim pode prosseguir
@@ -628,10 +641,18 @@ const EventoCompleto = ({ event }) => {
                                     <Chip label="Selecionado" color="success" size="small" />
                                   )}
                                 </Box>
-                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1.5 }}>
-                                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1.5, alignItems: 'center' }}>
+                                  {/* Contador de quantidade quando selecionado */}
+                                  {selectedLot?.id === lot.id && (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: .5 }}>
+                                      <Button size="small" variant="outlined" onClick={(e) => { e.stopPropagation(); setSelectedQty(Math.max(1, (selectedQty||1)-1)); }}>-</Button>
+                                      <Chip label={`${selectedQty || 1}x`} size="small" />
+                                      <Button size="small" variant="outlined" onClick={(e) => { e.stopPropagation(); setSelectedQty(Math.min(20, (selectedQty||1)+1)); }}>+</Button>
+                                    </Box>
+                                  )}
+                                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
                                     <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
-                                      {selectedLot?.id === lot.id ? 'Selecionado' : 'Selecionar'}
+                                      {selectedLot?.id === lot.id ? 'Remover' : 'Selecionar'}
                                     </Button>
                                     {/* Ver o que está incluso */}
                                     {(() => {
