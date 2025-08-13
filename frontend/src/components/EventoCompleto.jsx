@@ -169,6 +169,28 @@ const EventoCompleto = ({ event }) => {
     }
   };
 
+  const handleToggleLot = (lot) => {
+    try {
+      if (selectedLot?.id === lot.id) {
+        console.log('🔄 Deselecionando lote:', lot.id);
+        setSelectedLot(null);
+        return;
+      }
+      handleLotSelect(lot);
+    } catch (e) {
+      console.error('Erro ao alternar lote:', e);
+    }
+  };
+
+  const handleRemoveSelectedLot = () => {
+    try {
+      console.log('🗑️ Removendo ingresso selecionado');
+      setSelectedLot(null);
+    } catch (e) {
+      console.error('Erro ao remover ingresso selecionado:', e);
+    }
+  };
+
   const handleAddProduct = (product, quantity = 1) => {
     try {
       console.log('🛒 Adicionando produto ao carrinho:', product, 'quantidade:', quantity);
@@ -515,7 +537,7 @@ const EventoCompleto = ({ event }) => {
                         <Grid item xs={12} sm={6} key={lot.id}>
                           <Card sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, border: '1px solid rgba(255,255,255,0.12)' }}>
                             <ButtonBase
-                              onClick={() => handleLotSelect(lot)}
+                              onClick={() => handleToggleLot(lot)}
                               sx={{ display: 'block', width: '100%', textAlign: 'left', borderRadius: 2 }}
                             >
                               <CardContent sx={{ p: 0 }}>
@@ -549,7 +571,7 @@ const EventoCompleto = ({ event }) => {
                                   {/* ações */}
                                   <Box sx={{ position: 'absolute', right: 12, bottom: 12, display: 'flex', gap: 1 }}>
                                     <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
-                                      {selectedLot?.id === lot.id ? 'Selecionado' : 'Selecionar'}
+                                      {selectedLot?.id === lot.id ? 'Deselecionar' : 'Selecionar'}
                                     </Button>
                                     {(() => {
                                       let hasVisual = false;
@@ -837,6 +859,11 @@ const EventoCompleto = ({ event }) => {
                       <Typography variant="h6" color="primary">
                         {formatPrice(selectedLot.price)}
                       </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                        <Button size="small" color="error" variant="outlined" onClick={handleRemoveSelectedLot}>
+                          Remover ingresso
+                        </Button>
+                      </Box>
                        {(() => {
                          // Exibir itens do kit gratuitamente (apenas informativo)
                          let kit = [];
