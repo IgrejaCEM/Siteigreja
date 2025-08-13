@@ -571,7 +571,7 @@ const EventoCompleto = ({ event }) => {
                                   {/* ações */}
                                   <Box sx={{ position: 'absolute', right: 12, bottom: 12, display: 'flex', gap: 1 }}>
                                     <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
-                                      {selectedLot?.id === lot.id ? 'Deselecionar' : 'Selecionar'}
+                                      {selectedLot?.id === lot.id ? 'Remover' : 'Selecionar'}
                                     </Button>
                                     {(() => {
                                       let hasVisual = false;
