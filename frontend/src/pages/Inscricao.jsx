@@ -78,7 +78,7 @@ const Inscricao = () => {
   const [currentInscricao, setCurrentInscricao] = useState(0);
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [registrationCode, setRegistrationCode] = useState('');
-  const [selectedLotId, setSelectedLotId] = useState(null);
+  const [selectedLots, setSelectedLots] = useState([]); // Array de {lotId, quantity}
   const [cartProducts, setCartProducts] = useState([]);
   const [paymentUrl, setPaymentUrl] = useState('');
   const [paymentPending, setPaymentPending] = useState(false);
@@ -93,21 +93,22 @@ const Inscricao = () => {
     
     if (lotIdFromUrl) {
       console.log('🎯 Lote selecionado via URL:', lotIdFromUrl);
-      setSelectedLotId(parseInt(lotIdFromUrl));
+      setSelectedLots([{ lotId: parseInt(lotIdFromUrl), quantity: 1 }]);
     } else {
       // Carregar seleções salvas do localStorage
       const savedSelections = localStorage.getItem('eventSelections');
       if (savedSelections) {
         try {
           const selections = JSON.parse(savedSelections);
-          setSelectedLotId(selections.selectedLotId);
+          setSelectedLots(selections.selectedLots || []);
           setCartProducts(selections.cartProducts || []);
-          // Criar N participantes a partir da quantidade escolhida no ticket
-          const qty = Math.max(1, parseInt(selections.ticketQuantity || 1));
-          if (qty > 1) {
+          
+          // Criar N participantes baseado na soma de todas as quantidades
+          const totalTickets = selections.selectedLots?.reduce((sum, item) => sum + item.quantity, 0) || 1;
+          if (totalTickets > 1) {
             setInscricoes(prev => {
               const base = prev[0] || { nome: '', email: '', telefone: '', cpf: '', idade: '', genero: '', endereco: '', autorizacao_imagem: false, custom_fields: {} };
-              const arr = Array.from({ length: qty }).map((_, i) => ({ ...base, nome: i === 0 ? base.nome : '', email: i === 0 ? base.email : '' }));
+              const arr = Array.from({ length: totalTickets }).map((_, i) => ({ ...base, nome: i === 0 ? base.nome : '', email: i === 0 ? base.email : '' }));
               return arr;
             });
           }
@@ -121,7 +122,7 @@ const Inscricao = () => {
 
   const clearSelections = () => {
     localStorage.removeItem('eventSelections');
-    setSelectedLotId(null);
+    setSelectedLots([]);
     setCartProducts([]);
   };
 
@@ -327,7 +328,7 @@ const Inscricao = () => {
       const response = await api.post(`/events/${event.id}/teste-ultra-simples`, {
         participantes: participantesToSend,
         payment_method: 'CHECKOUT_PRO',
-        lote_id: selectedLotId,
+        selected_lots: selectedLots,
         products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity }))
       });
 
@@ -373,18 +374,22 @@ const Inscricao = () => {
 
   const calculateTotal = () => {
     if (!event.lots || event.lots.length === 0) return 0;
-    const price = Number(selectedLot?.price) || 0;
-    const inscriptionsTotal = price * inscricoes.length;
+    
+    // Calcular total dos ingressos selecionados
+    const ticketsTotal = selectedLots.reduce((total, item) => {
+      const lot = event.lots.find(l => l.id === item.lotId);
+      const price = Number(lot?.price) || 0;
+      return total + (price * item.quantity);
+    }, 0);
     
     const productsTotal = cartProducts.reduce((total, product) => {
       return total + (Number(product.price) * product.quantity);
     }, 0);
     
-    const total = inscriptionsTotal + productsTotal;
+    const total = ticketsTotal + productsTotal;
     console.log('💰 Cálculo do total:', {
-      selectedLot,
-      price,
-      inscriptionsTotal,
+      selectedLots,
+      ticketsTotal,
       productsTotal,
       total
     });
@@ -421,7 +426,10 @@ const Inscricao = () => {
       }));
 
       // Verificar se é lote gratuito ANTES de enviar
-      const isFree = selectedLot && (selectedLot?.price === 0 || selectedLot?.price === '0' || selectedLot?.price === 0.00 || selectedLot?.price === '0.00' || parseFloat(selectedLot?.price) === 0) && cartProducts.length === 0;
+      const isFree = selectedLots.length > 0 && selectedLots.every(item => {
+        const lot = event.lots.find(l => l.id === item.lotId);
+        return lot && (lot.price === 0 || lot.price === '0' || lot.price === 0.00 || lot.price === '0.00' || parseFloat(lot.price) === 0);
+      }) && cartProducts.length === 0;
       
       console.log('🆓 VERIFICAÇÃO FINAL - Lote gratuito:', {
         selectedLot,
@@ -434,7 +442,7 @@ const Inscricao = () => {
       const requestData = {
         participantes: participantesToSend,
         payment_method: isFree ? 'FREE' : 'CHECKOUT_PRO',
-        lote_id: selectedLotId,
+        selected_lots: selectedLots,
         products: cartProducts.map(p => ({ id: p.id, quantity: p.quantity })),
         quantity: inscricoes.length
       };

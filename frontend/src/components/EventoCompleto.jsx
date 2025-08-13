@@ -47,12 +47,11 @@ const EventoCompleto = ({ event }) => {
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedLot, setSelectedLot] = useState(null);
+  const [selectedLots, setSelectedLots] = useState([]); // Array de {lot, quantity}
   const [storeProducts, setStoreProducts] = useState([]);
   const [storeLoading, setStoreLoading] = useState(true);
   const [storeError, setStoreError] = useState(null);
   const [kitModal, setKitModal] = useState({ open: false, title: '', items: [], images: [] });
-  const [selectedQty, setSelectedQty] = useState(1);
   
   const { addItem, getEventItems, getStoreItems, removeItem, updateQuantity } = useCart();
   const navigate = useNavigate();
@@ -137,8 +136,20 @@ const EventoCompleto = ({ event }) => {
   const handleLotSelect = (lot) => {
     try {
       console.log('🎯 Lote selecionado:', lot);
-      setSelectedLot(lot);
-      setSelectedQty(1);
+      
+      // Verificar se já está selecionado
+      const existingIndex = selectedLots.findIndex(item => item.lot.id === lot.id);
+      
+      if (existingIndex >= 0) {
+        // Se já está selecionado, remover
+        setSelectedLots(prev => prev.filter((_, index) => index !== existingIndex));
+        console.log('🔄 Lote removido da seleção');
+      } else {
+        // Se não está selecionado, adicionar com quantidade 1
+        setSelectedLots(prev => [...prev, { lot, quantity: 1 }]);
+        console.log('✅ Lote adicionado à seleção');
+      }
+      
       // Scroll suave até o resumo ao selecionar (melhor UX no iPhone)
       try {
         const summary = document.getElementById('order-summary');
@@ -146,6 +157,7 @@ const EventoCompleto = ({ event }) => {
           summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       } catch (_) {}
+      
       // Abrir visual do kit automaticamente ao selecionar o ticket, se existir
       const normalize = (val) => {
         try {
@@ -171,25 +183,23 @@ const EventoCompleto = ({ event }) => {
     }
   };
 
-  const handleToggleLot = (lot) => {
+  const handleUpdateLotQuantity = (lotId, newQuantity) => {
     try {
-      if (selectedLot?.id === lot.id) {
-        console.log('🔄 Deselecionando lote:', lot.id);
-        setSelectedLot(null);
-        return;
-      }
-      handleLotSelect(lot);
-    } catch (e) {
-      console.error('Erro ao alternar lote:', e);
+      setSelectedLots(prev => prev.map(item => 
+        item.lot.id === lotId 
+          ? { ...item, quantity: Math.max(1, Math.min(20, newQuantity)) }
+          : item
+      ));
+    } catch (error) {
+      console.error('❌ Erro ao atualizar quantidade:', error);
     }
   };
 
-  const handleRemoveSelectedLot = () => {
+  const handleRemoveLot = (lotId) => {
     try {
-      console.log('🗑️ Removendo ingresso selecionado');
-      setSelectedLot(null);
-    } catch (e) {
-      console.error('Erro ao remover ingresso selecionado:', e);
+      setSelectedLots(prev => prev.filter(item => item.lot.id !== lotId));
+    } catch (error) {
+      console.error('❌ Erro ao remover lote:', error);
     }
   };
 
@@ -258,10 +268,10 @@ const EventoCompleto = ({ event }) => {
     try {
       let total = 0;
       
-      // Adicionar preço do ingresso selecionado
-      if (selectedLot) {
-        total += parseFloat(selectedLot.price) * (selectedQty || 1);
-      }
+      // Adicionar preços dos ingressos selecionados
+      selectedLots.forEach(item => {
+        total += parseFloat(item.lot.price) * item.quantity;
+      });
       
       // Adicionar preços dos produtos do evento
       cartProducts.forEach(product => {
@@ -284,36 +294,39 @@ const EventoCompleto = ({ event }) => {
     try {
       console.log('🚀 Prosseguindo para checkout...');
       
-      // Adicionar ingresso ao carrinho se selecionado
-      if (selectedLot) {
+      // Adicionar todos os ingressos selecionados ao carrinho
+      selectedLots.forEach(item => {
         const ticketItem = {
-          id: selectedLot.id,
-          name: `Ingresso - ${selectedLot.name}`,
-          price: parseFloat(selectedLot.price),
-          quantity: selectedQty || 1,
+          id: item.lot.id,
+          name: `Ingresso - ${item.lot.name}`,
+          price: parseFloat(item.lot.price),
+          quantity: item.quantity,
           type: ITEM_TYPES.EVENT_TICKET,
           eventId: event.id,
           eventName: event.name,
-          lotId: selectedLot.id,
-          lotName: selectedLot.name
+          lotId: item.lot.id,
+          lotName: item.lot.name
         };
         
         addItem(ticketItem);
-        // Persistir seleção para a tela de inscrição (lot e quantidade)
-        try {
-          const previous = localStorage.getItem('eventSelections');
-          const prevJson = previous ? JSON.parse(previous) : {};
-          const toSave = {
-            ...prevJson,
-            selectedLotId: selectedLot.id,
-            ticketQuantity: selectedQty || 1
-          };
-          localStorage.setItem('eventSelections', JSON.stringify(toSave));
-        } catch (_) {}
-      }
+      });
+      
+      // Persistir seleções para a tela de inscrição
+      try {
+        const previous = localStorage.getItem('eventSelections');
+        const prevJson = previous ? JSON.parse(previous) : {};
+        const toSave = {
+          ...prevJson,
+          selectedLots: selectedLots.map(item => ({
+            lotId: item.lot.id,
+            quantity: item.quantity
+          }))
+        };
+        localStorage.setItem('eventSelections', JSON.stringify(toSave));
+      } catch (_) {}
       
       // Caso não tenha ingresso mas tenha produtos da loja, ainda assim pode prosseguir
-      if (!selectedLot && cartProducts.length === 0 && cartStoreItems.length === 0) {
+      if (selectedLots.length === 0 && cartProducts.length === 0 && cartStoreItems.length === 0) {
         console.log('❌ Nenhum item no carrinho para finalizar');
         return;
       }
@@ -583,8 +596,8 @@ const EventoCompleto = ({ event }) => {
                                   </Box>
                                   {/* ações */}
                                   <Box sx={{ position: 'absolute', right: 12, bottom: 12, display: 'flex', gap: 1 }}>
-                                    <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
-                                      {selectedLot?.id === lot.id ? 'Remover' : 'Selecionar'}
+                                    <Button size="small" variant={selectedLots.some(item => item.lot.id === lot.id) ? 'contained' : 'outlined'}>
+                                      {selectedLots.some(item => item.lot.id === lot.id) ? 'Remover' : 'Selecionar'}
                                     </Button>
                                     {(() => {
                                       let hasVisual = false;
@@ -637,14 +650,14 @@ const EventoCompleto = ({ event }) => {
                                     color="primary" 
                                     size="small"
                                   />
-                                  {selectedLot?.id === lot.id && (
+                                  {selectedLots.some(item => item.lot.id === lot.id) && (
                                     <Chip label="Selecionado" color="success" size="small" />
                                   )}
                                 </Box>
                                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1.5 }}>
                                   <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
-                                      {selectedLot?.id === lot.id ? 'Remover' : 'Selecionar'}
+                                    <Button size="small" variant={selectedLots.some(item => item.lot.id === lot.id) ? 'contained' : 'outlined'}>
+                                      {selectedLots.some(item => item.lot.id === lot.id) ? 'Remover' : 'Selecionar'}
                                     </Button>
                                     {/* Ver o que está incluso */}
                                     {(() => {
@@ -850,60 +863,67 @@ const EventoCompleto = ({ event }) => {
                     Seu Pedido
                   </Typography>
 
-                  {/* Ingresso Selecionado */}
-                  {selectedLot && (
-                    <Box sx={{ mb: 2, p: 2, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                        <Box
-                          component="img"
-                          src={selectedLot.ticket_image || 'https://via.placeholder.com/120x80?text=Ticket'}
-                          alt={`Ticket ${selectedLot.name}`}
-                          sx={{ width: 90, height: 60, objectFit: 'cover', borderRadius: 0.5 }}
-                        />
-                        <Box>
-                          <Typography variant="h6" gutterBottom sx={{ m: 0 }}>
-                            Ingresso - {selectedLot.name}
-                          </Typography>
-                          <Typography variant="caption" sx={{ opacity: 0.85 }}>
-                            {dayjs(selectedLot.start_date).format('DD/MM')}–{dayjs(selectedLot.end_date).format('DD/MM')}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Typography variant="h6" color="primary">
-                        {formatPrice(selectedLot.price * (selectedQty || 1))}
+                  {/* Ingressos Selecionados */}
+                  {selectedLots.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Ingressos Selecionados:
                       </Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: .5 }}>
-                          <Button size="small" variant="outlined" onClick={() => setSelectedQty(Math.max(1, (selectedQty||1)-1))}>-</Button>
-                          <Chip label={`${selectedQty || 1}x`} size="small" />
-                          <Button size="small" variant="outlined" onClick={() => setSelectedQty(Math.min(20, (selectedQty||1)+1))}>+</Button>
+                      {selectedLots.map((item) => (
+                        <Box key={item.lot.id} sx={{ mb: 1, p: 2, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                            <Box
+                              component="img"
+                              src={item.lot.ticket_image || 'https://via.placeholder.com/120x80?text=Ticket'}
+                              alt={`Ticket ${item.lot.name}`}
+                              sx={{ width: 90, height: 60, objectFit: 'cover', borderRadius: 0.5 }}
+                            />
+                            <Box>
+                              <Typography variant="h6" gutterBottom sx={{ m: 0 }}>
+                                Ingresso - {item.lot.name}
+                              </Typography>
+                              <Typography variant="caption" sx={{ opacity: 0.85 }}>
+                                {dayjs(item.lot.start_date).format('DD/MM')}–{dayjs(item.lot.end_date).format('DD/MM')}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Typography variant="h6" color="primary">
+                            {formatPrice(item.lot.price * item.quantity)}
+                          </Typography>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: .5 }}>
+                              <Button size="small" variant="outlined" onClick={() => handleUpdateLotQuantity(item.lot.id, item.quantity - 1)}>-</Button>
+                              <Chip label={`${item.quantity}x`} size="small" />
+                              <Button size="small" variant="outlined" onClick={() => handleUpdateLotQuantity(item.lot.id, item.quantity + 1)}>+</Button>
+                            </Box>
+                            <Button size="small" color="error" variant="outlined" onClick={() => handleRemoveLot(item.lot.id)}>
+                              Remover
+                            </Button>
+                          </Box>
+                          {(() => {
+                            // Exibir itens do kit gratuitamente (apenas informativo)
+                            let kit = [];
+                            try {
+                              const k = item.lot.kit_includes;
+                              if (Array.isArray(k)) kit = k; 
+                              else if (typeof k === 'string') {
+                                const s = k.trim();
+                                kit = s.startsWith('[') ? JSON.parse(s) : s.split(',').map(v => v.trim()).filter(Boolean);
+                              }
+                            } catch (_) { kit = []; }
+                            return kit.length > 0 ? (
+                              <Box sx={{ mt: 1 }}>
+                                <Typography variant="body2" sx={{ opacity: 0.9, mb: .5 }}>Você ganha:</Typography>
+                                <Box sx={{ display: 'flex', gap: .5, flexWrap: 'wrap' }}>
+                                  {kit.map((kitItem, i) => (
+                                    <Chip key={`kit-${item.lot.id}-${i}`} size="small" label={String(kitItem)} />
+                                  ))}
+                                </Box>
+                              </Box>
+                            ) : null;
+                          })()}
                         </Box>
-                        <Button size="small" color="error" variant="outlined" onClick={handleRemoveSelectedLot}>
-                          Remover ingresso
-                        </Button>
-                      </Box>
-                       {(() => {
-                         // Exibir itens do kit gratuitamente (apenas informativo)
-                         let kit = [];
-                         try {
-                           const k = selectedLot.kit_includes;
-                           if (Array.isArray(k)) kit = k; 
-                           else if (typeof k === 'string') {
-                             const s = k.trim();
-                             kit = s.startsWith('[') ? JSON.parse(s) : s.split(',').map(v => v.trim()).filter(Boolean);
-                           }
-                         } catch (_) { kit = []; }
-                         return kit.length > 0 ? (
-                           <Box sx={{ mt: 1 }}>
-                             <Typography variant="body2" sx={{ opacity: 0.9, mb: .5 }}>Você ganha:</Typography>
-                             <Box sx={{ display: 'flex', gap: .5, flexWrap: 'wrap' }}>
-                               {kit.map((item, i) => (
-                                 <Chip key={`kit-${i}`} size="small" label={String(item)} />
-                               ))}
-                             </Box>
-                           </Box>
-                         ) : null;
-                       })()}
+                      ))}
                     </Box>
                   )}
 
