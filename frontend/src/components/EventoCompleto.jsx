@@ -93,8 +93,8 @@ const EventoCompleto = ({ event }) => {
         }
         setEventDetails(details);
         // Pré-selecionar primeiro lote para reduzir toques no iPhone
-        if (!selectedLot && response.data?.lots?.length > 0) {
-          setSelectedLot(response.data.lots[0]);
+        if (selectedLots.length === 0 && response.data?.lots?.length > 0) {
+          setSelectedLots([{ lot: response.data.lots[0], quantity: 1 }]);
         }
       } catch (error) {
         console.error('❌ Erro ao carregar detalhes do evento:', error);
@@ -1033,7 +1033,7 @@ const EventoCompleto = ({ event }) => {
                     variant="contained"
                     size="large"
                     onClick={handleProceedToRegistration}
-                    disabled={!selectedLot && cartProducts.length === 0 && cartStoreItems.length === 0}
+                    disabled={selectedLots.length === 0 && cartProducts.length === 0 && cartStoreItems.length === 0}
                     sx={{ py: 1.5 }}
                   >
                     Finalizar Compra
