@@ -641,16 +641,8 @@ const EventoCompleto = ({ event }) => {
                                     <Chip label="Selecionado" color="success" size="small" />
                                   )}
                                 </Box>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1.5, alignItems: 'center' }}>
-                                  {/* Contador de quantidade quando selecionado */}
-                                  {selectedLot?.id === lot.id && (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: .5 }}>
-                                      <Button size="small" variant="outlined" onClick={(e) => { e.stopPropagation(); setSelectedQty(Math.max(1, (selectedQty||1)-1)); }}>-</Button>
-                                      <Chip label={`${selectedQty || 1}x`} size="small" />
-                                      <Button size="small" variant="outlined" onClick={(e) => { e.stopPropagation(); setSelectedQty(Math.min(20, (selectedQty||1)+1)); }}>+</Button>
-                                    </Box>
-                                  )}
-                                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1.5 }}>
+                                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Button size="small" variant={selectedLot?.id === lot.id ? 'contained' : 'outlined'}>
                                       {selectedLot?.id === lot.id ? 'Remover' : 'Selecionar'}
                                     </Button>
@@ -878,9 +870,14 @@ const EventoCompleto = ({ event }) => {
                         </Box>
                       </Box>
                       <Typography variant="h6" color="primary">
-                        {formatPrice(selectedLot.price)}
+                        {formatPrice(selectedLot.price * (selectedQty || 1))}
                       </Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: .5 }}>
+                          <Button size="small" variant="outlined" onClick={() => setSelectedQty(Math.max(1, (selectedQty||1)-1))}>-</Button>
+                          <Chip label={`${selectedQty || 1}x`} size="small" />
+                          <Button size="small" variant="outlined" onClick={() => setSelectedQty(Math.min(20, (selectedQty||1)+1))}>+</Button>
+                        </Box>
                         <Button size="small" color="error" variant="outlined" onClick={handleRemoveSelectedLot}>
                           Remover ingresso
                         </Button>
