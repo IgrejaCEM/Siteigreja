@@ -563,7 +563,7 @@ const EventoCompleto = ({ event }) => {
                         <Grid item xs={12} sm={6} key={lot.id}>
                           <Card sx={{ bgcolor: 'rgba(255,255,255,0.06)', borderRadius: 2, border: '1px solid rgba(255,255,255,0.12)' }}>
                             <ButtonBase
-                              onClick={() => handleToggleLot(lot)}
+                              onClick={() => handleLotSelect(lot)}
                               sx={{ display: 'block', width: '100%', textAlign: 'left', borderRadius: 2 }}
                             >
                               <CardContent sx={{ p: 0 }}>
